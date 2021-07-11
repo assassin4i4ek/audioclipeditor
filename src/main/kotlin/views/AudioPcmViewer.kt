@@ -103,106 +103,15 @@ fun AudioPcmViewer(
     }
 }
 
-/*
-@Composable
-fun AudioPcmViewer(
-    audioClip: AudioClip,
-    transformState: TransformState,
-    onDoubleTap: ((Offset) -> Unit)? = null,
-    onLongPress: ((Offset) -> Unit)? = null,
-    onPress: ((Offset) -> Unit)? = null,
-    onTap: ((Offset) -> Unit)? = null,
-    onHorizontalDrag: ((PointerInputChange, Float) -> Unit) = { change, _ -> change.consumeAllChanges() },
-    onHorizontalDragStart: (Offset) -> Unit = {},
-    onHorizontalDragEnd: () -> Unit = {}
-    ) {
-    with(LocalDensity.current) {
-        transformState.layoutState.contentWidthPx = transformState.layoutState.layoutParams.xDpPerSec.toPx() * audioClip.durationMs * transformState.zoom / 1000
-
-        val channels by remember(audioClip, transformState) {
-            derivedStateOf {
-                if (transformState.layoutState.canvasHeightPx > 0) {
-                    pcmToPath(
-                        audioClip,
-                        transformState.zoom,
-                        (transformState.layoutState.canvasHeightPx - 3f) / 2,
-                        transformState.layoutState.layoutParams.xDpPerSec.toPx()
-                    )
-                } else {
-                    Path() to Path()
-                }
-            }
-        }
-
-        Canvas(
-            modifier = Modifier.fillMaxSize().onSizeChanged {
-                transformState.layoutState.canvasHeightPx = it.height.toFloat()
-                transformState.layoutState.canvasWidthPx = it.width.toFloat()
-            }.pointerInput(onDoubleTap, onLongPress, onPress, onTap) {
-                detectTapGestures(
-                    onDoubleTap = onDoubleTap,
-                    onLongPress = onLongPress,
-                    onPress = {
-                        onPress?.invoke(it)
-                    },
-                    onTap = onTap
-                )
-            }.pointerInput(onHorizontalDrag) {
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = onHorizontalDrag,
-                    onDragStart = onHorizontalDragStart,
-                    onDragEnd = onHorizontalDragEnd
-                )
-//                { change, dragAmount ->
-//                    change.consumeAllChanges()
-//                    onHorizontalDrag?.invoke(change, dragAmount)
-//                }
-            }
-        ) {
-            translate(transformState.xOffset) {
-                scale(transformState.zoom, 1f, Offset.Zero) {
-                    drawPath(path = channels.first, color = Color.Blue, style = Stroke())
-                    drawPath(path = channels.second, color = Color.Blue, style = Stroke())
-                }
-            }
-
-            /* Draw Markup */
-            drawLine(
-                color = Color.DarkGray,
-                start = Offset(0f, .5f),
-                end = Offset(size.width, .5f)
-            )
-            drawLine(
-                color = Color.DarkGray,
-                start = Offset(0f, size.height / 2),
-                end = Offset(size.width, size.height / 2)
-            )
-            drawLine(
-                color = Color.DarkGray,
-                start = Offset(0f, size.height - .5f),
-                end = Offset(size.width, size.height - .5f)
-            )
-
-            // Draw center
-            /*drawLine(
-                color = Color.Red,
-                start = Offset(size.width / 2, 0f),
-                end = Offset(size.width / 2, size.height)
-            )*/
-        }
-    }
-}
-*/
-
 private fun pcmToPath(audioClip: AudioClip, zoom: Float, yRangePx: Float, xPxPerSec: Float): Pair<Path, Path> {
     println("Paths built")
     val channelsPaths = audioClip.pcmChannels.toList().mapIndexed { iChannel, channelPcm ->
         val path = Path()
         val xStep = max(1, (20.0 / sqrt(zoom)).roundToInt())
-        val xScaler = xPxPerSec * audioClip.durationMs / 1000 / channelPcm.size
+        val xScaler = xPxPerSec * (audioClip.durationUs.toDouble() / 1e6) / channelPcm.size
         for (x in channelPcm.indices step xStep) {
             path.lineTo(
-                x.toFloat() * xScaler,
+                (x * xScaler).toFloat(),
                 (channelPcm[x]).toFloat() / Short.MAX_VALUE * yRangePx / 2
 //                (ln(yscale * abs(y) + 1) / ln(yscale + 1.0) * 100 * sign(y)).toFloat() + 200
             )

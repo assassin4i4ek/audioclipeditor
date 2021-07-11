@@ -1,21 +1,22 @@
 package views.states
 
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.mutableStateOf
 import kotlin.math.max
 import kotlin.math.min
 
-class TransformState(/*val zoomAtCursor: Boolean, */val layoutState: LayoutState, xOffsetPx: Float = 0f, zoom: Float = 1f) {
+class TransformState(val layoutState: LayoutState, xOffsetPx: Float = 0f, zoom: Float = 1f) {
     private val xAbsoluteOffsetPxState =  mutableStateOf(xOffsetPx)
 
     private val zoomState = mutableStateOf(zoom)
 
     private val xAbsoluteOffsetPxDerived by derivedStateOf {
         min(max(xAbsoluteOffsetPxState.value, (toAbsoluteSize(layoutState.canvasWidthPx) - layoutState.contentWidthPx)), 0f)
-//        min(max(xOffsetState.value, layoutState.canvasWidthDp - layoutState.contentWidthDp), 0f)
+    }
+
+    private val zoomDerived by derivedStateOf {
+        max(zoomState.value, layoutState.canvasWidthPx / layoutState.contentWidthPx)
     }
 
     var xAbsoluteOffsetPx
@@ -31,7 +32,7 @@ class TransformState(/*val zoomAtCursor: Boolean, */val layoutState: LayoutState
         }
 
     var zoom
-    get() = zoomState.value
+    get() = zoomDerived
     set(value) {
         xAbsoluteOffsetPx += layoutState.canvasWidthPx / 2 / value - layoutState.canvasWidthPx / 2 / zoom
 //        xOffsetState.value = (xOffset - layoutState.canvasWidthPx / 2) * (value / zoom) + layoutState.canvasWidthPx / 2

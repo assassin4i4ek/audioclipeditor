@@ -8,14 +8,14 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import model.AudioClip
 
-class LayoutState(private val audioDurationMs: Float, currentDensity: Density, layoutParams: AudioPcmViewerLayoutParams = AudioPcmViewerLayoutParams()) {
+class LayoutState(private val audioDurationUs: Long, currentDensity: Density, layoutParams: AudioPcmViewerLayoutParams = AudioPcmViewerLayoutParams()) {
 //    var contentWidthPx by mutableStateOf(0f)
-    val contentWidthPx = with(currentDensity) { layoutParams.xDpPerSec.toPx() } *  audioDurationMs / 1000
+    val contentWidthPx = (with(currentDensity) { layoutParams.xDpPerSec.toPx() } * (audioDurationUs / 1e6)).toFloat()
     var canvasHeightPx by mutableStateOf(0f)
     var canvasWidthPx by mutableStateOf(0f)
     val layoutParams by mutableStateOf(layoutParams)
 
-    fun toMs(px: Float) = px * audioDurationMs / contentWidthPx
+    fun toUs(px: Float): Long = (px.toDouble() / contentWidthPx * audioDurationUs).toLong()
 
-    fun toPx(ms: Float) = ms * contentWidthPx / audioDurationMs
+    fun toPx(us: Long): Float = (us.toDouble() / audioDurationUs * contentWidthPx).toFloat()
 }

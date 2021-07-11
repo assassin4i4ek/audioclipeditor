@@ -9,5 +9,6 @@ data class AudioClipState(
     val transformState: TransformState,
     val clipRunningState: MutableState<Boolean>,
     val cursorState: CursorState,
-    val fragmentsState: SnapshotStateMap<AudioFragment, AudioFragmentState>
+    val fragmentsState: SnapshotStateMap<AudioFragment, AudioFragmentState>,
+    val draggedFragmentState: DraggedFragmentState
 )

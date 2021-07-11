@@ -30,7 +30,7 @@ fun PannableAudioPcmWrapper(
 ) {
     with (LocalDensity.current) {
         val canvasTransformState = remember(audioClip, transformState) {
-            TransformState(LayoutState(audioClip.durationMs, this, transformState.layoutState.layoutParams))
+            TransformState(LayoutState(audioClip.durationUs, this, transformState.layoutState.layoutParams))
         }
 
         Box(modifier = Modifier.onGloballyPositioned {

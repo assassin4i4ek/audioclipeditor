@@ -51,7 +51,7 @@ fun main() = Window {
             with(LocalDensity.current) {
                 Column {
                     val selectedAudio = audioList[selectedAudioIndex]
-                    val (transformState, clipRunningState, cursorState, audioFragmentsState) = audioStates[selectedAudio]!!
+                    val (transformState, clipRunningState, cursorState, audioFragmentsState, draggedFragmentState) = audioStates[selectedAudio]!!
 
                     ScrollableTabRow(selectedAudioIndex) {
                         audioList.forEachIndexed { i, audioClip ->
@@ -88,7 +88,8 @@ fun main() = Window {
 //                                            false,
                                             selectedAudio,
                                             audioFragmentsState,
-                                            internalTransformState
+                                            internalTransformState,
+                                            draggedFragmentState
                                         ) { _, _, _, _ ->
                                             AudioPcmViewer(
                                                 selectedAudio, internalTransformState,
@@ -112,7 +113,8 @@ fun main() = Window {
                                     AudioFragmentsWrapper(
                                         selectedAudio,
                                         audioFragmentsState,
-                                        transformState
+                                        transformState,
+                                        draggedFragmentState
                                     ) { onRememberDragStartPosition, onDragAudioFragmentStart, onDragAudioFragment, _ ->
                                         AudioPcmViewer(
                                             selectedAudio,
@@ -164,15 +166,15 @@ fun main() = Window {
                         Button(
                             enabled = !clipRunningState.value,
                             onClick = {
-                                val offsetMs = transformState.layoutState.toMs(cursorState.xAbsolutePositionPx)
+                                val offsetUs = transformState.layoutState.toUs(cursorState.xAbsolutePositionPx)
                                     //selectedAudio.durationMs * cursorState.xPosition / transformState.layoutState.contentWidthPx * transformState.zoom
                                 clipRunningState.value = true
                                 cursorState.animatePositionScrollTo(
                                     transformState.layoutState.contentWidthPx,
-                                    selectedAudio.durationMs - offsetMs,
+                                    ((selectedAudio.durationUs - offsetUs) / 1e3).toFloat(),
                                     onFinished = onAnimationFinish(selectedAudio, clipRunningState, cursorState)
                                 )
-                                selectedAudio.play(offsetMs)
+                                selectedAudio.play(offsetUs)
                             }
                         ) {
                             Text(">")
@@ -213,22 +215,23 @@ fun onAnimationFinish(audioClip: AudioClip, clipRunningState: MutableState<Boole
 }
 
 fun initAudioClipState(audioClip: AudioClip, composableScope: CoroutineScope, currentDensity: Density): AudioClipState {
-    val layoutState = LayoutState(audioClip.durationMs, currentDensity)
+    val layoutState = LayoutState(audioClip.durationUs, currentDensity)
     val transformState = TransformState(layoutState)
     val clipRunningState = mutableStateOf(false)
     val audioFragmentsState = mutableStateMapOf<AudioFragment, AudioFragmentState>()
+    val draggedFragmentState = DraggedFragmentState()
     val cursorState =  CursorState(composableScope, layoutState) {
         if (clipRunningState.value) {
             audioClip.stop()
 //            val offsetMs = audioClip.durationMs * xPosition / layoutState.contentWidthPx * transformState.zoom
-            val offsetMs = layoutState.toMs(xAbsolutePositionPx)
+            val offsetUs = layoutState.toUs(xAbsolutePositionPx)
             animatePositionScrollTo(
                 layoutState.contentWidthPx,
-                audioClip.durationMs - offsetMs,
+                ((audioClip.durationUs - offsetUs).toDouble() / 1000).toFloat(),
                 onFinished = onAnimationFinish(audioClip, clipRunningState, this@CursorState)
             )
-            audioClip.play(offsetMs)
+            audioClip.play(offsetUs)
         }
     }
-    return AudioClipState(transformState, clipRunningState, cursorState, audioFragmentsState)
+    return AudioClipState(transformState, clipRunningState, cursorState, audioFragmentsState, draggedFragmentState)
 }

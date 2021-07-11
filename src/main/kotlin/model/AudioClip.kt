@@ -18,13 +18,13 @@ import kotlin.math.sign
 class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = AudioFragmentSpecs()) {
     val name: String
     val directory: String
-    val durationMs: Float
+    val durationUs: Long
     val pcmChannels: Pair<ShortArray, ShortArray>
 
     private val pcmAudioFormat: AudioFormat
     private val pcm: ByteArray
     private var clip: Clip = AudioSystem.getClip()
-    private val _fragments: TreeSet<AudioFragment> = sortedSetOf(Comparator { a, b -> sign(a.lowerImmutableAreaStartMs - b.lowerImmutableAreaStartMs).toInt() })
+    private val _fragments: TreeSet<AudioFragment> = sortedSetOf(Comparator { a, b -> (a.lowerImmutableAreaStartUs - b.lowerImmutableAreaStartUs).toInt() })
 //    private val _fragments: MutableList<AudioFragment> = mutableListOf()
     val fragments: Iterable<AudioFragment> get() = _fragments.asIterable()
 
@@ -52,7 +52,7 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
             decoder.sampleRate.toFloat(),//AudioSystem.NOT_SPECIFIED.toFloat(),
             false
         )
-        durationMs = (pcm.size / 4 * 1000f) / decoder.sampleRate
+        durationUs = (pcm.size.toDouble() / 4 * 1e6 / decoder.sampleRate).toLong()
 
         pcmChannels = List(2) { iChannel ->
             ShortArray(pcm.size / 4) {
@@ -86,10 +86,10 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
         File(newDirectory, filename).writeBytes(mp3ByteStream.toByteArray())
     }
 
-    fun play(offsetMs: Float = 0f) {
+    fun play(offsetUs: Long = 0) {
 //        clip.framePosition = (pcm.size * offsetMs / durationMs / pcmAudioFormat.frameSize).roundToInt()
 
-        clip.microsecondPosition = (offsetMs * 1000).toLong()
+        clip.microsecondPosition = offsetUs
         clip.start()
 
 //        val clip = if (clipPool.isNotEmpty()) clipPool.removeLast() else AudioSystem.getClip()
@@ -109,15 +109,15 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
     }
 
     fun createFragment(
-        lowerImmutableAreaStartMs: Float, mutableAreaStartMs: Float,
-        mutableAreaEndMs: Float, upperImmutableAreaEndMs: Float
+        lowerImmutableAreaStartUs: Long, mutableAreaStartUs: Long,
+        mutableAreaEndUs: Long, upperImmutableAreaEndUs: Long
     ): AudioFragment {
         val newFragment = AudioFragment(
-            lowerImmutableAreaStartMs,
-            mutableAreaStartMs,
-            mutableAreaEndMs,
-            upperImmutableAreaEndMs,
-            durationMs,
+            lowerImmutableAreaStartUs,
+            mutableAreaStartUs,
+            mutableAreaEndUs,
+            upperImmutableAreaEndUs,
+            durationUs,
             null,
             null,
             specs = audioFragmentSpecs

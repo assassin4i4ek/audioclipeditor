@@ -29,7 +29,7 @@ private fun consumeScrollAdjustedDelta(
             Orientation.Horizontal -> 1.0f / 147.3f
             Orientation.Vertical -> 1.0f / 1.4620163f / 30.45f
         }
-        val adjustedDelta = 2f / (1 + exp(0.5f * delta * canvasSizeCoef * orientationAlignmentCoef))
+        val adjustedDelta = 2f / (1 + exp(-0.5f * delta * canvasSizeCoef * orientationAlignmentCoef))
         transformState.zoom *= adjustedDelta
         delta
     }

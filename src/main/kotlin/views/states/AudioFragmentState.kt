@@ -3,49 +3,91 @@ package views.states
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import model.AudioClip
 import model.AudioFragment
-import kotlin.math.min
 
 class AudioFragmentState(
     val audioFragment: AudioFragment,
-    val layoutState: LayoutState,
+//    val layoutState: LayoutState,
 ) {
-    private var lowerImmutableAreaStartMs by mutableStateOf(audioFragment.lowerImmutableAreaStartMs)
-    private var upperImmutableAreaEndMs by mutableStateOf(audioFragment.upperImmutableAreaEndMs)
-    private var mutableAreaStartMs by mutableStateOf(audioFragment.mutableAreaStartMs)
-    private var mutableAreaEndMs by mutableStateOf(audioFragment.mutableAreaEndMs)
+    private var _lowerImmutableAreaStartUs by mutableStateOf(audioFragment.lowerImmutableAreaStartUs)
+    private var _upperImmutableAreaEndUs by mutableStateOf(audioFragment.upperImmutableAreaEndUs)
+    private var _mutableAreaStartUs by mutableStateOf(audioFragment.mutableAreaStartUs)
+    private var _mutableAreaEndUs by mutableStateOf(audioFragment.mutableAreaEndUs)
 
-    var lowerImmutableAreaStartPx
-        get() = layoutState.toPx(lowerImmutableAreaStartMs)
+    var lowerImmutableAreaStartUs
+        get() = _lowerImmutableAreaStartUs
         set(value) {
-            lowerImmutableAreaStartMs = layoutState.toMs(value)
-            audioFragment.lowerImmutableAreaStartMs = lowerImmutableAreaStartMs
+            _lowerImmutableAreaStartUs = value
+            audioFragment.lowerImmutableAreaStartUs = _lowerImmutableAreaStartUs
         }
 
-    var upperImmutableAreaEndPx
-        get() = layoutState.toPx(upperImmutableAreaEndMs)
+    var upperImmutableAreaEndUs
+        get() = _upperImmutableAreaEndUs
         set(value) {
-            upperImmutableAreaEndMs = layoutState.toMs(value)
-            audioFragment.upperImmutableAreaEndMs = upperImmutableAreaEndMs
+            _upperImmutableAreaEndUs = value
+            audioFragment.upperImmutableAreaEndUs = _upperImmutableAreaEndUs
         }
 
-
-    var mutableAreaStartPx
-        get() = layoutState.toPx(mutableAreaStartMs)
+    var mutableAreaStartUs
+        get() = _mutableAreaStartUs
         set(value) {
-            mutableAreaStartMs = layoutState.toMs(value)
-            audioFragment.mutableAreaStartMs = mutableAreaStartMs
+            _mutableAreaStartUs = value
+            audioFragment.mutableAreaStartUs = _mutableAreaStartUs
         }
 
-    var mutableAreaEndPx
-        get() = layoutState.toPx(mutableAreaEndMs)
+    var mutableAreaEndUs
+        get() = _mutableAreaEndUs
         set(value) {
-            mutableAreaEndMs = layoutState.toMs(value)
-            audioFragment.mutableAreaEndMs = mutableAreaEndMs
+            _mutableAreaEndUs = value
+            audioFragment.mutableAreaEndUs = _mutableAreaEndUs
         }
 
-
+    fun translateRelative(us: Long) {
+        if (us < 0) {
+//            try {
+                lowerImmutableAreaStartUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                mutableAreaStartUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                mutableAreaEndUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                upperImmutableAreaEndUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+        }
+        else if (us > 0) {
+//            try {
+                upperImmutableAreaEndUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                mutableAreaEndUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                mutableAreaStartUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+//            try {
+                lowerImmutableAreaStartUs += us
+//            } catch (e: Exception) {
+//                println(e.message)
+//            }
+        }
+    }
     /*
     private val startMsState = mutableStateOf(audioFragment.startMs)
     private val endMsState = mutableStateOf(audioFragment.endMs)

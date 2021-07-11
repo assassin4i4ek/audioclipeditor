@@ -5,7 +5,7 @@ import model.AudioFragment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
-class DraggedFragmentState/*(val dragBoundFromCanvasDpWidthPercentage: Float)*/ {
+class DraggedFragmentState(val dragBoundFromCanvasDpWidthPercentage: Double) {
     enum class Segment {
         Center, ImmutableLeftBound, ImmutableRightBound, MutableBound,
     }

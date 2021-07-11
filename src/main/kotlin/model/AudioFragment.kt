@@ -52,6 +52,8 @@ class AudioFragment (
             validate()
         }
 
+    val mutableAreaDurationUs: Long get() = mutableAreaEndUs - mutableAreaStartUs
+
     init {
         validate()
     }

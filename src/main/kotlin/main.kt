@@ -219,7 +219,7 @@ fun initAudioClipState(audioClip: AudioClip, composableScope: CoroutineScope, cu
     val transformState = TransformState(layoutState)
     val clipRunningState = mutableStateOf(false)
     val audioFragmentsState = mutableStateMapOf<AudioFragment, AudioFragmentState>()
-    val draggedFragmentState = DraggedFragmentState()
+    val draggedFragmentState = DraggedFragmentState(0.15)
     val cursorState =  CursorState(composableScope, layoutState) {
         if (clipRunningState.value) {
             audioClip.stop()

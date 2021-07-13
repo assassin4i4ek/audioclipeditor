@@ -42,24 +42,17 @@ class DraggedFragmentState(
                 // increase lower immutable area
                 if (adjustedPositionUs < lowerImmutableAreaStartUs) {
                     // amount of increase is allowed by threshold
-                    lowerImmutableAreaStartUs = max(
-                        adjustedPositionUs,
-                        audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(1)
-                            ?: 0
-                    )
+                    lowerImmutableAreaStartUs = max(adjustedPositionUs,
+                        audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(1) ?: 0)
                 }
             } else {
                 // decrease lower immutable area
-                if (adjustedPositionUs < mutableAreaStartUs - thresholdUs
-                ) {
+                if (adjustedPositionUs < mutableAreaStartUs - thresholdUs) {
                     // amount of decrease is allowed by threshold
-                    lowerImmutableAreaStartUs = max(
-                        adjustedPositionUs,
-                        audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(1)
-                            ?: 0
-                    )
-                } else if (mutableAreaStartUs - lowerImmutableAreaStartUs > thresholdUs
-                ) {
+                    lowerImmutableAreaStartUs = max(adjustedPositionUs,
+                        audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(1) ?: 0)
+                }
+                else if (audioFragment.lowerImmutableAreaDurationUs > thresholdUs) {
                     // amount of decrease is NOT allowed by threshold
                     lowerImmutableAreaStartUs = mutableAreaStartUs - thresholdUs
                 }
@@ -73,23 +66,21 @@ class DraggedFragmentState(
                 // increase upper immutable area
                 if (adjustedPositionUs > upperImmutableAreaEndUs) {
                     // amount of increase is allowed by threshold
-                    upperImmutableAreaEndUs = min(
-                        adjustedPositionUs,
+                    upperImmutableAreaEndUs = min(adjustedPositionUs,
                         audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs?.minus(1)
                             ?: audioFragment.maxDurationUs
                     )
                 }
-            } else {
+            }
+            else {
                 // decrease upper immutable area
                 if (adjustedPositionUs > mutableAreaEndUs + thresholdUs) {
                     // amount of decrease is allowed by threshold
-                    upperImmutableAreaEndUs = min(
-                        adjustedPositionUs,
-                        audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs?.minus(
-                            1
-                        ) ?: audioFragment.maxDurationUs
+                    upperImmutableAreaEndUs = min(adjustedPositionUs,
+                        audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs?.minus(1)
+                            ?: audioFragment.maxDurationUs
                     )
-                } else if (upperImmutableAreaEndUs - mutableAreaEndUs > thresholdUs) {
+                } else if (audioFragment.upperImmutableAreaDurationUs > thresholdUs) {
                     // amount of decrease is NOT allowed by threshold
                     upperImmutableAreaEndUs = mutableAreaEndUs + thresholdUs
                 }
@@ -97,14 +88,26 @@ class DraggedFragmentState(
         }
     }
 
-    fun dragMutableLeftBound(adjustedPositionUs: Long, thresholdUs: Long) {
+    fun dragMutableLeftBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
         with(audioFragmentState!!) {
-            val adjustedDelta = max(
-                if (adjustedPositionUs < max(mutableAreaStartUs,audioFragment.mutableAreaEndUs - thresholdUs)) adjustedPositionUs else mutableAreaStartUs,
-                audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(audioFragment.lowerImmutableAreaDurationUs) ?: 0
-            ) - mutableAreaStartUs
+            val adjustedDelta = if (delta < 0) {
+                // increase mutable area
+                if (adjustedPositionUs < mutableAreaStartUs) max(adjustedPositionUs,
+                    audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs
+                        ?.plus(audioFragment.lowerImmutableAreaDurationUs) ?: 0)
+                else mutableAreaStartUs
+            }
+            else {
+                // decrease mutable area
+                when {
+                    adjustedPositionUs < mutableAreaEndUs - thresholdUs -> max(adjustedPositionUs,
+                        audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs
+                            ?.plus(audioFragment.lowerImmutableAreaDurationUs) ?: 0)
+                    audioFragment.mutableAreaDurationUs > thresholdUs -> mutableAreaEndUs - thresholdUs
+                    else -> mutableAreaStartUs
+                }
+            } - mutableAreaStartUs
 
-            println("$adjustedDelta")
             if (adjustedDelta < 0) {
                 lowerImmutableAreaStartUs += adjustedDelta
                 mutableAreaStartUs += adjustedDelta
@@ -128,7 +131,7 @@ class DraggedFragmentState(
                         mutableAreaEndUs = newMutableAreaEndUs
                         mutableAreaStartUs = newMutableAreaStartUs
                         lowerImmutableAreaStartUs = newLowerImmutableAreaStartUs
-                        dragMutableRightBound(adjustedPositionUs, thresholdUs)
+                        dragMutableRightBound(delta, adjustedPositionUs, thresholdUs)
                     }
                 } else {
                     mutableAreaStartUs += adjustedDelta
@@ -138,15 +141,28 @@ class DraggedFragmentState(
         }
     }
 
-    fun dragMutableRightBound(adjustedPositionUs: Long, thresholdUs: Long) {
+    fun dragMutableRightBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
         with(audioFragmentState!!) {
-            val adjustedDelta = min(
-                if (adjustedPositionUs > min(mutableAreaEndUs,audioFragment.mutableAreaStartUs + thresholdUs)) adjustedPositionUs else mutableAreaEndUs,
-                (audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs?.minus(upperImmutableAreaEndUs - mutableAreaEndUs)
-                    ?: audioFragment.maxDurationUs)
-            ) - mutableAreaEndUs
+            val adjustedDelta = if (delta > 0) {
+                // increase mutable area
+                if (adjustedPositionUs > mutableAreaEndUs) min(
+                    adjustedPositionUs,
+                    audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs
+                        ?.minus(audioFragment.upperImmutableAreaDurationUs)
+                        ?: audioFragment.maxDurationUs)
+                else mutableAreaEndUs
+            }
+            else {
+                // decrease upper immutable area
+                when {
+                    adjustedPositionUs > mutableAreaStartUs + thresholdUs -> min(adjustedPositionUs,
+                        audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs
+                            ?.minus(audioFragment.upperImmutableAreaDurationUs) ?: audioFragment.maxDurationUs)
+                    audioFragment.upperImmutableAreaDurationUs > thresholdUs -> mutableAreaStartUs + thresholdUs
+                    else -> mutableAreaEndUs
+                }
+            } - mutableAreaEndUs
 
-            println("$adjustedDelta")
             if (adjustedDelta > 0) {
                 upperImmutableAreaEndUs += adjustedDelta
                 mutableAreaEndUs += adjustedDelta
@@ -170,7 +186,7 @@ class DraggedFragmentState(
                         mutableAreaEndUs = newMutableAreaEndUs
                         upperImmutableAreaEndUs = newUpperImmutableAreaEndUs
 
-                        dragMutableLeftBound(adjustedPositionUs, thresholdUs)
+                        dragMutableLeftBound(delta, adjustedPositionUs, thresholdUs)
                     }
                 } else {
                     mutableAreaEndUs += adjustedDelta

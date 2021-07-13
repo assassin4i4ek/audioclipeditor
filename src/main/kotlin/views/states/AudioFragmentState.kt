@@ -7,7 +7,7 @@ import model.AudioFragment
 
 class AudioFragmentState(
     val audioFragment: AudioFragment,
-//    val layoutState: LayoutState,
+    var zIndex: Int
 ) {
     private var _lowerImmutableAreaStartUs by mutableStateOf(audioFragment.lowerImmutableAreaStartUs)
     private var _upperImmutableAreaEndUs by mutableStateOf(audioFragment.upperImmutableAreaEndUs)
@@ -44,86 +44,15 @@ class AudioFragmentState(
 
     fun translateRelative(us: Long) {
         if (us < 0) {
-//            try {
-                lowerImmutableAreaStartUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                mutableAreaStartUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                mutableAreaEndUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                upperImmutableAreaEndUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-        }
-        else if (us > 0) {
-//            try {
-                upperImmutableAreaEndUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                mutableAreaEndUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                mutableAreaStartUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
-//            try {
-                lowerImmutableAreaStartUs += us
-//            } catch (e: Exception) {
-//                println(e.message)
-//            }
+            lowerImmutableAreaStartUs += us
+            mutableAreaStartUs += us
+            mutableAreaEndUs += us
+            upperImmutableAreaEndUs += us
+        } else if (us > 0) {
+            upperImmutableAreaEndUs += us
+            mutableAreaEndUs += us
+            mutableAreaStartUs += us
+            lowerImmutableAreaStartUs += us
         }
     }
-    /*
-    private val startMsState = mutableStateOf(audioFragment.startMs)
-    private val endMsState = mutableStateOf(audioFragment.endMs)
-
-    private val startPxDerived by derivedStateOf {
-        startMsState.value / audioClip.durationMs * transformState.layoutState.contentWidthPx / transformState.zoom
-    }
-
-    private val endPxDerived by derivedStateOf {
-        endMsState.value / audioClip.durationMs * transformState.layoutState.contentWidthPx / transformState.zoom
-    }
-
-    private val durationPxDerived by derivedStateOf {
-        endPx - startPx
-    }
-
-    var startPx: Float
-    get() = startPxDerived
-    set(value) {
-        startMsState.value = max(0f, value * audioClip.durationMs / transformState.layoutState.contentWidthPx * transformState.zoom)
-        audioFragment.startMs = startMsState.value
-        println("Start: $value ms")
-    }
-
-    var endPx: Float
-    get() = endPxDerived
-    set(value) {
-        endMsState.value = value * audioClip.durationMs / transformState.layoutState.contentWidthPx * transformState.zoom
-        audioFragment.endMs = endMsState.value
-        println("End: $value ms")
-    }
-
-    var durationPx: Float
-    get() = durationPxDerived
-    set(value) {
-        endPx = startPx + value
-    }
-     */
 }

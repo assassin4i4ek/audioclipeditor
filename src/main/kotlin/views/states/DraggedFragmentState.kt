@@ -7,8 +7,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 class DraggedFragmentState(
-    val dragImmutableAreaBoundFromCanvasDpWidthPercentage: Float,
-    val dragMutableAreaBoundFromCanvasDpWidthPercentage: Float,
+    val dragImmutableAreaBoundFromCanvasDpMinWidthPercentage: Float,
+    val dragImmutableAreaBoundFromCanvasDpPrefferedWidthPercentage: Float,
+    val dragMutableAreaBoundFromCanvasDpMinWidthPercentage: Float,
     ) {
     enum class Segment {
         Center, ImmutableLeftBound, ImmutableRightBound, MutableLeftBound, MutableRightBound,
@@ -27,7 +28,7 @@ class DraggedFragmentState(
                 max(
                     adjustedPositionUs,//absolutePositionUs - draggedFragmentState.dragRelativeOffsetUs,
                     audioFragment.lowerBoundingFragment?.upperImmutableAreaEndUs?.plus(1)
-                        ?: audioFragment.lowerImmutableAreaDurationUs
+                        ?: - audioFragment.lowerImmutableAreaDurationUs
                 ),
                 (audioFragment.upperBoundingFragment?.lowerImmutableAreaStartUs
                     ?: (audioFragment.maxDurationUs + audioFragment.upperImmutableAreaDurationUs)) - audioFragment.totalDurationUs

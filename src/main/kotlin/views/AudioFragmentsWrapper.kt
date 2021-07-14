@@ -96,17 +96,36 @@ fun AudioFragmentsWrapper(
                             val newFragmentUpperImmutableAreaEndUs = newFragmentMutableAreaEndUs + audioClip.audioFragmentSpecs.minImmutableAreasDurationUs
 
                             try {
-                                val newFragment = audioClip.createFragment(newFragmentLowerImmutableAreaStartUs, newFragmentMutableAreaStartUs, newFragmentMutableAreaEndUs, newFragmentUpperImmutableAreaEndUs)
-                                val immutableAreaDurationUs = toUs((canvasWidthPx.toDp() * draggedFragmentState.dragImmutableAreaBoundFromCanvasDpWidthPercentage).toPx())
+                                selectedFragment = audioClip.createFragment(newFragmentLowerImmutableAreaStartUs, newFragmentMutableAreaStartUs, newFragmentMutableAreaEndUs, newFragmentUpperImmutableAreaEndUs)
+                                val immutableAreaMinDurationUs = toUs((transformState.toAbsoluteSize(canvasWidthPx).toDp() * draggedFragmentState.dragImmutableAreaBoundFromCanvasDpMinWidthPercentage).toPx())
+                                val immutableAreaPreferredDurationUs = toUs((transformState.toAbsoluteSize(canvasWidthPx).toDp() * draggedFragmentState.dragImmutableAreaBoundFromCanvasDpPrefferedWidthPercentage).toPx())
 //                                val mutableAreaDurationUs = toUs((canvasWidthPx.toDp() * draggedFragmentState.dragMutableAreaBoundFromCanvasDpWidthPercentage).toPx())
-                                newFragment.lowerImmutableAreaStartUs = newFragment.mutableAreaStartUs - immutableAreaDurationUs
-                                newFragment.upperImmutableAreaEndUs = newFragment.mutableAreaEndUs + immutableAreaDurationUs
-                                audioFragmentsState[newFragment] = AudioFragmentState(newFragment, audioFragmentsState.size)
-                                selectedFragment = newFragment
+                                selectedFragment.lowerImmutableAreaStartUs = max(
+                                    selectedFragment.mutableAreaStartUs - immutableAreaPreferredDurationUs,
+                                    min(
+                                        selectedFragment.lowerBoundingFragment?.upperImmutableAreaEndUs ?: - immutableAreaPreferredDurationUs,
+                                        selectedFragment.mutableAreaStartUs - immutableAreaMinDurationUs
+                                    )
+                                )
+                                selectedFragment.upperImmutableAreaEndUs = min(
+                                    selectedFragment.mutableAreaEndUs + immutableAreaPreferredDurationUs,
+                                    max(
+                                        selectedFragment.upperBoundingFragment?.lowerImmutableAreaStartUs ?: selectedFragment.maxDurationUs + immutableAreaPreferredDurationUs,
+                                        selectedFragment.mutableAreaEndUs + immutableAreaMinDurationUs
+                                    )
+                                )
+                                audioFragmentsState[selectedFragment] = AudioFragmentState(selectedFragment, audioFragmentsState.size)
                                 draggedFragmentState.draggedSegment = if (adjustedX > dragStartOffsetUs) DraggedFragmentState.Segment.MutableRightBound else DraggedFragmentState.Segment.MutableLeftBound
                                 println(draggedFragmentState.draggedSegment)
                             }
-                            catch(e: Exception) { println(e.message)}
+                            catch(e: Exception) {
+                                if (selectedFragment != null) {
+                                    audioFragmentsState.remove(selectedFragment)
+                                    audioClip.removeFragment(selectedFragment)
+                                }
+                                draggedFragmentState.draggedSegment = null
+                                println(e.message)
+                            }
 
 //                        draggedFragmentState.dragRelativeOffsetUs = startUs - newFragment.mutableAreaStartUs
                         } else {
@@ -151,8 +170,8 @@ fun AudioFragmentsWrapper(
                         with(transformState.layoutState) {
                             draggedFragmentState.audioFragmentState!!.apply {
                                 val absolutePositionUs = toUs(transformState.toAbsoluteOffset(change.position.x))
-                                val mutableAreaThresholdUs = toUs((canvasWidthPx.toDp() * draggedFragmentState.dragMutableAreaBoundFromCanvasDpWidthPercentage).toPx())
-                                val immutableAreaThresholdUs = toUs((canvasWidthPx.toDp() * draggedFragmentState.dragImmutableAreaBoundFromCanvasDpWidthPercentage).toPx())
+                                val mutableAreaThresholdUs = toUs((transformState.toAbsoluteSize(canvasWidthPx).toDp() * draggedFragmentState.dragMutableAreaBoundFromCanvasDpMinWidthPercentage).toPx())
+                                val immutableAreaThresholdUs = toUs((transformState.toAbsoluteSize(canvasWidthPx).toDp() * draggedFragmentState.dragImmutableAreaBoundFromCanvasDpMinWidthPercentage).toPx())
                                 when (draggedFragmentState.draggedSegment) {
                                     DraggedFragmentState.Segment.Center -> draggedFragmentState.dragCenter(absolutePositionUs - draggedFragmentState.dragRelativeOffsetUs)
                                     DraggedFragmentState.Segment.ImmutableLeftBound -> draggedFragmentState.dragImmutableLeftBound(delta, absolutePositionUs, immutableAreaThresholdUs)

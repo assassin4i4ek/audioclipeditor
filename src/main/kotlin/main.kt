@@ -1,7 +1,6 @@
 import androidx.compose.desktop.Window
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -11,8 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.res.svgResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +27,6 @@ fun main() = Window {
         "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_normalized_sampled\\АртГалереяІванюки24.07.mp3"
     val filepath2 =
         "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_normalized_sampled\\АквапаркТерм7.05.mp3"
-
 
     fun onPauseClick(audioClip: AudioClip, clipRunningState: MutableState<Boolean>, cursorState: CursorState) {
         audioClip.stop()
@@ -85,7 +82,6 @@ fun main() = Window {
                                 CursorAudioPcmWrapper(cursorState, internalTransformState) {
                                     ScrollableZoomAudioPcmWrapper(transformState) { _, onVerticalZoomScroll ->
                                         AudioFragmentsWrapper(
-//                                            false,
                                             selectedAudio,
                                             audioFragmentsState,
                                             internalTransformState,
@@ -110,59 +106,51 @@ fun main() = Window {
                         }) {
                             ScrollableOffsetAudioPcmWrapper(transformState) { onHorizontalOffsetScroll, onVerticalOffsetScroll ->
                                 CursorAudioPcmWrapper(cursorState, transformState) { onCursorPositioned ->
-                                    AudioFragmentsWrapper(
-                                        selectedAudio,
-                                        audioFragmentsState,
-                                        transformState,
-                                        draggedFragmentState
-                                    ) { onRememberDragStartPosition, onDragAudioFragmentStart, onDragAudioFragment, _ ->
-                                        AudioPcmViewer(
-                                            selectedAudio,
-                                            transformState,
-                                            onPress = {
-                                                onCursorPositioned(it)
-                                                onRememberDragStartPosition(it)
-                                            },
-                                            onHorizontalDragStart = onDragAudioFragmentStart,
-                                            onHorizontalDrag = onDragAudioFragment,
-                                            consumeHorizontalScrollDelta = onHorizontalOffsetScroll,
-                                            consumeVerticalScrollDelta = onVerticalOffsetScroll
+                                    Column(modifier = Modifier
+                                        .scrollable(
+                                            rememberScrollableState(consumeScrollDelta = onHorizontalOffsetScroll), Orientation.Horizontal
+                                        ).scrollable(
+                                            rememberScrollableState(consumeScrollDelta = onVerticalOffsetScroll), Orientation.Vertical
                                         )
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            AudioFragmentsWrapper(
+                                                selectedAudio,
+                                                audioFragmentsState,
+                                                transformState,
+                                                draggedFragmentState
+                                            ) { onRememberDragStartPosition, onDragAudioFragmentStart, onDragAudioFragment, _ ->
+                                                AudioPcmViewer(
+                                                    selectedAudio,
+                                                    transformState,
+                                                    onPress = {
+                                                        onCursorPositioned(it)
+                                                        onRememberDragStartPosition(it)
+                                                    },
+                                                    onHorizontalDragStart = onDragAudioFragmentStart,
+                                                    onHorizontalDrag = onDragAudioFragment,
+                                                    consumeHorizontalScrollDelta = onHorizontalOffsetScroll,
+                                                    consumeVerticalScrollDelta = onVerticalOffsetScroll
+                                                )
+                                            }
+                                        }
+//                                        if (audioFragmentsState.isNotEmpty()) {
+////                                                for (audioFragmentState in audioFragmentsState.values.sortedBy { it.zIndex }) {
+                                                    AudioFragmentControlPanel(selectedAudio, audioFragmentsState, transformState, composableScope)
+////                                                }
+////                                            }
+//                                        }
+//                                        else {
+//                                            Button({}, modifier = Modifier.width(0.dp), enabled = false) {
+//                                            }
+//                                        }
                                     }
                                 }
                             }
-//                            ScrollableAudioPcmWrapper(transformState) {
-//                                CursorAudioPcmWrapper(cursorState, transformState) { onCursor ->
-//                                    AudioFragmentsWrapper(true, selectedAudio, audioFragmentsState, transformState) {
-//                                            onSpawnAudioFragment, onDragAudioFragmentStart, onDragAudioFragment, onDragAudioFragmentEnd ->
-//                                        AudioPcmViewer(
-//                                            selectedAudio,
-//                                            transformState,
-//                                            onPress = {
-//                                                onCursor(it)
-//                                                onDragAudioFragmentStart(it)
-//                                            },
-//                                            onLongPress = onSpawnAudioFragment,
-//                                            onHorizontalDrag = onDragAudioFragment,
-//                                            onHorizontalDragEnd = onDragAudioFragmentEnd
-//                                        )
-//                                    }
-//                                }
-//                            }
                         }
                     }
                     Row {
-                        println("Bubutons")
-                        Button(onClick = {
-                            transformState.zoom *= 1.5f
-                        }) {
-                            Text("+")
-                        }
-                        Button(onClick = {
-                            transformState.zoom /= 1.5f
-                        }) {
-                            Text("-")
-                        }
+                        Spacer(modifier = Modifier.weight(1f))
                         Button(
                             enabled = !clipRunningState.value,
                             onClick = {
@@ -174,17 +162,17 @@ fun main() = Window {
                                     ((selectedAudio.durationUs - offsetUs) / 1e3).toFloat(),
                                     onFinished = onAnimationFinish(selectedAudio, clipRunningState, cursorState)
                                 )
-                                selectedAudio.play(offsetUs)
+                                selectedAudio.playClip(offsetUs)
                             }
                         ) {
-                            Text(">")
+                            Icon(svgResource("icons/play_arrow_black_24dp.svg"), "play")
                         }
                         Button(
                             enabled = clipRunningState.value,
                             onClick = {
                                 onPauseClick(selectedAudio, clipRunningState, cursorState)
                             }) {
-                            Text("ll")
+                            Icon(svgResource("icons/pause_black_24dp.svg"), "pause")
                         }
                         Button(
                             enabled = clipRunningState.value,
@@ -192,7 +180,18 @@ fun main() = Window {
                                 onPauseClick(selectedAudio, clipRunningState, cursorState)
                                 cursorState.restorePositionBeforeAnimation()
                             }) {
-                            Text("[]")
+                            Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Button(onClick = {
+                            transformState.zoom *= 1.5f
+                        }) {
+                            Icon(svgResource("icons/zoom_in_black_24dp.svg"), "zoom_in")
+                        }
+                        Button(onClick = {
+                            transformState.zoom /= 1.5f
+                        }) {
+                            Icon(svgResource("icons/zoom_out_black_24dp.svg"), "zoom_out")
                         }
                     }
                 }
@@ -219,7 +218,13 @@ fun initAudioClipState(audioClip: AudioClip, composableScope: CoroutineScope, cu
     val transformState = TransformState(layoutState)
     val clipRunningState = mutableStateOf(false)
     val audioFragmentsState = mutableStateMapOf<AudioFragment, AudioFragmentState>()
-    val draggedFragmentState = DraggedFragmentState(0.03f, 0.15f,0.02f)
+    val draggedFragmentState = DraggedFragmentState(
+        0.03f,
+        0.15f,
+        0.02f,
+        0.25f,
+        1f
+    )
     val cursorState =  CursorState(composableScope, layoutState) {
         if (clipRunningState.value) {
             audioClip.stop()
@@ -230,7 +235,7 @@ fun initAudioClipState(audioClip: AudioClip, composableScope: CoroutineScope, cu
                 ((audioClip.durationUs - offsetUs).toDouble() / 1000).toFloat(),
                 onFinished = onAnimationFinish(audioClip, clipRunningState, this@CursorState)
             )
-            audioClip.play(offsetUs)
+            audioClip.playClip(offsetUs)
         }
     }
     return AudioClipState(transformState, clipRunningState, cursorState, audioFragmentsState, draggedFragmentState)

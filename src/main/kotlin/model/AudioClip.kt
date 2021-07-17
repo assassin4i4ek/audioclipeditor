@@ -4,6 +4,7 @@ import com.cloudburst.lame.lowlevel.LameDecoder
 import com.cloudburst.lame.lowlevel.LameEncoder
 import com.cloudburst.lame.mp3.Lame
 import com.cloudburst.lame.mp3.MPEGMode
+import model.transformers.SilenceInsertionAudioTransformer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -12,8 +13,8 @@ import java.util.*
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
-import kotlin.Comparator
-import kotlin.math.sign
+import kotlin.math.max
+import kotlin.math.min
 
 class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = AudioFragmentSpecs()) {
     val name: String
@@ -23,9 +24,10 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
 
     private val pcmAudioFormat: AudioFormat
     private val pcm: ByteArray
-    private var clip: Clip = AudioSystem.getClip()
+    private val clip: Clip = AudioSystem.getClip()
+    private val fragmentClip: Clip = AudioSystem.getClip()
+
     private val _fragments: TreeSet<AudioFragment> = sortedSetOf(Comparator { a, b -> (a.lowerImmutableAreaStartUs - b.lowerImmutableAreaStartUs).toInt() })
-//    private val _fragments: MutableList<AudioFragment> = mutableListOf()
     val fragments: Iterable<AudioFragment> get() = _fragments.asIterable()
 
     init {
@@ -86,17 +88,9 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
         File(newDirectory, filename).writeBytes(mp3ByteStream.toByteArray())
     }
 
-    fun play(offsetUs: Long = 0) {
-//        clip.framePosition = (pcm.size * offsetMs / durationMs / pcmAudioFormat.frameSize).roundToInt()
-
+    fun playClip(offsetUs: Long = 0) {
         clip.microsecondPosition = offsetUs
         clip.start()
-
-//        val clip = if (clipPool.isNotEmpty()) clipPool.removeLast() else AudioSystem.getClip()
-//        val byteOffset = (pcm.size * offsetMs / durationMs / pcmAudioFormat.frameSize).roundToInt() * pcmAudioFormat.frameSize
-//        clip.open(pcmAudioFormat, pcm, byteOffset, pcm.size - byteOffset)
-//        clip.start()
-//        return
     }
 
     fun stop() {
@@ -120,7 +114,8 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
             durationUs,
             null,
             null,
-            specs = audioFragmentSpecs
+            specs = audioFragmentSpecs,
+            SilenceInsertionAudioTransformer(pcmAudioFormat,50*1000L)
         )
 
         val prevFragment = _fragments.lower(newFragment)
@@ -146,5 +141,46 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
 
         _fragments.remove(audioFragment)
     }
-}
 
+    /*Returns duration of fragment in microseconds*/
+    fun playFragment(fragment: AudioFragment): Long {
+        stopFragment()
+        val lowerImmutableAreaStartByte = usToByteIndex(pcmAudioFormat, max(fragment.lowerImmutableAreaStartUs, 0))
+        val mutableAreaStartByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaStartUs)
+        val mutableAreaEndByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaEndUs)
+        val upperImmutableAreaEndByte = usToByteIndex(pcmAudioFormat, min(fragment.upperImmutableAreaEndUs, durationUs))
+
+        val mutableAreaByteArray = pcm.copyOfRange(mutableAreaStartByte, mutableAreaEndByte)
+        val fragmentByteArrayOutputStream = ByteArrayOutputStream(
+            upperImmutableAreaEndByte - lowerImmutableAreaStartByte
+                    - (mutableAreaEndByte - mutableAreaStartByte)
+                    + fragment.transformer.outputSize(mutableAreaByteArray)
+        )
+        fragmentByteArrayOutputStream.write(
+            pcm,
+            lowerImmutableAreaStartByte,
+            mutableAreaStartByte - lowerImmutableAreaStartByte
+        )
+        fragmentByteArrayOutputStream.write(fragment.transformer.transform(mutableAreaByteArray))
+        fragmentByteArrayOutputStream.write(pcm, mutableAreaEndByte, upperImmutableAreaEndByte - mutableAreaEndByte)
+
+        fragmentClip.open(
+            pcmAudioFormat,
+            fragmentByteArrayOutputStream.toByteArray(),
+            0,
+            fragmentByteArrayOutputStream.size()
+        )
+        fragmentClip.start()
+
+        return (fragmentByteArrayOutputStream.size().toDouble() / pcmAudioFormat.frameSize / pcmAudioFormat.frameRate * 1e6).toLong()
+    }
+
+    fun stopFragment() {
+        fragmentClip.stop()
+        println("Stopped")
+        fragmentClip.flush()
+        println("Flushed")
+        fragmentClip.close()
+        println("Closed")
+    }
+}

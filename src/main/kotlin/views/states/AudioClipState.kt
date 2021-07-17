@@ -7,7 +7,7 @@ import model.AudioFragment
 
 data class AudioClipState(
     val transformState: TransformState,
-    val clipRunningState: MutableState<Boolean>,
+    val isClipRunningState: MutableState<Boolean>,
     val cursorState: CursorState,
     val fragmentsState: SnapshotStateMap<AudioFragment, AudioFragmentState>,
     val draggedFragmentState: DraggedFragmentState

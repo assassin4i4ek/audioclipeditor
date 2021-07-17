@@ -42,7 +42,7 @@ fun PannableAudioPcmWrapper(
                     canvasTransformState.layoutState.canvasWidthPx,
                     canvasTransformState.layoutState.canvasWidthPx * transformState.toAbsoluteSize(transformState.layoutState.canvasWidthPx) / transformState.layoutState.contentWidthPx
                 )
-                drawRect(Color.Yellow, Offset(xOffset, 0f), Size(windowWidth, size.height), 0.2f)
+                drawRect(Color.Yellow, Offset(xOffset, 0f), Size(windowWidth, size.height), 0.5f)
             }
             block(canvasTransformState) { change, _ ->
                 change.consumeAllChanges()
@@ -53,44 +53,3 @@ fun PannableAudioPcmWrapper(
         }
     }
 }
-
-/*
-@Composable
-fun PannableAudioPcmWrapper(
-    audioClip: AudioClip,
-    transformState: TransformState,
-    block: @Composable (internalComposeState: TransformState, onWindowDrag: (PointerInputChange, Float) -> Unit) -> Unit
-) {
-    with (LocalDensity.current) {
-        val canvasTransformState = remember(audioClip, transformState) {
-            TransformState(LayoutState())
-        }
-        val windowWidth by remember(audioClip, transformState) {
-            derivedStateOf {
-                min(
-                    canvasTransformState.layoutState.canvasWidthPx,
-                    canvasTransformState.layoutState.canvasWidthPx * transformState.layoutState.canvasWidthPx / (transformState.layoutState.layoutParams.xDpPerSec.toPx() * audioClip.durationMs * transformState.zoom / 1000)
-                )
-            }
-        }
-        val trueOffset by remember(transformState, canvasTransformState) { derivedStateOf { - transformState.xOffset * canvasTransformState.zoom / transformState.zoom } }
-
-        Box(modifier = Modifier.onGloballyPositioned {
-            canvasTransformState.zoom = 1000f * canvasTransformState.layoutState.canvasWidthPx / (transformState.layoutState.layoutParams.xDpPerSec.toPx() * audioClip.durationMs)
-        }) {
-            Canvas(Modifier.fillMaxSize()/*.pointerInput(transformState, canvasTransformState) {
-                detectHorizontalDragGestures { change, _ ->
-                    change.consumeAllChanges()
-                    transformState.xOffset = - change.position.x / canvasTransformState.zoom * transformState.zoom + transformState.layoutState.canvasWidthPx / 2
-                }
-            }*/) {
-                drawRect(Color.Yellow, Offset(trueOffset, 0f), Size(windowWidth, size.height))
-            }
-            block(canvasTransformState) { change, _ ->
-                change.consumeAllChanges()
-                transformState.xOffset = - change.position.x / canvasTransformState.zoom * transformState.zoom + transformState.layoutState.canvasWidthPx / 2
-            }
-        }
-    }
-}
-*/

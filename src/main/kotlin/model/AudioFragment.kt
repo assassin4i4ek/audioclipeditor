@@ -1,5 +1,7 @@
 package model
 
+import model.transformers.AudioTransformer
+
 class AudioFragment (
     lowerImmutableAreaStartUs: Long,
     mutableAreaStartUs: Long,
@@ -8,7 +10,8 @@ class AudioFragment (
     maxDurationUs: Long,
     lowerBoundingFragment: AudioFragment?,
     upperBoundingFragment: AudioFragment?,
-    val specs: AudioFragmentSpecs
+    val specs: AudioFragmentSpecs,
+    var transformer: AudioTransformer
 ) {
     var lowerImmutableAreaStartUs: Long = lowerImmutableAreaStartUs
         set(value) {
@@ -62,24 +65,20 @@ class AudioFragment (
     }
 
     private fun validate() {
-        if (lowerImmutableAreaStartUs - (lowerBoundingFragment?.upperImmutableAreaEndUs ?: (- mutableAreaStartUs + lowerImmutableAreaStartUs)) < 0) {
-            throw IllegalArgumentException("Audio fragment's lower immutable area is invalid: $this")
-//            throw IllegalArgumentException("Audio fragment's lower immutable area start = $lowerImmutableAreaStartMs is less than lower bounding fragment end ${lowerBoundingFragment?.upperImmutableAreaEndMs ?: 0f}")
+        check(lowerImmutableAreaStartUs - (lowerBoundingFragment?.upperImmutableAreaEndUs ?: (- mutableAreaStartUs + lowerImmutableAreaStartUs)) >= 0) {
+            "Audio fragment's lower immutable area is invalid: $this"
         }
-        if ((mutableAreaStartUs - lowerImmutableAreaStartUs) < specs.minImmutableAreasDurationUs) {
-            throw IllegalArgumentException("Audio fragment's mutable area start is invalid: $this")
-//            throw IllegalArgumentException("Audio fragment's mutable area start = $mutableAreaStartMs is less than fragment's immutable area start $lowerImmutableAreaStartMs + constraint ${specs.minImmutableAreasDurationMs}")
+        check((mutableAreaStartUs - lowerImmutableAreaStartUs) >= specs.minImmutableAreasDurationUs) {
+            "Audio fragment's mutable area start is invalid: $this"
         }
-        if ((mutableAreaEndUs - mutableAreaStartUs) < specs.minMutableAreaDurationUs) {
-            throw IllegalArgumentException("Audio fragment's mutable area end is invalid: $this")
-//            throw IllegalArgumentException("Audio fragment's mutable area end = $mutableAreaEndMs is less than fragment's mutable area start $mutableAreaStartMs + constraint ${specs.minMutableAreaDurationMs}")
+        check((mutableAreaEndUs - mutableAreaStartUs) >= specs.minMutableAreaDurationUs) {
+            "Audio fragment's mutable area end is invalid: $this"
         }
-        if ((upperImmutableAreaEndUs - mutableAreaEndUs) < specs.minImmutableAreasDurationUs) {
-            throw IllegalArgumentException("Audio fragment's upper immutable area end is invalid: $this")
-//            throw IllegalArgumentException("Audio fragment's upper immutable area end = $upperImmutableAreaEndMs is less than fragment's mutable area end $mutableAreaEndMs + constraint ${specs.minImmutableAreasDurationMs}")
+        check((upperImmutableAreaEndUs - mutableAreaEndUs) >= specs.minImmutableAreasDurationUs) {
+            "Audio fragment's upper immutable area end is invalid: $this"
         }
-        if ((upperBoundingFragment?.lowerImmutableAreaStartUs ?: (maxDurationUs + upperImmutableAreaEndUs - mutableAreaEndUs)) - upperImmutableAreaEndUs < 0) {
-            throw IllegalArgumentException("Audio fragment's upper immutable area end is invalid: $this")
+        check((upperBoundingFragment?.lowerImmutableAreaStartUs ?: (maxDurationUs + upperImmutableAreaEndUs - mutableAreaEndUs)) - upperImmutableAreaEndUs >= 0) {
+            "Audio fragment's upper immutable area end is invalid: $this"
         }
     }
 

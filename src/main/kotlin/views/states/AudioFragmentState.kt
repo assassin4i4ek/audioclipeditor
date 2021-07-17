@@ -1,18 +1,28 @@
 package views.states
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import model.AudioFragment
 
 class AudioFragmentState(
     val audioFragment: AudioFragment,
-    var zIndex: Int
+    var zIndex: Int,
+    val coroutineScope: CoroutineScope
 ) {
     private var _lowerImmutableAreaStartUs by mutableStateOf(audioFragment.lowerImmutableAreaStartUs)
     private var _upperImmutableAreaEndUs by mutableStateOf(audioFragment.upperImmutableAreaEndUs)
     private var _mutableAreaStartUs by mutableStateOf(audioFragment.mutableAreaStartUs)
     private var _mutableAreaEndUs by mutableStateOf(audioFragment.mutableAreaEndUs)
+
+    var isFragmentRunning by mutableStateOf(false)
+        private set
+    private var onFragmentStopRunningJob: Job? = null
 
     var lowerImmutableAreaStartUs
         get() = _lowerImmutableAreaStartUs
@@ -42,6 +52,24 @@ class AudioFragmentState(
             audioFragment.mutableAreaEndUs = _mutableAreaEndUs
         }
 
+    fun runFragmentFor(durationMs: Long, onStop: () -> Unit) {
+        isFragmentRunning = true
+        with(coroutineScope) {
+            onFragmentStopRunningJob?.cancel()
+            onFragmentStopRunningJob = launch {
+                delay(durationMs)
+                isFragmentRunning = false
+                onStop()
+            }
+        }
+    }
+
+    fun stopFragmentRunning() {
+        onFragmentStopRunningJob?.cancel()
+        onFragmentStopRunningJob = null
+        isFragmentRunning = false
+    }
+
     fun translateRelative(us: Long) {
         if (us < 0) {
             lowerImmutableAreaStartUs += us
@@ -55,4 +83,6 @@ class AudioFragmentState(
             lowerImmutableAreaStartUs += us
         }
     }
+
+
 }

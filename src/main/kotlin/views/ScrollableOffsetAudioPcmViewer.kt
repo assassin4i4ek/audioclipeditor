@@ -10,7 +10,7 @@ import views.states.TransformState
 
 
 @Composable
-fun ScrollableOffsetAudioPcmWrapper(
+inline fun ScrollableOffsetAudioPcmWrapper(
     transformState: TransformState,
     block: @Composable (onHorizontalOffsetScroll: (Float) -> Float, onVerticalOffsetScroll: (Float) -> Float) -> Unit
 ) {
@@ -20,37 +20,7 @@ fun ScrollableOffsetAudioPcmWrapper(
     )
 }
 
-/*
-@Composable
-fun ScrollableAudioPcmWrapper(
-    transformState: TransformState,
-    block: @Composable () -> Unit
-) {
-    Box(modifier = Modifier
-        .scrollable(
-            rememberScrollableState(
-                consumeScrollAdjustedDelta(
-                    147.3f,
-                    transformState, Orientation.Horizontal
-                )
-            ),
-            Orientation.Horizontal
-        )
-        .scrollable(
-            rememberScrollableState(
-                consumeScrollAdjustedDelta(
-                    30.45f,
-                    transformState, Orientation.Vertical
-                )
-            ),
-            Orientation.Vertical
-        )) {
-        block()
-    }
-}
-*/
-
-private fun consumeScrollAdjustedDelta(
+fun consumeScrollAdjustedDelta(
     transformState: TransformState,
     orientation: Orientation
 ): (Float) -> Float {

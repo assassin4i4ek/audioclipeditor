@@ -31,8 +31,8 @@ fun AudioPcmViewer(
     onHorizontalDrag: ((PointerInputChange, Float) -> Unit) = { change, _ -> change.consumeAllChanges() },
     onHorizontalDragStart: (Offset) -> Unit = {},
     onHorizontalDragEnd: () -> Unit = {},
-    consumeHorizontalScrollDelta: (Float) -> Float = { it },
-    consumeVerticalScrollDelta: (Float) -> Float = { it }
+//    consumeHorizontalScrollDelta: (Float) -> Float = { it },
+//    consumeVerticalScrollDelta: (Float) -> Float = { it }
 ) {
     with(LocalDensity.current) {
         val channels by remember(audioClip, transformState) {
@@ -70,11 +70,12 @@ fun AudioPcmViewer(
                     onDragStart = onHorizontalDragStart,
                     onDragEnd = onHorizontalDragEnd
                 )
-            }.scrollable(
-                rememberScrollableState(consumeScrollDelta = consumeHorizontalScrollDelta), Orientation.Horizontal
-            ).scrollable(
-                rememberScrollableState(consumeScrollDelta = consumeVerticalScrollDelta), Orientation.Vertical
-            )
+            }
+//            }.scrollable(
+//                rememberScrollableState(consumeScrollDelta = consumeHorizontalScrollDelta), Orientation.Horizontal
+//            ).scrollable(
+//                rememberScrollableState(consumeScrollDelta = consumeVerticalScrollDelta), Orientation.Vertical
+//            )
         ) {
             scale(transformState.zoom, 1f, Offset.Zero) {
                 translate(transformState.xAbsoluteOffsetPx) {

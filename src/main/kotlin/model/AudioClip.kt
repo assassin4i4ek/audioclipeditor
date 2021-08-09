@@ -16,8 +16,8 @@ import javax.sound.sampled.Clip
 import kotlin.math.max
 import kotlin.math.min
 
-class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = AudioFragmentSpecs()) {
-    val name: String
+class AudioClip(val srcFilepath: String, private val clipUtilizer: ClipUtilizer, val audioFragmentSpecs: AudioFragmentSpecs = AudioFragmentSpecs()) {
+    val nameWithoutExtension: String
     val directory: String
     val durationUs: Long
     val pcmChannels: Pair<ShortArray, ShortArray>
@@ -25,17 +25,20 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
     private val pcmAudioFormat: AudioFormat
     private val pcm: ByteArray
     private val clip: Clip = AudioSystem.getClip()
-    private val fragmentClip: Clip = AudioSystem.getClip()
+    private var fragmentClip: Clip? = null//fAudioSystem.getClip()
+
+    private var _runningFragment: AudioFragment? = null
+    val runningFragment get() = _runningFragment
 
     private val _fragments: TreeSet<AudioFragment> = sortedSetOf(Comparator { a, b -> (a.lowerImmutableAreaStartUs - b.lowerImmutableAreaStartUs).toInt() })
     val fragments: Iterable<AudioFragment> get() = _fragments.asIterable()
 
     init {
-        val mp3file = File(filepath)
-        name = mp3file.nameWithoutExtension
+        val mp3file = File(srcFilepath)
+        nameWithoutExtension = mp3file.nameWithoutExtension
         directory = mp3file.parent
         // Decode MP3
-        val decoder = LameDecoder(filepath)
+        val decoder = LameDecoder(srcFilepath)
         val buffer: ByteBuffer = ByteBuffer.allocate(2 * decoder.frameSize * decoder.channels)
         val pcmByteStream = ByteArrayOutputStream()
 
@@ -67,27 +70,6 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
         clip.open(pcmAudioFormat, pcm, 0, pcm.size)
     }
 
-    fun save(newDirectory: String, newFilename: String) {
-        val filename = if (newFilename.endsWith(".mp3")) newFilename else "$newFilename.mp3"
-        val encoder = LameEncoder(pcmAudioFormat, 256, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, false)
-
-        val pcmByteStream = ByteArrayInputStream(pcm)
-        val mp3ByteStream = ByteArrayOutputStream()
-        val inputBuffer = ByteArray(encoder.pcmBufferSize)
-        val outputBuffer = ByteArray(encoder.pcmBufferSize)
-
-        var bytesRead: Int
-        var bytesWritten: Int
-
-        while(0 < pcmByteStream.read(inputBuffer).also { bytesRead = it }) {
-            bytesWritten = encoder.encodeBuffer(inputBuffer, 0, bytesRead, outputBuffer)
-            mp3ByteStream.write(outputBuffer, 0, bytesWritten)
-        }
-        encoder.close()
-
-        File(newDirectory, filename).writeBytes(mp3ByteStream.toByteArray())
-    }
-
     fun playClip(offsetUs: Long = 0) {
         clip.microsecondPosition = offsetUs
         clip.start()
@@ -100,6 +82,7 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
 
     fun close() {
         clip.close()
+        println("closed")
     }
 
     fun createFragment(
@@ -135,16 +118,23 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
         return newFragment
     }
 
-    fun removeFragment(audioFragment: AudioFragment) {
-        audioFragment.lowerBoundingFragment?.upperBoundingFragment = audioFragment.upperBoundingFragment
-        audioFragment.upperBoundingFragment?.lowerBoundingFragment = audioFragment.lowerBoundingFragment
+    fun removeFragment(fragment: AudioFragment) {
+        check(fragment in _fragments) { "Trying to remove fragment which doesn't belong to current audio clip" }
+        if (fragment == _runningFragment) {
+            stopFragment()
+        }
 
-        _fragments.remove(audioFragment)
+        fragment.lowerBoundingFragment?.upperBoundingFragment = fragment.upperBoundingFragment
+        fragment.upperBoundingFragment?.lowerBoundingFragment = fragment.lowerBoundingFragment
+
+        _fragments.remove(fragment)
     }
 
     /*Returns duration of fragment in microseconds*/
     fun playFragment(fragment: AudioFragment): Long {
         stopFragment()
+        check(fragment in _fragments) { "Trying to play fragment which doesn't belong to current audio clip" }
+        _runningFragment = fragment
         val lowerImmutableAreaStartByte = usToByteIndex(pcmAudioFormat, max(fragment.lowerImmutableAreaStartUs, 0))
         val mutableAreaStartByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaStartUs)
         val mutableAreaEndByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaEndUs)
@@ -164,23 +154,76 @@ class AudioClip(filepath: String, val audioFragmentSpecs: AudioFragmentSpecs = A
         fragmentByteArrayOutputStream.write(fragment.transformer.transform(mutableAreaByteArray))
         fragmentByteArrayOutputStream.write(pcm, mutableAreaEndByte, upperImmutableAreaEndByte - mutableAreaEndByte)
 
-        fragmentClip.open(
+        fragmentClip = AudioSystem.getClip()
+        fragmentClip!!.open(
             pcmAudioFormat,
             fragmentByteArrayOutputStream.toByteArray(),
             0,
             fragmentByteArrayOutputStream.size()
         )
-        fragmentClip.start()
+        fragmentClip!!.start()
 
         return (fragmentByteArrayOutputStream.size().toDouble() / pcmAudioFormat.frameSize / pcmAudioFormat.frameRate * 1e6).toLong()
     }
 
     fun stopFragment() {
-        fragmentClip.stop()
-        println("Stopped")
-        fragmentClip.flush()
-        println("Flushed")
-        fragmentClip.close()
-        println("Closed")
+        if (fragmentClip != null) {
+            clipUtilizer.utilizeClip(fragmentClip!!)
+        }
+        fragmentClip = null
+        _runningFragment = null
+    }
+
+    fun saveWithFragments(audioFilePath: String): String {
+        val realAudioFilePath = if (audioFilePath.endsWith(".mp3")) audioFilePath else "$audioFilePath.mp3"
+        val encoder = LameEncoder(pcmAudioFormat, 256, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, false)
+
+        val newPcm = ByteArrayOutputStream()
+        /* Apply fragments transform */
+        for (fragment in fragments) {
+            val lowerImmutablePcmAreaStartByte = usToByteIndex(pcmAudioFormat, fragment.lowerBoundingFragment?.mutableAreaEndUs ?: 0)
+            val mutablePcmAreaStartByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaStartUs)
+            val mutablePcmAreaEndByte = usToByteIndex(pcmAudioFormat, fragment.mutableAreaEndUs)
+
+            newPcm.write(pcm, lowerImmutablePcmAreaStartByte, mutablePcmAreaStartByte - lowerImmutablePcmAreaStartByte)
+            newPcm.write(fragment.transformer.transform(pcm.copyOfRange(mutablePcmAreaStartByte, mutablePcmAreaEndByte)))
+
+            if (fragment.upperBoundingFragment == null) {
+                val upperImmutablePcmAreaEndByte = usToByteIndex(pcmAudioFormat, durationUs)
+                newPcm.write(pcm, mutablePcmAreaEndByte, upperImmutablePcmAreaEndByte - mutablePcmAreaEndByte)
+            }
+        }
+
+        val pcmByteStream = ByteArrayInputStream(newPcm.toByteArray())
+        val mp3ByteStream = ByteArrayOutputStream()
+        val inputBuffer = ByteArray(encoder.pcmBufferSize)
+        val outputBuffer = ByteArray(encoder.pcmBufferSize)
+
+        var bytesRead: Int
+        var bytesWritten: Int
+
+        while(0 < pcmByteStream.read(inputBuffer).also { bytesRead = it }) {
+            bytesWritten = encoder.encodeBuffer(inputBuffer, 0, bytesRead, outputBuffer)
+            mp3ByteStream.write(outputBuffer, 0, bytesWritten)
+        }
+        encoder.close()
+
+        File(realAudioFilePath).writeBytes(mp3ByteStream.toByteArray())
+        println("saved")
+        return realAudioFilePath
+    }
+
+    fun saveFragmentLabels(audioFilePath: String, jsonFilePath: String): String {
+        val realJsonFilename = if (jsonFilePath.endsWith(".json")) jsonFilePath else "$jsonFilePath.json"
+        val jsonContent = """
+        {
+            "srcFilepath": "${srcFilepath.replace("\\", "/")}",
+            "destFilepath": "${audioFilePath.replace("\\", "/")}",
+            "fragments": [
+                ${fragments.joinToString(",\n") { it.toJson("                ") }}
+            ]
+        }""".trimIndent().trimMargin()
+        File(realJsonFilename).writeText(jsonContent)
+        return realJsonFilename
     }
 }

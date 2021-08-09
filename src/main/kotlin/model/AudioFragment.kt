@@ -1,6 +1,8 @@
 package model
 
 import model.transformers.AudioTransformer
+import kotlin.math.max
+import kotlin.math.min
 
 class AudioFragment (
     lowerImmutableAreaStartUs: Long,
@@ -88,5 +90,17 @@ class AudioFragment (
 
     operator fun contains(us: Long): Boolean {
         return us in lowerImmutableAreaStartUs .. upperImmutableAreaEndUs
+    }
+
+    fun toJson(indent: String): String {
+        return """
+            |{
+                "lowerImmutableAreaStartUs": ${max(lowerImmutableAreaStartUs, 0)},
+                "mutableAreaStartUs": $mutableAreaStartUs,
+                "mutableAreaEndUs": $mutableAreaEndUs,
+                "upperImmutableAreaEndUs": ${min(upperImmutableAreaEndUs, maxDurationUs)},
+                "transformer": ${transformer.toJson(indent)}
+            }
+        """.trimIndent().prependIndent(indent).trimMargin()
     }
 }

@@ -29,7 +29,9 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Composable
-fun AudioFragmentControlPanel(audioClip: AudioClip, audioFragmentsState: SnapshotStateMap<AudioFragment, AudioFragmentState>, transformState: TransformState, coroutineScope: CoroutineScope) {
+fun AudioFragmentControlPanel(audioClip: AudioClip, audioFragmentsState: SnapshotStateMap<AudioFragment, AudioFragmentState>, transformState: TransformState) {
+    val coroutineScope = rememberCoroutineScope()
+
     if (audioFragmentsState.isNotEmpty()) {
         Box {
             for (audioFragmentState in audioFragmentsState.values.sortedBy { it.zIndex }) {
@@ -48,7 +50,7 @@ fun AudioFragmentControlPanel(audioClip: AudioClip, audioFragmentsState: Snapsho
                                             ,
                                             0f
                                         ),
-                                        transformState.layoutState.toPx(audioFragmentState.audioFragment.maxDurationUs) - placeable.width
+                                        transformState.toWindowSize(transformState.layoutState.toPx(audioFragmentState.audioFragment.maxDurationUs)) - placeable.width
                                     )
                                 }
                             }
@@ -59,6 +61,7 @@ fun AudioFragmentControlPanel(audioClip: AudioClip, audioFragmentsState: Snapsho
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(onClick = {
+                        audioFragmentState.stopFragmentRunning()
                         val runUs = audioClip.playFragment(audioFragmentState.audioFragment)
                         audioFragmentState.runFragmentFor(runUs / 1000) {
                             audioClip.stopFragment()
@@ -120,8 +123,10 @@ fun AudioFragmentControlPanel(audioClip: AudioClip, audioFragmentsState: Snapsho
                         Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
                     }
                     Button(onClick = {
-                        audioClip.stopFragment()
-                        audioFragmentState.stopFragmentRunning()
+                        if (audioFragmentState.audioFragment == audioClip.runningFragment) {
+                            audioClip.stopFragment()
+                            audioFragmentState.stopFragmentRunning()
+                        }
                         audioFragmentsState.remove(audioFragmentState.audioFragment)
                         audioClip.removeFragment(audioFragmentState.audioFragment)
                     }, enabled = !audioFragmentState.isFragmentRunning) {

@@ -187,7 +187,6 @@ fun AudioFragmentsWrapper(
                                         AudioFragmentState(selectedFragment, audioFragmentsState.size, composableScope)
                                     draggedFragmentState.draggedSegment =
                                         if (adjustedX > dragStartOffsetUs) DraggedFragmentState.Segment.MutableRightBound else DraggedFragmentState.Segment.MutableLeftBound
-                                    println(draggedFragmentState.draggedSegment)
                                 } catch (e: Exception) {
                                     if (selectedFragment != null) {
                                         audioFragmentsState.remove(selectedFragment)

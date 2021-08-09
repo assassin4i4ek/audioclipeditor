@@ -16,7 +16,7 @@ import views.states.TransformState
 
 
 @Composable
-fun CursorAudioPcmWrapper(
+inline fun CursorAudioPcmWrapper(
     cursorState: CursorState,
     transformState: TransformState,
     block: @Composable (onCursorPositioned: (Offset) -> Unit) -> Unit
@@ -49,35 +49,3 @@ fun CursorAudioPcmWrapper(
         }
     }
 }
-
-/*
-@Composable
-fun CursorAudioPcmWrapper(
-    cursorState: CursorState,
-    transformState: TransformState,
-    block: @Composable (onCursor: (Offset) -> Unit) -> Unit
-) {
-    with(LocalDensity.current) {
-        Box {
-            block { (x, _) ->
-                cursorState.xPosition = (-transformState.xOffset + x) / transformState.zoom
-            }
-            Canvas(modifier = Modifier
-                .size(transformState.layoutState.canvasWidthPx.toDp(), transformState.layoutState.canvasHeightPx.toDp())
-            ) {
-                translate(transformState.xOffset) {
-                    scale(transformState.zoom, 1f, Offset.Zero) {
-                        /* Draw cursor */
-                        drawLine(
-                            color = Color.Red,
-                            start = Offset(cursorState.xPosition, 0f),
-                            end = Offset(cursorState.xPosition, size.height),
-                            strokeWidth = 2.dp.toPx() / transformState.zoom
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-*/

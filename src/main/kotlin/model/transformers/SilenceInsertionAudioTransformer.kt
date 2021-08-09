@@ -13,10 +13,18 @@ class SilenceInsertionAudioTransformer(
     }
 
     override fun transform(input: ByteArray): ByteArray {
-        return ByteArray(usToByteIndex(audioFormat, silenceDurationUs))
+        return ByteArray(outputSize(input))
     }
 
     override fun transform(input: ByteArray, output: ByteArray) {
         output.fill(0)
+    }
+
+    override fun toJson(indent: String): String {
+        return """
+            |{
+                "type": "SILENCE",
+                "durationUs": $silenceDurationUs
+            }""".trimIndent().prependIndent(indent).trimMargin()
     }
 }

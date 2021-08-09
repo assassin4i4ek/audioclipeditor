@@ -6,17 +6,19 @@ import views.states.TransformState
 import kotlin.math.exp
 
 @Composable
-fun ScrollableZoomAudioPcmWrapper(
+inline fun ScrollableZoomAudioPcmWrapper(
+    isVerticalZoomPositive: Boolean,
     transformState: TransformState,
     block: @Composable (onHorizontalZoomScroll: (Float) -> Float, onVerticalZoomScroll: (Float) -> Float) -> Unit
 ) {
     block(
-        consumeScrollAdjustedDelta(transformState, Orientation.Horizontal),
-        consumeScrollAdjustedDelta(transformState, Orientation.Vertical)
+        consumeScrollAdjustedDelta(false, transformState, Orientation.Horizontal),
+        consumeScrollAdjustedDelta(isVerticalZoomPositive, transformState, Orientation.Vertical)
     )
 }
 
-private fun consumeScrollAdjustedDelta(
+fun consumeScrollAdjustedDelta(
+    isPositive: Boolean,
     transformState: TransformState,
     orientation: Orientation
 ): (Float) -> Float {
@@ -29,7 +31,7 @@ private fun consumeScrollAdjustedDelta(
             Orientation.Horizontal -> 1.0f / 147.3f
             Orientation.Vertical -> 1.0f / 1.4620163f / 30.45f
         }
-        val adjustedDelta = 2f / (1 + exp(-0.5f * delta * canvasSizeCoef * orientationAlignmentCoef))
+        val adjustedDelta = 2f / (1 + exp((if (isPositive) 1 else -1) * 0.5f * delta * canvasSizeCoef * orientationAlignmentCoef))
         transformState.zoom *= adjustedDelta
         delta
     }

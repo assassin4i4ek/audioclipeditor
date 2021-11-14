@@ -11,8 +11,8 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import views.states.CursorState
-import views.states.TransformState
+import views.states.editor.pcm.CursorState
+import views.states.editor.pcm.TransformState
 
 
 @Composable

@@ -1,4 +1,4 @@
-package views.states
+package views.states.editor
 
 enum class InputDevice {
     Touchpad, Mouse

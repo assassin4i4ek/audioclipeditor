@@ -8,7 +8,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -16,11 +15,13 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.unit.Density
 import model.AudioClip
 import model.AudioFragment
-import views.states.AudioFragmentState
-import views.states.DraggedFragmentState
-import views.states.TransformState
+import views.states.editor.pcm.fragments.AudioFragmentState
+import views.states.editor.pcm.fragments.DraggedFragmentState
+import views.states.editor.pcm.TransformState
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,6 +38,19 @@ fun AudioFragmentsWrapper(
         onDragAudioFragmentEnd: () -> Unit
     ) -> Unit
 ) {
+    // Fox touchSlope in ViewConfiguration
+    with(LocalViewConfiguration.current) {
+        val densityField = this.javaClass.getDeclaredField("density")
+        val isDensityFieldAccessible = densityField.canAccess(this)
+        densityField.isAccessible = true
+
+        val currentDensity = densityField.get(this) as Density
+        val newDensity = Density(currentDensity.density / 10, currentDensity.fontScale)
+        densityField.set(this, newDensity)
+
+        densityField.isAccessible = isDensityFieldAccessible
+    }
+
     val composableScope = rememberCoroutineScope()
 
     with(LocalDensity.current) {
@@ -218,7 +232,7 @@ fun AudioFragmentsWrapper(
                                         draggedFragmentState.draggedSegment =
                                             DraggedFragmentState.Segment.ImmutableRightBound
                                     }
-                                    else -> throw Exception("Drag conflict")
+                                    else -> throw Exception("Drag conflict\ndragStartOffset = $dragStartOffsetUs, selectedFragment = $selectedFragment")
                                 }
                             }
                             draggedFragmentState.audioFragmentState = audioFragmentsState[selectedFragment]

@@ -25,7 +25,7 @@ class AudioClip(val srcFilepath: String, private val clipUtilizer: ClipUtilizer,
     private val pcmAudioFormat: AudioFormat
     private val pcm: ByteArray
     private val clip: Clip = AudioSystem.getClip()
-    private var fragmentClip: Clip? = null//fAudioSystem.getClip()
+    private var fragmentClip: Clip = AudioSystem.getClip()
 
     private var _runningFragment: AudioFragment? = null
     val runningFragment get() = _runningFragment
@@ -63,7 +63,7 @@ class AudioClip(val srcFilepath: String, private val clipUtilizer: ClipUtilizer,
             ShortArray(pcm.size / 4) {
                 val lowerByte = pcm[4 * it + iChannel * 2]
                 val higherByte = pcm[4 * it + iChannel * 2 + 1]
-                (higherByte.toInt().shl(8) or lowerByte.toInt()).toShort()
+                (higherByte.toInt().and(0xFF).shl(8) or lowerByte.toInt().and(0xFF)).toShort()
             }
         }.let { it[0] to it[1] }
 
@@ -154,23 +154,20 @@ class AudioClip(val srcFilepath: String, private val clipUtilizer: ClipUtilizer,
         fragmentByteArrayOutputStream.write(fragment.transformer.transform(mutableAreaByteArray))
         fragmentByteArrayOutputStream.write(pcm, mutableAreaEndByte, upperImmutableAreaEndByte - mutableAreaEndByte)
 
-        fragmentClip = AudioSystem.getClip()
-        fragmentClip!!.open(
+        fragmentClip.open(
             pcmAudioFormat,
             fragmentByteArrayOutputStream.toByteArray(),
             0,
             fragmentByteArrayOutputStream.size()
         )
-        fragmentClip!!.start()
+        fragmentClip.start()
 
         return (fragmentByteArrayOutputStream.size().toDouble() / pcmAudioFormat.frameSize / pcmAudioFormat.frameRate * 1e6).toLong()
     }
 
     fun stopFragment() {
-        if (fragmentClip != null) {
-            clipUtilizer.utilizeClip(fragmentClip!!)
-        }
-        fragmentClip = null
+        clipUtilizer.utilizeClip(fragmentClip)
+        fragmentClip = AudioSystem.getClip()
         _runningFragment = null
     }
 

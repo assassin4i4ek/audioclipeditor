@@ -1,25 +1,20 @@
 package views
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumeAllChanges
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import model.AudioClip
-import views.states.AudioPcmViewerLayoutParams
-import views.states.LayoutState
-import views.states.TransformState
+import views.states.editor.pcm.LayoutState
+import views.states.editor.pcm.TransformState
 import kotlin.math.min
-import kotlin.math.pow
 
 @Composable
 fun PannableAudioPcmWrapper(

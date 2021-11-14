@@ -1,8 +1,9 @@
-package views.states
+package views.states.editor.pcm
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import views.states.editor.pcm.LayoutState
 import kotlin.math.max
 import kotlin.math.min
 

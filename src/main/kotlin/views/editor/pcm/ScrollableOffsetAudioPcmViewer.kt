@@ -1,12 +1,8 @@
 package views
 
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import views.states.TransformState
+import views.states.editor.pcm.TransformState
 
 
 @Composable

@@ -2,7 +2,7 @@ package views
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.Composable
-import views.states.TransformState
+import views.states.editor.pcm.TransformState
 import kotlin.math.exp
 
 @Composable

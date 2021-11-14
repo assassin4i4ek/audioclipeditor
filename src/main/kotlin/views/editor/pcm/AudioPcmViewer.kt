@@ -17,7 +17,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import model.AudioClip
-import views.states.TransformState
+import views.states.editor.pcm.TransformState
 import kotlin.math.*
 
 @Composable
@@ -31,6 +31,7 @@ fun AudioPcmViewer(
     onHorizontalDrag: ((PointerInputChange, Float) -> Unit) = { change, _ -> change.consumeAllChanges() },
     onHorizontalDragStart: (Offset) -> Unit = {},
     onHorizontalDragEnd: () -> Unit = {},
+
 //    consumeHorizontalScrollDelta: (Float) -> Float = { it },
 //    consumeVerticalScrollDelta: (Float) -> Float = { it }
 ) {

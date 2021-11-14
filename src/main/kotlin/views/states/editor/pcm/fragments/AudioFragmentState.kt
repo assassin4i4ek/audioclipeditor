@@ -1,4 +1,4 @@
-package views.states
+package views.states.editor.pcm.fragments
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -13,7 +13,7 @@ import model.AudioFragment
 class AudioFragmentState(
     val audioFragment: AudioFragment,
     var zIndex: Int,
-    val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope
 ) {
     private var _lowerImmutableAreaStartUs by mutableStateOf(audioFragment.lowerImmutableAreaStartUs)
     private var _upperImmutableAreaEndUs by mutableStateOf(audioFragment.upperImmutableAreaEndUs)

@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
@@ -17,13 +16,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.AudioClip
 import model.AudioFragment
 import model.transformers.SilenceInsertionAudioTransformer
-import views.states.AudioFragmentState
-import views.states.TransformState
+import views.states.editor.pcm.fragments.AudioFragmentState
+import views.states.editor.pcm.TransformState
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

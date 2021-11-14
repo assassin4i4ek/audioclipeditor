@@ -1,12 +1,10 @@
-package views.states
+package views.states.editor.pcm
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import model.AudioClip
+import views.states.editor.pcm.AudioPcmViewerLayoutParams
 
 class LayoutState(private val audioDurationUs: Long, currentDensity: Density, layoutParams: AudioPcmViewerLayoutParams = AudioPcmViewerLayoutParams()) {
 //    var contentWidthPx by mutableStateOf(0f)

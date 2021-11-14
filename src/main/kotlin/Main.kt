@@ -1,19 +1,18 @@
 import androidx.compose.desktop.ComposeWindow
 import androidx.compose.desktop.LocalAppWindow
 import androidx.compose.desktop.Window
-import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.svgResource
@@ -21,15 +20,34 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import model.AudioClip
 import model.AudioFragment
 import model.ClipUtilizer
+import model.transformers.SilenceInsertionAudioTransformer
+import org.apache.hc.client5.http.classic.methods.HttpPost
+import org.apache.hc.client5.http.entity.mime.FileBody
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.io.entity.EntityUtils
 import views.*
-import views.states.*
+import views.states.editor.InputDevice
+import views.states.editor.pcm.AudioClipState
+import views.states.editor.pcm.CursorState
+import views.states.editor.pcm.LayoutState
+import views.states.editor.pcm.TransformState
+import views.states.editor.pcm.fragments.AudioFragmentState
+import views.states.editor.pcm.fragments.DraggedFragmentState
 import java.awt.FileDialog
+import java.io.File
 import java.io.FilenameFilter
+import java.lang.Exception
+import java.nio.charset.Charset
 import java.nio.file.Paths
 import kotlin.math.max
+import kotlin.math.min
 
 fun main() = Window {
 //    System.setProperty("skiko.directx.gpu.priority", "discrete")
@@ -38,7 +56,6 @@ fun main() = Window {
 //        "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_normalized_sampled\\АртГалереяІванюки24.07.mp3"
 //    val filepath2 =
 //        "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_normalized_sampled\\АквапаркТерм7.05.mp3"
-
     fun onPauseClick(audioClip: AudioClip, clipRunningState: MutableState<Boolean>, cursorState: CursorState) {
         audioClip.stop()
         clipRunningState.value = false
@@ -176,7 +193,11 @@ fun main() = Window {
                                                             onCursorPositioned(it)
                                                             onRememberDragStartPosition(it)
                                                         },
-                                                        onHorizontalDragStart = onDragAudioFragmentStart,
+                                                        onHorizontalDragStart = {
+                                                            onPauseClick(selectedAudio, clipRunningState, cursorState)
+                                                            onDragAudioFragmentStart(it)
+
+                                                        },//onDragAudioFragmentStart,
                                                         onHorizontalDrag = onDragAudioFragment,
                                                     )
                                                 }
@@ -198,8 +219,12 @@ fun main() = Window {
                         }
                         Button(onClick = {
                             composableScope.launch {
-                                val audioFilePath = selectedAudio.saveWithFragments(Paths.get(selectedAudio.directory + "_sampled", "_${selectedAudio.nameWithoutExtension}").toString())
-                                selectedAudio.saveFragmentLabels(audioFilePath, Paths.get(selectedAudio.directory + "_labeled", "_${selectedAudio.nameWithoutExtension}").toString())
+                                val audioFilePath = selectedAudio.saveWithFragments(Paths.get(selectedAudio.directory + "_sampled",
+                                    selectedAudio.nameWithoutExtension
+                                ).toString())
+                                selectedAudio.saveFragmentLabels(audioFilePath, Paths.get(selectedAudio.directory + "_labeled",
+                                    selectedAudio.nameWithoutExtension
+                                ).toString())
                             }
                         }) {
                             Icon(svgResource("icons/save_black_24dp.svg"), "save")
@@ -237,6 +262,30 @@ fun main() = Window {
                             Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
                         }
                         Spacer(modifier = Modifier.weight(1f))
+                        Button(onClick = {
+                            kotlin.runCatching {
+                                val fragmentsContainer = fetchFragments(selectedAudio)!!
+                                for (fragmentInfo in fragmentsContainer.fragments) {
+                                    kotlin.runCatching {
+                                        val newFragment = selectedAudio.createFragment(
+                                            fragmentInfo.lowerImmutableAreaStartUs,
+                                            max(0, fragmentInfo.mutableAreaStartUs),
+                                            min(fragmentInfo.mutableAreaEndUs, selectedAudio.durationUs),
+                                            fragmentInfo.upperImmutableAreaEndUs
+                                        )
+
+                                        when (fragmentInfo.transformer.type) {
+                                            "SILENCE" -> (newFragment.transformer as SilenceInsertionAudioTransformer).silenceDurationUs =
+                                                fragmentInfo.transformer.durationUs
+                                        }
+                                        audioStates[selectedAudio]!!.fragmentsState[newFragment] =
+                                            AudioFragmentState(newFragment, 0, composableScope)
+                                    }
+                                }
+                            }
+                        }) {
+                            Text("AI")
+                        }
                         Button(onClick = {
                             transformState.zoom *= 1.5f
                         }) {
@@ -327,20 +376,71 @@ fun openAudioClip(
 ) {
     val fileDialog = FileDialog(window, "Choose files", FileDialog.LOAD)
     val filenameFilter = FilenameFilter { dir, name ->
-        name.endsWith(".mp3")
+        name.endsWith(".mp3") || name.endsWith(".json")
     }
     fileDialog.isMultipleMode = true
-    fileDialog.file = "*.mp3"
+    fileDialog.file = "*.mp3;*.json"
     fileDialog.filenameFilter = filenameFilter
     fileDialog.isVisible = true
     fileDialog.files.filter {
         filenameFilter.accept(it.parentFile, it.name)
-    }.forEach {
-        if (!audioMap.contains(it.absolutePath)) {
-            val newAudioClip = AudioClip(it.absolutePath, clipUtilizer)
-            filepathList.add(it.absolutePath)
-            audioMap[it.absolutePath] = newAudioClip
-            audioStates[newAudioClip] =
-                initAudioClipState(newAudioClip, composableScope, density)
+    }.forEach { selectedFile ->
+        if (!audioMap.contains(selectedFile.absolutePath)) {
+            fun openAudioClipFromMp3File(mp3File: File): AudioClip {
+                val newAudioClip = AudioClip(mp3File.absolutePath, clipUtilizer)
+                filepathList.add(mp3File.absolutePath)
+                audioMap[mp3File.absolutePath] = newAudioClip
+                audioStates[newAudioClip] =
+                    initAudioClipState(newAudioClip, composableScope, density)
+                return newAudioClip
+            }
+
+            fun openAudioClipFromJsonFile(jsonFile: File): AudioClip {
+                val serializedClip = Json.decodeFromString<SerializedAudioClip>(jsonFile.readText())
+                val mp3File = File(serializedClip.srcFilepath)
+                val audioClip = openAudioClipFromMp3File(mp3File)
+                serializedClip.fragments.forEach { fragmentInfo ->
+                    val newFragment = audioClip.createFragment(
+                        fragmentInfo.lowerImmutableAreaStartUs, fragmentInfo.mutableAreaStartUs,
+                        fragmentInfo.mutableAreaEndUs, fragmentInfo.upperImmutableAreaEndUs
+                    )
+                    when(fragmentInfo.transformer.type) {
+                        "SILENCE" -> (newFragment.transformer as SilenceInsertionAudioTransformer).silenceDurationUs = fragmentInfo.transformer.durationUs
+                    }
+                    audioStates[audioClip]!!.fragmentsState[newFragment] = AudioFragmentState(newFragment, 0, composableScope)
+                }
+                return audioClip
+            }
+
+            when(selectedFile.extension) {
+                "mp3" -> openAudioClipFromMp3File(selectedFile)
+                "json" -> openAudioClipFromJsonFile(selectedFile)
+            }
         }}
+}
+
+
+fun fetchFragments(selectedAudio: AudioClip, ): SerializedAudioClip? {
+    val httpClient = HttpClients.createDefault()
+    val mp3File = FileBody(File(selectedAudio.srcFilepath))
+    val httpEntity = MultipartEntityBuilder.create()
+        .setMode(HttpMultipartMode.EXTENDED)
+//        .setCharset(Charset.forName("UTF-8"))
+        .addPart("mp3File", mp3File)
+        .build()
+    val httpPost = HttpPost("http://localhost:5000/api/fragments")
+    httpPost.entity = httpEntity
+    try {
+        println("Request")
+        val httpResponse = httpClient.execute(httpPost)
+        println("Response")
+        val content = httpResponse.entity.content.readAllBytes().toString(Charset.defaultCharset())
+        EntityUtils.consume(httpEntity)
+        val fragmentsContainer = Json.decodeFromString<SerializedAudioClip>(content)
+        return fragmentsContainer
+    }
+    catch (e: Exception) {
+        System.err.println(e)
+        return null
+    }
 }

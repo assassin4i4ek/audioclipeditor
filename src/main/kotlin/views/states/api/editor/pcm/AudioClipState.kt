@@ -1,6 +1,7 @@
 package views.states.api.editor.pcm
 
 import model.api.AudioClip
+import model.api.AudioClipPlayer
 import views.states.api.editor.pcm.cursor.CursorState
 import views.states.api.editor.pcm.transform.TransformState
 
@@ -9,4 +10,11 @@ interface AudioClipState {
 
     val transformState: TransformState
     val cursorState: CursorState
+
+    var isClipPlaying: Boolean
+
+    val audioClipPlayer: AudioClipPlayer
+    fun startPlayClip()
+    fun pausePlayClip()
+    fun stopPlayClip()
 }

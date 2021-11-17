@@ -11,12 +11,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalViewConfiguration
 import views.states.api.editor.pcm.AudioClipState
-import views.states.api.editor.pcm.cursor.CursorState
 import views.states.api.editor.pcm.layout.LayoutState
 import views.states.api.editor.pcm.transform.TransformState
-import views.states.impl.editor.cursor.CursorStateImpl
 import views.states.impl.editor.pcm.AudioClipStateImpl
 import views.states.impl.editor.pcm.layout.LayoutStateImpl
 import views.states.impl.editor.pcm.transform.TransformStateImpl
@@ -35,7 +32,7 @@ fun GlobalViewAudioPcmWrapper(
             originalAudioClipState.transformState.layoutState.layoutParams
         )
         val transformState: TransformState = TransformStateImpl(layoutState)
-        AudioClipStateImpl(originalAudioClipState.audioClip, transformState, originalAudioClipState.cursorState)
+        AudioClipStateImpl(originalAudioClipState.audioClip, transformState, originalAudioClipState.cursorState, originalAudioClipState.audioClipPlayer)
     }
 
     Box (Modifier.onGloballyPositioned {

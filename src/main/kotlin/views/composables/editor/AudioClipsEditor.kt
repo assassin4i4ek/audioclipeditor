@@ -39,8 +39,9 @@ fun AudioClipsEditor() {
     //
     val localDensity = LocalDensity.current
     val window = LocalAppWindow.current.window
+    val coroutineScope = rememberCoroutineScope()
 
-    val audioClipsEditorState: AudioClipsEditorState by remember { mutableStateOf(AudioClipsEditorStateImpl(localDensity)) }
+    val audioClipsEditorState: AudioClipsEditorState by remember { mutableStateOf(AudioClipsEditorStateImpl(localDensity, coroutineScope)) }
 
     if (audioClipsEditorState.audioClipStates.isNotEmpty()) {
         Column {
@@ -107,6 +108,25 @@ fun AudioClipsEditor() {
                         }
                 }) {
                     Icon(svgResource("icons/folder_open_black_24dp.svg"), "open")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Button(
+                    enabled = !selectedAudioClipState.isClipPlaying,//!clipRunningState.value,
+                    onClick = selectedAudioClipState::startPlayClip
+                ) {
+                    Icon(svgResource("icons/play_arrow_black_24dp.svg"), "play")
+                }
+                Button(
+                    enabled = selectedAudioClipState.isClipPlaying,
+                    onClick = selectedAudioClipState::pausePlayClip
+                ) {
+                    Icon(svgResource("icons/pause_black_24dp.svg"), "pause")
+                }
+                Button(
+                    enabled = selectedAudioClipState.isClipPlaying,
+                    onClick = selectedAudioClipState::stopPlayClip
+                ) {
+                    Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(onClick = {

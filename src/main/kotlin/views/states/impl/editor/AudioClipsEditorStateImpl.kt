@@ -2,9 +2,9 @@ package views.states.impl.editor
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import model.api.AudioClip
+import model.impl.AudioClipPlayerImpl
 import views.states.api.editor.AudioClipsEditorState
 import views.states.api.editor.InputDevice
 import views.states.api.editor.layout.LayoutState
@@ -19,6 +19,7 @@ import java.lang.Integer.max
 
 class AudioClipsEditorStateImpl(
     private val currentDensity: Density,
+    private val coroutineScope: CoroutineScope,
     override val layoutState: LayoutState = LayoutStateImpl()
 ): AudioClipsEditorState {
     private var _selectedAudioIndex: Int by mutableStateOf(-1)
@@ -37,8 +38,9 @@ class AudioClipsEditorStateImpl(
                     audioClip.durationUs, currentDensity
                 )
             val transformState: TransformState = TransformStateImpl(layoutState)
-            val cursorState: CursorState = CursorStateImpl(layoutState)
-            val newAudioClipState = AudioClipStateImpl(audioClip, transformState, cursorState)
+            val cursorState: CursorState = CursorStateImpl(layoutState, coroutineScope)
+            val audioClipPlayer = AudioClipPlayerImpl(audioClip, coroutineScope)
+            val newAudioClipState = AudioClipStateImpl(audioClip, transformState, cursorState, audioClipPlayer)
             _sortedAudioClipStates.add(newAudioClipState)
             _audioClipStatesMap[audioClip.filePath] = newAudioClipState
 

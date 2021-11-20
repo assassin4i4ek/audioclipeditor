@@ -1,7 +1,7 @@
 package views.states.api.editor.pcm.layout
 
 interface LayoutState {
-    var layoutParams: LayoutParams
+    var specs: LayoutSpecs
 
     val audioDurationUs: Long
     val contentWidthPx: Float

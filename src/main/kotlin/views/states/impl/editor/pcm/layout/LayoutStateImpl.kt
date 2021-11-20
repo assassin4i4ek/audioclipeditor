@@ -4,17 +4,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
-import views.states.api.editor.pcm.layout.LayoutParams
+import views.states.api.editor.pcm.layout.LayoutSpecs
 import views.states.api.editor.pcm.layout.LayoutState
 
 class LayoutStateImpl(
     override val audioDurationUs: Long,
     currentDensity: Density,
-    layoutParams: LayoutParams = LayoutParamsImpl()
+    specs: LayoutSpecs = LayoutSpecs()
 ): LayoutState {
-    override var layoutParams: LayoutParams by mutableStateOf(layoutParams)
+    override var specs: LayoutSpecs by mutableStateOf(specs)
 
-    override val contentWidthPx = (with(currentDensity) { layoutParams.stepWidthDpPerSec.toPx() } * (audioDurationUs / 1e6)).toFloat()
+    override val contentWidthPx = (with(currentDensity) { specs.stepWidthDpPerSec.toPx() } * (audioDurationUs / 1e6)).toFloat()
     override var canvasHeightPx: Float by mutableStateOf(0f)
     override var canvasWidthPx: Float by mutableStateOf(0f)
 }

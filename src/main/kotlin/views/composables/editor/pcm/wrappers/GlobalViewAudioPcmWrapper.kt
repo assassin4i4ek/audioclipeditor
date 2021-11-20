@@ -29,10 +29,16 @@ fun GlobalViewAudioPcmWrapper(
         val layoutState: LayoutState = LayoutStateImpl(
             originalAudioClipState.audioClip.durationUs,
             currentDensity,
-            originalAudioClipState.transformState.layoutState.layoutParams
+            originalAudioClipState.transformState.layoutState.specs
         )
-        val transformState: TransformState = TransformStateImpl(layoutState)
-        AudioClipStateImpl(originalAudioClipState.audioClip, transformState, originalAudioClipState.cursorState, originalAudioClipState.audioClipPlayer)
+        val proxyTransformState: TransformState = TransformStateImpl(layoutState)
+        AudioClipStateImpl(
+            originalAudioClipState.audioClip,
+            proxyTransformState,
+            originalAudioClipState.cursorState,
+            originalAudioClipState.fragmentSetState,
+            originalAudioClipState.audioClipPlayer
+        )
     }
 
     Box (Modifier.onGloballyPositioned {

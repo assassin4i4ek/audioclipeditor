@@ -1,4 +1,4 @@
-package views.composables.editor.pcm
+package views.composables.editor.pcm.wrappers
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.Composable

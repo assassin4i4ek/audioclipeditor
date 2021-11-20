@@ -1,6 +1,6 @@
-package model.impl
+package model.api
 
-class AudioClipPlayerParamsImpl(
+class AudioClipPlayerSpecs(
     val dataLineMaxBufferFreeness: Double
     ) {
 }

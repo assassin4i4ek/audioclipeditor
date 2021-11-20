@@ -1,27 +1,25 @@
 package views.states.impl.editor.pcm
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
+import androidx.compose.runtime.*
 import model.api.AudioClip
 import model.api.AudioClipPlayer
-import model.impl.AudioClipPlayerImpl
 import views.states.api.editor.pcm.AudioClipState
 import views.states.api.editor.pcm.cursor.CursorState
+import views.states.api.editor.pcm.fragment.AudioClipFragmentSetState
 import views.states.api.editor.pcm.transform.TransformState
 
 class AudioClipStateImpl(
     override val audioClip: AudioClip,
     override val transformState: TransformState,
     override val cursorState: CursorState,
+    override val fragmentSetState: AudioClipFragmentSetState,
     override val audioClipPlayer: AudioClipPlayer
 ) : AudioClipState {
     override var isClipPlaying: Boolean by mutableStateOf(false)
 
     override fun startPlayClip() {
-        if (isClipPlaying) {
-            throw IllegalStateException("Invoked startPlayClip() on already running clip")
+        check(!isClipPlaying) {
+            "Invoked startPlayClip() on already running clip"
         }
         val currentCursorPositionUs = transformState.layoutState.toUs(cursorState.xAbsolutePositionPx)
         isClipPlaying = true
@@ -29,25 +27,22 @@ class AudioClipStateImpl(
             targetPosition = transformState.layoutState.contentWidthPx,
             scrollTimeMs = ((audioClip.durationUs - currentCursorPositionUs) / 1e3).toFloat(),
             onFinish = {
-//                    audioClip.stopPlay()
                 audioClipPlayer.stop()
                 isClipPlaying = false
                 cursorState.restorePositionBeforeAnimation()
             },
             onInterrupt = {
-//                    audioClip.stopPlay()
                 audioClipPlayer.stop()
                 isClipPlaying = false
                 startPlayClip()
             }
         )
-//            audioClip.startPlay(currentCursorPositionUs)
         audioClipPlayer.play(currentCursorPositionUs)
     }
 
     override fun pausePlayClip() {
-        if (!isClipPlaying) {
-            throw IllegalStateException("Invoke pausePlayClip on not running clip")
+        check(isClipPlaying) {
+            "Invoke pausePlayClip on not running clip"
         }
         audioClipPlayer.stop()
         isClipPlaying = false
@@ -55,12 +50,17 @@ class AudioClipStateImpl(
     }
 
     override fun stopPlayClip() {
-        if (!isClipPlaying) {
-            throw IllegalStateException("Invoke stopPlayClip on not running clip")
+        check(isClipPlaying) {
+            "Invoke stopPlayClip on not running clip"
         }
         audioClipPlayer.stop()
         isClipPlaying = false
         cursorState.positionAnimationStop()
         cursorState.restorePositionBeforeAnimation()
+    }
+
+    override fun close() {
+        audioClip.close()
+        audioClipPlayer.close()
     }
 }

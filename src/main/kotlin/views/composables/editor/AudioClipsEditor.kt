@@ -16,7 +16,7 @@ import androidx.compose.ui.res.svgResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import views.composables.editor.advanced.GlobalAudioPcmView
-import views.composables.editor.pcm.EditableAudioPcmView
+import views.composables.editor.advanced.EditableAudioPcmView
 import views.states.api.editor.AudioClipsEditorState
 import views.states.api.editor.InputDevice
 import views.states.impl.editor.AudioClipsEditorStateImpl
@@ -44,9 +44,9 @@ fun AudioClipsEditor() {
     val audioClipsEditorState: AudioClipsEditorState by remember { mutableStateOf(AudioClipsEditorStateImpl(localDensity, coroutineScope)) }
 
     if (audioClipsEditorState.audioClipStates.isNotEmpty()) {
+        val selectedAudioClipStateIndex = audioClipsEditorState.selectedAudioIndex
+        val selectedAudioClipState = audioClipsEditorState.audioClipStates[selectedAudioClipStateIndex]
         Column {
-            val selectedAudioClipStateIndex = audioClipsEditorState.selectedAudioIndex
-            val selectedAudioClipState = audioClipsEditorState.audioClipStates[selectedAudioClipStateIndex]
             ScrollableTabRow(selectedAudioClipStateIndex) {
                 audioClipsEditorState.audioClipStates.forEachIndexed { audioStateIndex, audioClipState ->
                     Tab(
@@ -78,7 +78,7 @@ fun AudioClipsEditor() {
                             audioClipsEditorState.layoutState.editorHeightDp = it.height.toDp()
                     }) {
                     Column (modifier = Modifier.run {
-                        val editorMaxHeightDp = audioClipsEditorState.layoutState.layoutParams.editorMaxHeightDp
+                        val editorMaxHeightDp = audioClipsEditorState.layoutState.specs.editorMaxHeightDp
                         if (audioClipsEditorState.layoutState.editorHeightDp < editorMaxHeightDp) {
                             weight(1f)
                         }
@@ -103,6 +103,7 @@ fun AudioClipsEditor() {
                                 audioClipsEditorState.append(audioClip)
                             }
                             catch (iae: IllegalArgumentException) {
+                                println(iae.message)
                                 audioClip.close()
                             }
                         }

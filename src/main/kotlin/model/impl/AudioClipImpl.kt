@@ -2,13 +2,18 @@ package model.impl
 
 import model.api.AudioClip
 import model.api.Mp3FileDecoder
+import model.api.fragment.AudioClipFragment
+import model.api.fragment.AudioFragmentSpecs
+import model.impl.fragment.AudioClipFragmentImpl
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.*
 import javax.sound.sampled.AudioFormat
+import kotlin.Comparator
 import kotlin.math.min
 
 class AudioClipImpl(
-    srcFilepath: String
+    srcFilepath: String,
 ): AudioClip {
     override val name: String
     override val filePath: String
@@ -37,47 +42,86 @@ class AudioClipImpl(
         _audioFormat = decoder.audioFormat
         _channelsPcm = decoder.channelsPcm
         _durationUs =  (decoder.pcmBytes.size.toDouble() / _channelsPcm.size / 2 * 1e6 / _sampleRate).toLong()
+        _originalPcmByteArray = decoder.pcmBytes
+        _audioFragmentSpecs = AudioFragmentSpecs(_durationUs)
         isInitialized = true
-
-        originalPcmByteArray = decoder.pcmBytes
     }
 
-    override val sampleRate: Int get() {
+    private fun <T> lateInitProperty(getter: () -> T): T {
         if (!isInitialized) {
             lateInit()
         }
-        return _sampleRate
+        return getter()
     }
 
-    override val audioFormat: AudioFormat get() {
-        if (!isInitialized) {
-            lateInit()
-        }
-        return _audioFormat
-    }
-
-    override val channelsPcm: List<FloatArray> get() {
-        if (!isInitialized) {
-            lateInit()
-        }
-        return _channelsPcm
-    }
-    override val durationUs: Long get() {
-        if (!isInitialized) {
-            lateInit()
-        }
-        return _durationUs
-    }
+    override val sampleRate: Int get() = lateInitProperty { _sampleRate }
+    override val audioFormat: AudioFormat get() = lateInitProperty { _audioFormat }
+    override val channelsPcm: List<FloatArray> get() = lateInitProperty { _channelsPcm }
+    override val durationUs: Long get() = lateInitProperty { _durationUs }
 
     override fun close() {
         println("closed audio clip")
     }
 
-    private lateinit var originalPcmByteArray: ByteArray
+    private lateinit var _originalPcmByteArray: ByteArray
+    private val originalPcmByteArray: ByteArray get() = lateInitProperty { _originalPcmByteArray }
 
     override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray): Int {
         val adjustedSize = min(startPosition + size, originalPcmByteArray.size) - startPosition
         System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, adjustedSize)
         return adjustedSize
+    }
+
+    private val _fragments: TreeSet<AudioClipFragment> = sortedSetOf(Comparator { a, b ->
+        (a.leftImmutableAreaStartUs - b.leftImmutableAreaStartUs).toInt()
+    })
+
+    override val fragments: Iterable<AudioClipFragment> get() = _fragments.asIterable()
+
+    private lateinit var _audioFragmentSpecs: AudioFragmentSpecs
+    override val audioFragmentSpecs get() = lateInitProperty { _audioFragmentSpecs }
+
+    override fun createFragment(
+        leftImmutableAreaStartUs: Long, mutableAreaStartUs: Long,
+        mutableAreaEndUs: Long, rightImmutableAreaEndUs: Long
+    ): AudioClipFragment {
+        val newFragment = AudioClipFragmentImpl(
+            leftImmutableAreaStartUs,
+            mutableAreaStartUs,
+            mutableAreaEndUs,
+            rightImmutableAreaEndUs,
+            audioFragmentSpecs,
+//            SilenceInsertionAudioTransformer(pcmAudioFormat,50*1000L)
+        )
+
+        val prevFragment = _fragments.lower(newFragment)
+        val nextFragment = _fragments.higher(newFragment)
+
+        check((
+                prevFragment?.rightBoundingFragment ?: nextFragment) == nextFragment &&
+                (nextFragment?.leftBoundingFragment ?: prevFragment) == prevFragment
+        ) {
+            "Inconsistency between neighboring fragments $prevFragment and $nextFragment"
+        }
+
+        newFragment.leftBoundingFragment = prevFragment
+        newFragment.rightBoundingFragment = nextFragment
+        prevFragment?.rightBoundingFragment = newFragment
+        nextFragment?.leftBoundingFragment = newFragment
+
+        _fragments.add(newFragment)
+
+        return newFragment
+    }
+
+    override fun removeFragment(fragment: AudioClipFragment) {
+        require(fragment in _fragments) {
+            "Trying to remove fragment $fragment which doesn't belong to current audio clip"
+        }
+
+        fragment.leftBoundingFragment?.rightBoundingFragment = fragment.rightBoundingFragment
+        fragment.rightBoundingFragment?.leftBoundingFragment = fragment.leftBoundingFragment
+
+        _fragments.remove(fragment)
     }
 }

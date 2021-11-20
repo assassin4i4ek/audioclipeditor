@@ -6,13 +6,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.api.AudioClip
 import model.api.AudioClipPlayer
+import model.api.AudioClipPlayerSpecs
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.SourceDataLine
 
 class AudioClipPlayerImpl(
     override val audioClip: AudioClip,
     private val coroutineScope: CoroutineScope,
-    private val audioClipPlayerParamsImpl: AudioClipPlayerParamsImpl = AudioClipPlayerParamsImpl(0.8)
+    private val specs: AudioClipPlayerSpecs = AudioClipPlayerSpecs(0.8)
 ) : AudioClipPlayer {
     private val dataLine: SourceDataLine = AudioSystem.getSourceDataLine(audioClip.audioFormat)
     private val pcmBuffer: ByteArray = ByteArray(dataLine.bufferSize)
@@ -24,7 +25,7 @@ class AudioClipPlayerImpl(
 
     override fun play(startUs: Long) {
         val bufferRefreshPeriodMs = (
-                audioClipPlayerParamsImpl.dataLineMaxBufferFreeness * audioClip.toUs(dataLine.bufferSize.toLong()) * 1e-3
+                specs.dataLineMaxBufferFreeness * audioClip.toUs(dataLine.bufferSize.toLong()) * 1e-3
                 ).toLong()
         playRoutine = coroutineScope.launch {
             var currentPosition = audioClip.toPcmBytePosition(startUs)
@@ -42,5 +43,10 @@ class AudioClipPlayerImpl(
         playRoutine?.cancel()
         dataLine.stop()
         dataLine.flush()
+    }
+
+    override fun close() {
+        stop()
+        dataLine.close()
     }
 }

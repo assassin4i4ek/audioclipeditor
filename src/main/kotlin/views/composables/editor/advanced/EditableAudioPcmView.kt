@@ -1,4 +1,4 @@
-package views.composables.editor.pcm
+package views.composables.editor.advanced
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
@@ -6,7 +6,11 @@ import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import views.composables.editor.pcm.views.AudioPcmView
+import views.composables.editor.pcm.wrappers.ScrollableOffsetAudioPcmWrapper
+import views.composables.editor.pcm.wrappers.ScrollableZoomAudioPcmWrapper
 import views.composables.editor.pcm.wrappers.CursorAudioPcmWrapper
+import views.composables.editor.pcm.wrappers.fragments.AudioClipFragmentSetWrapper
 import views.states.api.editor.InputDevice
 import views.states.api.editor.pcm.AudioClipState
 
@@ -44,12 +48,18 @@ fun EditableAudioPcmView(
                             ), Orientation.Vertical
                         )
                 ) {
-                    AudioPcmView(
-                        audioClipState,
-                        onPress = {
-                            onCursorPositioned(it)
-                        }
-                    )
+                    AudioClipFragmentSetWrapper(audioClipState) { onRememberDragStart, onDragStart, onDrag, onDragEnd ->
+                        AudioPcmView(
+                            audioClipState,
+                            onPress = {
+                                onCursorPositioned(it)
+                                onRememberDragStart(it)
+                            },
+                            onHorizontalDragStart = onDragStart,
+                            onHorizontalDrag = onDrag,
+                            onHorizontalDragEnd = onDragEnd
+                        )
+                    }
                 }
             }
         }

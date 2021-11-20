@@ -20,14 +20,9 @@ fun CursorAudioPcmWrapper(
 ) {
     block { (x, _) ->
         cursorState.xAbsolutePositionPx = transformState.toAbsoluteOffset(x)
-//     //           cursorState.xPosition = (-transformState.xOffset + x) / transformState.zoom
     }
     Canvas(
         modifier = Modifier.fillMaxSize()
-//            .size(
-//                transformState.layoutState.canvasWidthPx.toDp(),
-//                transformState.layoutState.canvasHeightPx.toDp()
-//            )
     ) {
         scale(transformState.zoom, 1f, Offset.Zero) {
             translate(transformState.xAbsoluteOffsetPx) {

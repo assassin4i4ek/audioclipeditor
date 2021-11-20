@@ -4,5 +4,5 @@ import androidx.compose.ui.unit.Dp
 
 interface LayoutState {
     var editorHeightDp: Dp
-    var layoutParams: LayoutParams
+    var specs: LayoutSpecs
 }

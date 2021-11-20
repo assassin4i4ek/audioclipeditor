@@ -3,6 +3,7 @@ package views.states.api.editor.pcm
 import model.api.AudioClip
 import model.api.AudioClipPlayer
 import views.states.api.editor.pcm.cursor.CursorState
+import views.states.api.editor.pcm.fragment.AudioClipFragmentSetState
 import views.states.api.editor.pcm.transform.TransformState
 
 interface AudioClipState {
@@ -17,4 +18,7 @@ interface AudioClipState {
     fun startPlayClip()
     fun pausePlayClip()
     fun stopPlayClip()
+    fun close()
+
+    val fragmentSetState: AudioClipFragmentSetState
 }

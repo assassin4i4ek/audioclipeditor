@@ -1,4 +1,4 @@
-package views.composables.editor.pcm
+package views.composables.editor.pcm.views
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import views.composables.editor.pcm.PcmPathBuilder
 import views.states.api.editor.pcm.AudioClipState
 
 @Composable
@@ -25,18 +26,21 @@ fun AudioPcmView(
     audioClipState: AudioClipState,
 
     onPress: ((Offset) -> Unit)? = null,
-    onHorizontalDrag: (PointerInputChange, Float) -> Unit = { change, _ -> change.consumeAllChanges()}
+
+    onHorizontalDragStart: (Offset) -> Unit = {},
+    onHorizontalDrag: (PointerInputChange, Float) -> Unit = { change, _ -> change.consumeAllChanges()},
+    onHorizontalDragEnd: () -> Unit = {}
 ) {
     with (LocalDensity.current) {
         val channelPcmPaths = remember(
             audioClipState.transformState.zoom,
-            audioClipState.transformState.layoutState.layoutParams,
+            audioClipState.transformState.layoutState.specs,
             audioClipState.transformState.layoutState.canvasHeightPx > 0
         ) {
             println("Path build invoked")
             audioClipState.audioClip.channelsPcm.map { channelPcm ->
                 if (audioClipState.transformState.layoutState.canvasHeightPx > 0) {
-                    val xPerSecPx = audioClipState.transformState.layoutState.layoutParams.stepWidthDpPerSec.toPx()
+                    val xPerSecPx = audioClipState.transformState.layoutState.specs.stepWidthDpPerSec.toPx()
                     val yRangePx = (
                             audioClipState.transformState.layoutState.canvasHeightPx -
                                     1f - audioClipState.audioClip.channelsPcm.size
@@ -69,7 +73,9 @@ fun AudioPcmView(
                 }
                 .pointerInput(onHorizontalDrag) {
                     detectHorizontalDragGestures(
-                        onHorizontalDrag = onHorizontalDrag
+                        onHorizontalDrag = onHorizontalDrag,
+                        onDragStart = onHorizontalDragStart,
+                        onDragEnd = onHorizontalDragEnd
                     )
                 }
         ) {

@@ -10,13 +10,14 @@ import views.states.api.editor.InputDevice
 import views.states.api.editor.layout.LayoutState
 import views.states.api.editor.pcm.AudioClipState
 import views.states.api.editor.pcm.cursor.CursorState
-import views.states.api.editor.pcm.fragment.FragmentDragSpecs
+import views.states.api.editor.pcm.fragment.draggable.FragmentDragSpecs
 import views.states.api.editor.pcm.transform.TransformState
 import views.states.impl.editor.pcm.cursor.CursorStateImpl
 import views.states.impl.editor.layout.LayoutStateImpl
 import views.states.impl.editor.pcm.AudioClipStateImpl
 import views.states.impl.editor.pcm.fragment.AudioClipFragmentSetStateImpl
-import views.states.impl.editor.pcm.fragment.FragmentDragStateImpl
+import views.states.impl.editor.pcm.fragment.draggable.FragmentDragStateImpl
+import views.states.impl.editor.pcm.fragment.selectable.FragmentSelectStateImpl
 import views.states.impl.editor.pcm.transform.TransformStateImpl
 import java.lang.Integer.max
 
@@ -43,7 +44,9 @@ class AudioClipsEditorStateImpl(
         val transformState: TransformState = TransformStateImpl(layoutState)
         val cursorState: CursorState = CursorStateImpl(layoutState, coroutineScope)
         val audioClipPlayer = AudioClipPlayerImpl(audioClip, coroutineScope)
-        val fragmentsSetState = AudioClipFragmentSetStateImpl(FragmentDragStateImpl(FragmentDragSpecs()))
+        val fragmentsSetState = AudioClipFragmentSetStateImpl(
+            FragmentDragStateImpl(FragmentDragSpecs()), FragmentSelectStateImpl(), audioClipPlayer, cursorState
+        )
         val newAudioClipState = AudioClipStateImpl(audioClip, transformState, cursorState,  fragmentsSetState, audioClipPlayer)
         for (audioClipFragment in audioClip.fragments) {
             newAudioClipState.fragmentSetState.append(audioClipFragment)

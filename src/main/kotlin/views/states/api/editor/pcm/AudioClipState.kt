@@ -12,7 +12,7 @@ interface AudioClipState {
     val transformState: TransformState
     val cursorState: CursorState
 
-    var isClipPlaying: Boolean
+    val isClipPlaying: Boolean
 
     val audioClipPlayer: AudioClipPlayer
     fun startPlayClip()

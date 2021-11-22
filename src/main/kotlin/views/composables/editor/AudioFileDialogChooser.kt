@@ -20,10 +20,7 @@ object AudioFileDialogChooser {
         return fileDialog.files.filter {
             filenameFilter.accept(it.parentFile, it.name)
         }.map {
-            AudioClipImpl(it.absolutePath).apply {
-                createFragment(0, 1e6.toLong(), 3e6.toLong(), 4e6.toLong())
-                createFragment(5e6.toLong(), 6e6.toLong(), 8e6.toLong(), 9e6.toLong())
-            }
+            AudioClipImpl(it.absolutePath)
         }
     }
 }

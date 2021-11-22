@@ -24,16 +24,12 @@ fun CursorAudioPcmWrapper(
     Canvas(
         modifier = Modifier.fillMaxSize()
     ) {
-        scale(transformState.zoom, 1f, Offset.Zero) {
-            translate(transformState.xAbsoluteOffsetPx) {
-                /* Draw cursor */
-                drawLine(
-                    color = Color.Red,
-                    start = Offset(cursorState.xAbsolutePositionPx, 0f),
-                    end = Offset(cursorState.xAbsolutePositionPx, size.height),
-                    strokeWidth = transformState.toAbsoluteSize(2.dp.toPx())
-                )
-            }
-        }
+        /* Draw cursor */
+        drawLine(
+            color = Color.Red,
+            start = Offset(transformState.toWindowOffset(cursorState.xAbsolutePositionPx), 0f),
+            end = Offset(transformState.toWindowOffset(cursorState.xAbsolutePositionPx), size.height),
+            strokeWidth = 2.dp.toPx()
+        )
     }
 }

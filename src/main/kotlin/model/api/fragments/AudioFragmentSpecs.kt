@@ -1,4 +1,4 @@
-package model.api.fragment
+package model.api.fragments
 
 class AudioFragmentSpecs(
     val maxRightBoundUs: Long,

@@ -13,5 +13,5 @@ interface TransformState {
     fun toAbsoluteOffset(windowPx: Float) = toAbsoluteSize(windowPx) - xAbsoluteOffsetPx
     fun toAbsoluteSize(windowPx: Float) = windowPx / zoom
     fun toWindowSize(absolutePx: Float) = absolutePx * zoom
-    fun toWindowOffset(absolutePx: Float) = (absolutePx - xAbsoluteOffsetPx) * zoom
+    fun toWindowOffset(absolutePx: Float) = toWindowSize(absolutePx + xAbsoluteOffsetPx)
 }

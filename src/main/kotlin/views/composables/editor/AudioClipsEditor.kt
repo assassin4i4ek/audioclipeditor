@@ -1,14 +1,25 @@
 package views.composables.editor
 
 import androidx.compose.desktop.LocalAppWindow
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.isTypedEvent
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -20,11 +31,12 @@ import views.composables.editor.advanced.EditableAudioPcmView
 import views.states.api.editor.AudioClipsEditorState
 import views.states.api.editor.InputDevice
 import views.states.impl.editor.AudioClipsEditorStateImpl
+import java.awt.event.KeyEvent
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AudioClipsEditor() {
-    // set up touch slop
-// Fix touchSlope in ViewConfiguration
+    // Fix touchSlope in ViewConfiguration
     with(LocalViewConfiguration.current) {
         val densityField = this.javaClass.getDeclaredField("density")
         val isDensityFieldAccessible = densityField.canAccess(this)
@@ -37,16 +49,59 @@ fun AudioClipsEditor() {
         densityField.isAccessible = isDensityFieldAccessible
     }
     //
+
     val localDensity = LocalDensity.current
     val window = LocalAppWindow.current.window
     val coroutineScope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
 
     val audioClipsEditorState: AudioClipsEditorState by remember { mutableStateOf(AudioClipsEditorStateImpl(localDensity, coroutineScope)) }
 
     if (audioClipsEditorState.audioClipStates.isNotEmpty()) {
         val selectedAudioClipStateIndex = audioClipsEditorState.selectedAudioIndex
         val selectedAudioClipState = audioClipsEditorState.audioClipStates[selectedAudioClipStateIndex]
-        Column {
+
+        LaunchedEffect(null) {
+            focusRequester.requestFocus()
+        }
+
+        Column(
+            modifier = Modifier
+                .onPreviewKeyEvent {
+                    if (it.nativeKeyEvent.id == NativeKeyEvent.KEY_PRESSED) {
+                        when (it.key) {
+                            Key.Spacebar -> {
+                                if (selectedAudioClipState.isClipPlaying) {
+                                    if (it.isShiftPressed) {
+                                        selectedAudioClipState.stopPlayClip()
+                                    } else {
+                                        selectedAudioClipState.pausePlayClip()
+                                    }
+                                }
+                                else if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.isFragmentPlaying == true) {
+                                    println("stopping fragment!")
+                                    selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.stopPlayFragment()
+                                }
+                                else {
+                                    selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState
+                                        ?.startPlayFragment() ?: selectedAudioClipState.startPlayClip()
+                                }
+                                true
+                            }
+                            Key.Escape -> {
+                                if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
+                                    selectedAudioClipState.fragmentSetState.fragmentSelectState.reset()
+                                }
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+                    else false
+                }
+                .focusRequester(focusRequester)
+                .focusable()
+        ) {
             ScrollableTabRow(selectedAudioClipStateIndex) {
                 audioClipsEditorState.audioClipStates.forEachIndexed { audioStateIndex, audioClipState ->
                     Tab(
@@ -86,10 +141,12 @@ fun AudioClipsEditor() {
                             height(editorMaxHeightDp)
                         }
                     }) {
-                        Box(modifier = Modifier.weight(1f)) {
+                        Spacer(modifier = Modifier.height(1.dp))
+                        Box(modifier = Modifier.weight(1f).border(.5.dp, Color.Black)) {
                             GlobalAudioPcmView(selectedAudioClipState)
                         }
-                        Box(modifier = Modifier.weight(2f)) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(modifier = Modifier.weight(2f).border(.5.dp, Color.Black)) {
                             EditableAudioPcmView(selectedAudioClipState, audioClipsEditorState.inputDevice)
                         }
                     }

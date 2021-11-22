@@ -10,9 +10,12 @@ import views.composables.editor.pcm.views.AudioPcmView
 import views.composables.editor.pcm.wrappers.ScrollableOffsetAudioPcmWrapper
 import views.composables.editor.pcm.wrappers.ScrollableZoomAudioPcmWrapper
 import views.composables.editor.pcm.wrappers.CursorAudioPcmWrapper
-import views.composables.editor.pcm.wrappers.fragments.AudioClipFragmentSetWrapper
+import views.composables.editor.pcm.views.AudioClipFragmentSetView
+import views.composables.editor.pcm.wrappers.fragments.AudioClipDraggableFragmentSetWrapper
+import views.composables.editor.pcm.wrappers.fragments.AudioClipSelectableFragmentSetWrapeer
 import views.states.api.editor.InputDevice
 import views.states.api.editor.pcm.AudioClipState
+import views.states.api.editor.pcm.fragment.draggable.FragmentDragState
 
 @Composable
 fun EditableAudioPcmView(
@@ -48,17 +51,29 @@ fun EditableAudioPcmView(
                             ), Orientation.Vertical
                         )
                 ) {
-                    AudioClipFragmentSetWrapper(audioClipState) { onRememberDragStart, onDragStart, onDrag, onDragEnd ->
-                        AudioPcmView(
-                            audioClipState,
-                            onPress = {
-                                onCursorPositioned(it)
-                                onRememberDragStart(it)
-                            },
-                            onHorizontalDragStart = onDragStart,
-                            onHorizontalDrag = onDrag,
-                            onHorizontalDragEnd = onDragEnd
-                        )
+                    AudioClipDraggableFragmentSetWrapper(
+                        audioClipState, audioClipState.fragmentSetState.fragmentSelectState::reset
+                    ) { onRememberDragStart, onDragStart, onDrag, onDragEnd ->
+                        AudioClipSelectableFragmentSetWrapeer(audioClipState) { onSelectFragment ->
+                            AudioClipFragmentSetView(audioClipState) {
+                                AudioPcmView(
+                                    audioClipState,
+                                    onPress = {
+                                        onRememberDragStart(it)
+                                        onSelectFragment(it)
+                                        audioClipState.cursorState.savePosition()
+                                        onCursorPositioned(it)
+                                    },
+                                    onHorizontalDragStart = {
+                                        onDragStart(it)
+                                        onSelectFragment(it)
+                                        audioClipState.cursorState.restorePosition()
+                                    },
+                                    onHorizontalDrag = onDrag,
+                                    onHorizontalDragEnd = onDragEnd
+                                )
+                            }
+                        }
                     }
                 }
             }

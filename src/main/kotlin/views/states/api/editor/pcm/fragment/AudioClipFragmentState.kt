@@ -1,6 +1,9 @@
 package views.states.api.editor.pcm.fragment
 
-import model.api.fragment.AudioClipFragment
+import model.api.AudioClipPlayer
+import model.api.fragments.AudioClipFragment
+import views.states.api.editor.pcm.cursor.CursorState
+import views.states.api.editor.pcm.layout.LayoutState
 
 interface AudioClipFragmentState {
     val fragment: AudioClipFragment
@@ -19,17 +22,23 @@ interface AudioClipFragmentState {
     val rightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
     val totalDurationUs: Long get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
 
-    fun translateRelative(us: Long) {
-        if (us < 0) {
-            leftImmutableAreaStartUs += us
-            mutableAreaStartUs += us
-            mutableAreaEndUs += us
-            rightImmutableAreaEndUs += us
-        } else if (us > 0) {
-            rightImmutableAreaEndUs += us
-            mutableAreaEndUs += us
-            mutableAreaStartUs += us
-            leftImmutableAreaStartUs += us
+    fun translateRelative(deltaUs: Long) {
+        if (deltaUs < 0) {
+            leftImmutableAreaStartUs += deltaUs
+            mutableAreaStartUs += deltaUs
+            mutableAreaEndUs += deltaUs
+            rightImmutableAreaEndUs += deltaUs
+        } else if (deltaUs > 0) {
+            rightImmutableAreaEndUs += deltaUs
+            mutableAreaEndUs += deltaUs
+            mutableAreaStartUs += deltaUs
+            leftImmutableAreaStartUs += deltaUs
         }
     }
+
+    val cursorState: CursorState
+    val audioClipPlayer: AudioClipPlayer
+    var isFragmentPlaying: Boolean
+    fun startPlayFragment()
+    fun stopPlayFragment()
 }

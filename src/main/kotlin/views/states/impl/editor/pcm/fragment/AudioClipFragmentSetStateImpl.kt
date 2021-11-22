@@ -1,14 +1,20 @@
 package views.states.impl.editor.pcm.fragment
 
 import androidx.compose.runtime.*
-import model.api.fragment.AudioClipFragment
+import model.api.AudioClipPlayer
+import model.api.fragments.AudioClipFragment
+import views.states.api.editor.pcm.cursor.CursorState
 import views.states.api.editor.pcm.fragment.AudioClipFragmentState
 import views.states.api.editor.pcm.fragment.AudioClipFragmentSetState
-import views.states.api.editor.pcm.fragment.FragmentDragSpecs
-import views.states.api.editor.pcm.fragment.FragmentDragState
+import views.states.api.editor.pcm.fragment.draggable.FragmentDragState
+import views.states.api.editor.pcm.fragment.selectable.FragmentSelectState
+import views.states.api.editor.pcm.layout.LayoutState
 
 class AudioClipFragmentSetStateImpl(
-    override val dragState: FragmentDragState
+    override val fragmentDragState: FragmentDragState,
+    override val fragmentSelectState: FragmentSelectState,
+    private val audioClipPlayer: AudioClipPlayer,
+    private val cursorState: CursorState
 ): AudioClipFragmentSetState {
 
     private val _fragmentStatesMap = mutableStateMapOf<AudioClipFragment, AudioClipFragmentState>()
@@ -20,7 +26,9 @@ class AudioClipFragmentSetStateImpl(
             "AudioClipFragment $audioClipFragment has already been added to fragmentStates: $_fragmentStatesList"
         }
 
-        val newAudioClipFragmentState = AudioClipFragmentStateImpl(audioClipFragment)
+        val newAudioClipFragmentState = AudioClipFragmentStateImpl(
+            audioClipFragment, audioClipPlayer, cursorState
+        )
         _fragmentStatesMap[audioClipFragment] = newAudioClipFragmentState
         _fragmentStatesList.add(newAudioClipFragmentState)
         return newAudioClipFragmentState
@@ -34,6 +42,4 @@ class AudioClipFragmentSetStateImpl(
         val audioFragmentStateToRemove = _fragmentStatesMap.remove(audioClipFragment)!!
         _fragmentStatesList.remove(audioFragmentStateToRemove)
     }
-
-    override var selectedFragmentState: AudioClipFragmentState? by mutableStateOf(null)
 }

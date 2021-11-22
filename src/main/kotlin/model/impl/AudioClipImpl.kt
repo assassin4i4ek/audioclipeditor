@@ -2,9 +2,10 @@ package model.impl
 
 import model.api.AudioClip
 import model.api.Mp3FileDecoder
-import model.api.fragment.AudioClipFragment
-import model.api.fragment.AudioFragmentSpecs
-import model.impl.fragment.AudioClipFragmentImpl
+import model.api.fragments.AudioClipFragment
+import model.api.fragments.AudioFragmentSpecs
+import model.impl.fragments.AudioClipFragmentImpl
+import model.impl.fragments.transformers.FragmentTransformers
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
@@ -66,10 +67,9 @@ class AudioClipImpl(
     private lateinit var _originalPcmByteArray: ByteArray
     private val originalPcmByteArray: ByteArray get() = lateInitProperty { _originalPcmByteArray }
 
-    override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray): Int {
-        val adjustedSize = min(startPosition + size, originalPcmByteArray.size) - startPosition
-        System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, adjustedSize)
-        return adjustedSize
+    override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray) {
+//        val adjustedSize = min(startPosition + size, originalPcmByteArray.size) - startPosition
+        System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)
     }
 
     private val _fragments: TreeSet<AudioClipFragment> = sortedSetOf(Comparator { a, b ->
@@ -91,7 +91,7 @@ class AudioClipImpl(
             mutableAreaEndUs,
             rightImmutableAreaEndUs,
             audioFragmentSpecs,
-//            SilenceInsertionAudioTransformer(pcmAudioFormat,50*1000L)
+            FragmentTransformers.SilenceTransformer(sampleRate, numChannels)
         )
 
         val prevFragment = _fragments.lower(newFragment)
@@ -123,5 +123,9 @@ class AudioClipImpl(
         fragment.rightBoundingFragment?.leftBoundingFragment = fragment.leftBoundingFragment
 
         _fragments.remove(fragment)
+    }
+
+    override fun toString(): String {
+        return filePath
     }
 }

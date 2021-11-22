@@ -3,192 +3,220 @@ package views.composables.editor.pcm.wrappers.fragments
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumePositionChange
+import model.api.fragments.AudioClipFragment
 import views.states.api.editor.pcm.AudioClipState
-import views.states.api.editor.pcm.fragment.FragmentDragState
+import views.states.api.editor.pcm.fragment.draggable.FragmentDragState
 import kotlin.math.max
 import kotlin.math.min
 
 class DragCallbacks(
-    private val audioClipState: AudioClipState
+    private val audioClipState: AudioClipState,
+    private val onDragError: () -> Unit
 ) {
     fun onRememberDragStartPosition(offset: Offset) {
-        with (audioClipState.transformState) {
-            with (layoutState) {
-                val dragStartOffsetUs = toUs(toAbsoluteOffset(offset.x))
-                audioClipState.fragmentSetState.dragState.dragStartOffsetUs = dragStartOffsetUs
-                audioClipState.fragmentSetState.selectedFragmentState = audioClipState
-                    .fragmentSetState
-                    .fragmentStates
-                    .find { fragmentState ->
-                        dragStartOffsetUs in fragmentState
-                    }
+        with(audioClipState.transformState) {
+            with(layoutState) {
+                with(audioClipState.fragmentSetState.fragmentDragState) {
+                    val dragStartOffsetUs = toUs(toAbsoluteOffset(offset.x))
+                    dragStartPositionUs = dragStartOffsetUs
+                    dragCurrentPositionUs = dragStartOffsetUs
+                    draggedFragmentState = audioClipState
+                        .fragmentSetState
+                        .fragmentStates
+                        .find { fragmentState ->
+                            dragStartOffsetUs in fragmentState
+                        }
+                }
             }
         }
     }
 
     fun onDragStart(offset: Offset) {
-        val dragStartOffsetUs = audioClipState.fragmentSetState.dragState.dragStartOffsetUs
-        val dragCapturedOffsetUs = audioClipState.transformState.layoutState.toUs(
-            audioClipState.transformState.toAbsoluteOffset(offset.x)
-        )
+        with(audioClipState.fragmentSetState.fragmentDragState) {
+            val dragCapturedOffsetUs = audioClipState.transformState.layoutState.toUs(
+                audioClipState.transformState.toAbsoluteOffset(offset.x)
+            )
+            dragCurrentPositionUs = dragCapturedOffsetUs
 
-        if (audioClipState.fragmentSetState.selectedFragmentState == null) {
-            // create new fragment
-            createNewFragmentAtDragStartOffset(dragStartOffsetUs, dragCapturedOffsetUs)
-        } else {
-            // select existing fragment area
-            selectExistingFragmentArea(dragStartOffsetUs)
+            if (draggedFragmentState == null) {
+                // create new fragment
+                createNewFragmentAtDragStartOffset()
+            } else {
+                // select existing fragment area
+                selectExistingFragmentArea()
+            }
         }
     }
 
-    private fun createNewFragmentAtDragStartOffset(dragStartOffsetUs: Long, dragCapturedOffsetUs: Long) {
-        with (audioClipState.transformState) {
-            with (layoutState) {
-                with(audioClipState.fragmentSetState.dragState.specs) {
-                    val minMutableAreaDurationUs = audioClipState.audioClip
-                        .audioFragmentSpecs.minMutableAreaDurationUs
-                    val (newFragmentMutableAreaStartUs, newFragmentMutableAreaEndUs, dragSegment) =
-                        if (dragCapturedOffsetUs > dragStartOffsetUs) {
-                            // dragging in the right direction
-                            Triple(
-                                dragStartOffsetUs,
-                                max(dragCapturedOffsetUs, dragStartOffsetUs + minMutableAreaDurationUs),
-                                FragmentDragState.Segment.MutableRightBound
+    private fun createNewFragmentAtDragStartOffset() {
+        with(audioClipState.transformState) {
+            with(layoutState) {
+                with(audioClipState.fragmentSetState.fragmentDragState) {
+                    with(specs) {
+                        val minMutableAreaDurationUs = audioClipState.audioClip
+                            .audioFragmentSpecs.minMutableAreaDurationUs
+                        val (newFragmentMutableAreaStartUs, newFragmentMutableAreaEndUs) =
+                            if (dragCurrentPositionUs > dragStartPositionUs) {
+                                // dragging in the right direction
+                                dragSegment = FragmentDragState.Segment.MutableRightBound
+                                Pair(
+                                    dragStartPositionUs,
+                                    max(dragCurrentPositionUs, dragStartPositionUs + minMutableAreaDurationUs),
+                                )
+                            } else {
+                                //dragging in the left direction
+                                dragSegment = FragmentDragState.Segment.MutableLeftBound
+                                Pair(
+                                    min(dragCurrentPositionUs, dragStartPositionUs - minMutableAreaDurationUs),
+                                    dragStartPositionUs,
+                                )
+                            }
+    
+                        val newFragment: AudioClipFragment = kotlin.runCatching {
+                            audioClipState.audioClip.createFragment(
+                                newFragmentMutableAreaStartUs,
+                                newFragmentMutableAreaEndUs,
                             )
-                        } else {
-                            //dragging in the left direction
-                            Triple(
-                                min(dragCapturedOffsetUs, dragStartOffsetUs - minMutableAreaDurationUs),
-                                dragStartOffsetUs,
-                                FragmentDragState.Segment.MutableLeftBound
+                        }.getOrElse {
+                            if (it is IllegalStateException) {
+                                println(it.message)
+                                dragSegment = FragmentDragState.Segment.Error
+                                onDragError()
+                                return
+                            }
+                            else throw it
+                        }
+    
+                        try {
+                            val immutableAreaMinDurationUs = toUs(
+                                toAbsoluteSize(canvasWidthPx) * minImmutableAreaDragBoundFraction
+                            )
+                            val immutableAreaPreferredDurationUs = toUs(
+                                toAbsoluteSize(canvasWidthPx) * preferredImmutableAreaDragBoundFraction
+                            )
+    
+                            newFragment.leftImmutableAreaStartUs = max(
+                                newFragment.mutableAreaStartUs - immutableAreaPreferredDurationUs,
+                                min(
+                                    newFragment.leftBoundingFragment?.rightImmutableAreaEndUs
+                                        ?: (-immutableAreaPreferredDurationUs),
+                                    newFragment.mutableAreaStartUs - immutableAreaMinDurationUs
+                                )
+                            )
+                            newFragment.rightImmutableAreaEndUs = min(
+                                newFragment.mutableAreaEndUs + immutableAreaPreferredDurationUs,
+                                max(
+                                    newFragment.rightBoundingFragment?.leftImmutableAreaStartUs
+                                        ?: (newFragment.specs.maxRightBoundUs + immutableAreaPreferredDurationUs),
+                                    newFragment.mutableAreaEndUs + immutableAreaMinDurationUs
+                                )
                             )
                         }
-
-                    try {
-                        val newFragment = audioClipState.audioClip.createFragment(
-                            newFragmentMutableAreaStartUs,
-                            newFragmentMutableAreaEndUs,
-                        )
-                        val immutableAreaMinDurationUs = toUs(
-                            toAbsoluteSize(canvasWidthPx) * minImmutableAreaDragBoundFraction
-                        )
-                        val immutableAreaPreferredDurationUs = toUs(
-                            toAbsoluteSize(canvasWidthPx) * preferredImmutableAreaDragBoundFraction
-                        )
-
-                        newFragment.leftImmutableAreaStartUs = max(
-                            newFragment.mutableAreaStartUs - immutableAreaPreferredDurationUs,
-                            min(
-                                newFragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                                    ?: (- immutableAreaPreferredDurationUs),
-                                newFragment.mutableAreaStartUs - immutableAreaMinDurationUs
-                            )
-                        )
-                        newFragment.rightImmutableAreaEndUs = min(
-                            newFragment.mutableAreaEndUs + immutableAreaPreferredDurationUs,
-                            max(
-                                newFragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                                    ?: (newFragment.specs.maxRightBoundUs + immutableAreaPreferredDurationUs),
-                                newFragment.mutableAreaEndUs + immutableAreaMinDurationUs
-                            )
-                        )
-
-                        val selectedFragmentState = audioClipState.fragmentSetState.append(newFragment)
-                        audioClipState.fragmentSetState.selectedFragmentState = selectedFragmentState
-                        audioClipState.fragmentSetState.dragState.dragSegment = dragSegment
-                    } catch (isa: IllegalStateException) {
-                        val selectedFragmentState = audioClipState.fragmentSetState.selectedFragmentState
-                        if (selectedFragmentState != null) {
-                            audioClipState.fragmentSetState.remove(selectedFragmentState.fragment)
-                            audioClipState.audioClip.removeFragment(selectedFragmentState.fragment)
+                        catch (ise: IllegalStateException) {
+                            println(ise.message)
+                            audioClipState.audioClip.removeFragment(newFragment)
+                            dragSegment = FragmentDragState.Segment.Error
+                            onDragError()
+                            return
                         }
-                        audioClipState.fragmentSetState.selectedFragmentState = null
-                        println(isa.message)
+
+                        draggedFragmentState = kotlin.runCatching {
+                            audioClipState.fragmentSetState.append(newFragment)
+                        }.getOrElse {
+                            if (it is IllegalStateException) {
+                                println(it.message)
+                                audioClipState.audioClip.removeFragment(newFragment)
+                                dragSegment = FragmentDragState.Segment.Error
+                                onDragError()
+                                return
+                            }
+                            else throw it
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun selectExistingFragmentArea(dragStartOffsetUs: Long) {
-        with(audioClipState.fragmentSetState.dragState.specs) {
-            val selectedFragmentState = audioClipState.fragmentSetState.selectedFragmentState!!
-
-            val (dragSegment, relativeOffsetUs) = when {
-                dragStartOffsetUs < (
-                        selectedFragmentState.leftImmutableAreaStartUs +
-                                immutableAreaDragAreaFraction *
-                                selectedFragmentState.leftImmutableAreaDurationUs)
-                -> {
-                    FragmentDragState.Segment.ImmutableLeftBound to 0L
+    private fun selectExistingFragmentArea() {
+        with(audioClipState.fragmentSetState.fragmentDragState) {
+            with(specs) {
+                with(draggedFragmentState!!) {
+                    dragSegment = when {
+                        dragStartPositionUs < (leftImmutableAreaStartUs + 
+                                immutableAreaDragAreaFraction * leftImmutableAreaDurationUs) -> {
+                            FragmentDragState.Segment.ImmutableLeftBound
+                        }
+                        dragStartPositionUs < mutableAreaStartUs -> {
+                            FragmentDragState.Segment.Error
+                        }
+                        dragStartPositionUs < (mutableAreaStartUs +
+                                mutableAreaDragAreaFraction * mutableAreaDurationUs) -> {
+                            FragmentDragState.Segment.MutableLeftBound
+                        }
+                        dragStartPositionUs < (mutableAreaEndUs -
+                                mutableAreaDragAreaFraction * mutableAreaDurationUs) -> {
+                            dragStartRelativePositionUs = dragStartPositionUs - leftImmutableAreaStartUs
+                            FragmentDragState.Segment.Center
+                        }
+                        dragStartPositionUs < mutableAreaEndUs -> {
+                            FragmentDragState.Segment.MutableRightBound
+                        }
+                        dragStartPositionUs < (rightImmutableAreaEndUs -
+                                immutableAreaDragAreaFraction * rightImmutableAreaDurationUs) -> {
+                            FragmentDragState.Segment.Error
+                        }
+                        dragStartPositionUs < rightImmutableAreaEndUs -> {
+                            FragmentDragState.Segment.ImmutableRightBound
+                        }
+                        else -> {
+                            FragmentDragState.Segment.Error
+                        }
+                    }
                 }
-                dragStartOffsetUs < selectedFragmentState.mutableAreaStartUs
-                -> {
-                    null to 0L
-                }
-                dragStartOffsetUs < (selectedFragmentState.mutableAreaStartUs +
-                        mutableAreaDragAreaFraction * selectedFragmentState.mutableAreaDurationUs)
-                -> {
-                    FragmentDragState.Segment.MutableLeftBound to 0L
-                }
-                dragStartOffsetUs < (selectedFragmentState.mutableAreaEndUs -
-                        mutableAreaDragAreaFraction * selectedFragmentState.mutableAreaDurationUs)
-                -> {
-                    FragmentDragState.Segment.Center to dragStartOffsetUs - selectedFragmentState.leftImmutableAreaStartUs
-                }
-                dragStartOffsetUs < selectedFragmentState.mutableAreaEndUs
-                -> {
-                    FragmentDragState.Segment.MutableRightBound to 0L
-                }
-                dragStartOffsetUs < (selectedFragmentState.rightImmutableAreaEndUs -
-                        immutableAreaDragAreaFraction *
-                        selectedFragmentState.rightImmutableAreaDurationUs
-                        )
-                -> {
-                    null to 0L
-                }
-                dragStartOffsetUs < (selectedFragmentState.rightImmutableAreaEndUs)
-                -> {
-                    FragmentDragState.Segment.ImmutableRightBound to 0L
-                }
-                else -> throw IllegalStateException(
-                    "Drag conflict\ndragStartOffset = $dragStartOffsetUs, selectedFragment = ${selectedFragmentState.fragment}"
-                )
             }
-            audioClipState.fragmentSetState.dragState.dragSegment = dragSegment
-            audioClipState.fragmentSetState.dragState.dragRelativeOffsetUs = relativeOffsetUs
         }
+    }
+
+    private fun dragError() {
+
     }
 
     fun onDrag(change: PointerInputChange, delta: Float) {
         change.consumePositionChange()
         with(audioClipState.transformState) {
             with(layoutState) {
-                with(audioClipState.fragmentSetState) {
-                    selectedFragmentState?.apply {
+                with(audioClipState.fragmentSetState.fragmentDragState) {
+                    with(specs) {
                         val absolutePositionUs = toUs(toAbsoluteOffset(change.position.x))
-                        val mutableAreaThresholdUs = toUs(
-                            toAbsoluteSize(canvasWidthPx) * dragState.specs.minMutableAreaDragBoundFraction
-                        )
-                        val immutableAreaThresholdUs = toUs(
-                            toAbsoluteSize(canvasWidthPx) * dragState.specs.minImmutableAreaDragBoundFraction
-                        )
-                        when (dragState.dragSegment) {
-                            FragmentDragState.Segment.Center -> dragCenter(
-                                absolutePositionUs - dragState.dragRelativeOffsetUs
+                        dragCurrentPositionUs = absolutePositionUs
+
+                        draggedFragmentState?.apply {
+                            val mutableAreaThresholdUs = toUs(
+                                toAbsoluteSize(canvasWidthPx) * minMutableAreaDragBoundFraction
                             )
-                            FragmentDragState.Segment.ImmutableLeftBound -> dragImmutableLeftBound(
-                                delta, absolutePositionUs, immutableAreaThresholdUs
+                            val immutableAreaThresholdUs = toUs(
+                                toAbsoluteSize(canvasWidthPx) * minImmutableAreaDragBoundFraction
                             )
-                            FragmentDragState.Segment.ImmutableRightBound -> dragImmutableRightBound(
-                                delta, absolutePositionUs, immutableAreaThresholdUs
-                            )
-                            FragmentDragState.Segment.MutableLeftBound -> dragMutableLeftBound(
-                                delta, absolutePositionUs, mutableAreaThresholdUs
-                            )
-                            FragmentDragState.Segment.MutableRightBound -> dragMutableRightBound(
-                                delta, absolutePositionUs, mutableAreaThresholdUs
-                            )
+
+                            when (dragSegment) {
+                                FragmentDragState.Segment.Center -> dragCenter(
+                                    absolutePositionUs
+                                )
+                                FragmentDragState.Segment.ImmutableLeftBound -> dragImmutableLeftBound(
+                                    delta, absolutePositionUs, immutableAreaThresholdUs
+                                )
+                                FragmentDragState.Segment.ImmutableRightBound -> dragImmutableRightBound(
+                                    delta, absolutePositionUs, immutableAreaThresholdUs
+                                )
+                                FragmentDragState.Segment.MutableLeftBound -> dragMutableLeftBound(
+                                    delta, absolutePositionUs, mutableAreaThresholdUs
+                                )
+                                FragmentDragState.Segment.MutableRightBound -> dragMutableRightBound(
+                                    delta, absolutePositionUs, mutableAreaThresholdUs
+                                )
+                                FragmentDragState.Segment.Error -> dragError()
+                            }
                         }
                     }
                 }
@@ -197,32 +225,29 @@ class DragCallbacks(
     }
 
     fun onDragEnd() {
-        audioClipState.fragmentSetState.apply {
-            selectedFragmentState = null
-            dragState.apply {
-                dragSegment = null
-                dragRelativeOffsetUs = 0
+        audioClipState.fragmentSetState.fragmentDragState.reset()
+    }
+
+    private fun dragCenter(absolutePositionUs: Long) {
+        with(audioClipState.fragmentSetState.fragmentDragState) {
+            with(draggedFragmentState!!) {
+                val adjustedPositionUs = absolutePositionUs - dragStartRelativePositionUs
+                val adjustedDeltaUs = - leftImmutableAreaStartUs + min(
+                    max(
+                        adjustedPositionUs,
+                        fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(1)
+                            ?: (-leftImmutableAreaDurationUs)
+                    ),
+                    (fragment.rightBoundingFragment?.leftImmutableAreaStartUs
+                        ?: (fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)) - totalDurationUs
+                )
+                translateRelative(adjustedDeltaUs)
             }
         }
     }
 
-    private fun dragCenter(adjustedPositionUs: Long) {
-        with (audioClipState.fragmentSetState.selectedFragmentState!!) {
-            val adjustedDeltaUs = - leftImmutableAreaStartUs + min(
-                max(
-                    adjustedPositionUs,
-                    fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(1)
-                        ?: (- leftImmutableAreaDurationUs)
-                ),
-                (fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                    ?: (fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)) - totalDurationUs
-            )
-            translateRelative(adjustedDeltaUs)
-        }
-    }
-
     private fun dragImmutableLeftBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
-        with (audioClipState.fragmentSetState.selectedFragmentState!!) {
+        with(audioClipState.fragmentSetState.fragmentDragState.draggedFragmentState!!) {
             leftImmutableAreaStartUs = if (delta < 0) {
                 min(
                     max(adjustedPositionUs,
@@ -249,7 +274,7 @@ class DragCallbacks(
     }
 
     private fun dragImmutableRightBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
-        with (audioClipState.fragmentSetState.selectedFragmentState!!) {
+        with(audioClipState.fragmentSetState.fragmentDragState.draggedFragmentState!!) {
             rightImmutableAreaEndUs = if (delta > 0) {
                 max(
                     min(adjustedPositionUs,
@@ -280,125 +305,153 @@ class DragCallbacks(
     }
 
     private fun dragMutableLeftBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
-        with (audioClipState.fragmentSetState.selectedFragmentState!!) {
-            val adjustedDelta =  - mutableAreaStartUs + if (delta < 0) {
-                // increase mutable area
-                min(
-                    max(adjustedPositionUs,
-                        fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                            ?.plus(leftImmutableAreaDurationUs) ?: 0),
-                    mutableAreaEndUs - thresholdUs
-                )
-            }
-            else {
-                // decrease mutable area
-                when {
-                    adjustedPositionUs < mutableAreaEndUs - thresholdUs -> {
+        with(audioClipState.fragmentSetState.fragmentDragState) {
+            with(draggedFragmentState!!) {
+                val adjustedDelta =  - mutableAreaStartUs + if (delta < 0) {
+                    // increase mutable area
+                    min(
                         max(
                             adjustedPositionUs,
                             fragment.leftBoundingFragment?.rightImmutableAreaEndUs
                                 ?.plus(leftImmutableAreaDurationUs) ?: 0
-                        )
-                    }
-                    mutableAreaDurationUs > thresholdUs -> {
+                        ),
                         mutableAreaEndUs - thresholdUs
-                    }
-                    else -> mutableAreaStartUs
-                }
-            }
-
-            if (adjustedDelta < 0) {
-                leftImmutableAreaStartUs += adjustedDelta
-                mutableAreaStartUs += adjustedDelta
-            } else {
-                if (adjustedPositionUs > min(
-                        mutableAreaEndUs + thresholdUs,
-                        (fragment.rightBoundingFragment?.leftImmutableAreaStartUs ?: (
-                                fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)
-                           ) - rightImmutableAreaDurationUs
                     )
-                ) {
-                    val newMutableAreaStartUs = mutableAreaEndUs
-                    val newMutableAreaEndUs = mutableAreaEndUs + fragment.specs.minMutableAreaDurationUs
-                    val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
-                    val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+                }
+                else {
+                    // decrease mutable area
+                    when {
+                        adjustedPositionUs < mutableAreaEndUs - thresholdUs -> {
+                            max(
+                                adjustedPositionUs,
+                                fragment.leftBoundingFragment?.rightImmutableAreaEndUs
+                                    ?.plus(leftImmutableAreaDurationUs) ?: 0
+                            )
+                        }
+                        mutableAreaDurationUs > thresholdUs -> {
+                            mutableAreaEndUs - thresholdUs
+                        }
+                        else -> mutableAreaStartUs
+                    }
+                }
 
-                    if (newMutableAreaEndUs <
-                        (fragment.rightBoundingFragment?.leftImmutableAreaStartUs?.minus(rightImmutableAreaDurationUs)
-                            ?: fragment.specs.maxRightBoundUs)
-                    ) {
-                        audioClipState.fragmentSetState.dragState.dragSegment = FragmentDragState.Segment.MutableRightBound
-                        rightImmutableAreaEndUs = newRightImmutableAreaEndUs
-                        mutableAreaEndUs = newMutableAreaEndUs
-                        mutableAreaStartUs = newMutableAreaStartUs
-                        leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
-                        dragMutableRightBound(delta, adjustedPositionUs, thresholdUs)
+                if (adjustedDelta < 0) {
+                    try {
+                        leftImmutableAreaStartUs += adjustedDelta
+                        mutableAreaStartUs += adjustedDelta
+                    }
+                    catch (ise: IllegalStateException) {
+                        println(ise.message)
+                        audioClipState.fragmentSetState.remove(fragment)
+                        audioClipState.audioClip.removeFragment(fragment)
+                        dragSegment = FragmentDragState.Segment.Error
+                        onDragError()
+                        return
                     }
                 } else {
-                    mutableAreaStartUs += adjustedDelta
-                    leftImmutableAreaStartUs += adjustedDelta
+                    if (adjustedPositionUs > min(
+                            mutableAreaEndUs + thresholdUs,
+                            (fragment.rightBoundingFragment?.leftImmutableAreaStartUs ?: (
+                                    fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)
+                               ) - rightImmutableAreaDurationUs
+                        )
+                    ) {
+                        val newMutableAreaStartUs = mutableAreaEndUs
+                        val newMutableAreaEndUs = mutableAreaEndUs + fragment.specs.minMutableAreaDurationUs
+                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
+                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+
+                        if (newMutableAreaEndUs <
+                            (fragment.rightBoundingFragment?.leftImmutableAreaStartUs?.minus(rightImmutableAreaDurationUs)
+                                ?: fragment.specs.maxRightBoundUs)
+                        ) {
+                            dragSegment = FragmentDragState.Segment.MutableRightBound
+                            rightImmutableAreaEndUs = newRightImmutableAreaEndUs
+                            mutableAreaEndUs = newMutableAreaEndUs
+                            mutableAreaStartUs = newMutableAreaStartUs
+                            leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
+                            dragMutableRightBound(delta, adjustedPositionUs, thresholdUs)
+                        }
+                    } else {
+                        mutableAreaStartUs += adjustedDelta
+                        leftImmutableAreaStartUs += adjustedDelta
+                    }
                 }
             }
         }
     }
 
     private fun dragMutableRightBound(delta: Float, adjustedPositionUs: Long, thresholdUs: Long) {
-        with (audioClipState.fragmentSetState.selectedFragmentState!!) {
-            val adjustedDelta = - mutableAreaEndUs + if (delta > 0) {
-                // increase mutable area
-                max(
-                    min(adjustedPositionUs,
-                        fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                            ?.minus(rightImmutableAreaDurationUs)
-                            ?: fragment.specs.maxRightBoundUs),
-                    mutableAreaStartUs + thresholdUs
-                )
-            }
-            else {
-                // decrease right immutable area
-                when {
-                    adjustedPositionUs > mutableAreaStartUs + thresholdUs -> {
+        with(audioClipState.fragmentSetState.fragmentDragState) {
+            with(draggedFragmentState!!) {
+                val adjustedDelta = - mutableAreaEndUs + if (delta > 0) {
+                    // increase mutable area
+                    max(
                         min(
                             adjustedPositionUs,
                             fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                                ?.minus(rightImmutableAreaDurationUs) ?: fragment.specs.maxRightBoundUs
-                        )
-                    }
-                    rightImmutableAreaDurationUs > thresholdUs -> {
+                                ?.minus(rightImmutableAreaDurationUs)
+                                ?: fragment.specs.maxRightBoundUs
+                        ),
                         mutableAreaStartUs + thresholdUs
-                    }
-                    else -> mutableAreaEndUs
-                }
-            }
-
-            if (adjustedDelta > 0) {
-                rightImmutableAreaEndUs += adjustedDelta
-                mutableAreaEndUs += adjustedDelta
-            } else {
-                if (adjustedPositionUs < max(
-                        mutableAreaStartUs - thresholdUs,
-                        (fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                            ?: - leftImmutableAreaDurationUs) + leftImmutableAreaDurationUs
                     )
-                ) {
-                    val newMutableAreaEndUs = mutableAreaStartUs
-                    val newMutableAreaStartUs = mutableAreaStartUs - fragment.specs.minMutableAreaDurationUs
-                    val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
-                    val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+                }
+                else {
+                    // decrease mutable area
+                    when {
+                        adjustedPositionUs > mutableAreaStartUs + thresholdUs -> {
+                            min(
+                                adjustedPositionUs,
+                                fragment.rightBoundingFragment?.leftImmutableAreaStartUs
+                                    ?.minus(rightImmutableAreaDurationUs) ?: fragment.specs.maxRightBoundUs
+                            )
+                        }
+                        rightImmutableAreaDurationUs > thresholdUs -> {
+                            mutableAreaStartUs + thresholdUs
+                        }
+                        else -> mutableAreaEndUs
+                    }
+                }
 
-                    if (newMutableAreaStartUs >
-                        (fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(leftImmutableAreaDurationUs) ?: 0)
-                    ) {
-                        audioClipState.fragmentSetState.dragState.dragSegment = FragmentDragState.Segment.MutableLeftBound
-                        leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
-                        mutableAreaStartUs = newMutableAreaStartUs
-                        mutableAreaEndUs = newMutableAreaEndUs
-                        rightImmutableAreaEndUs = newRightImmutableAreaEndUs
-                        dragMutableLeftBound(delta, adjustedPositionUs, thresholdUs)
+                if (adjustedDelta > 0) {
+                    try {
+                        rightImmutableAreaEndUs += adjustedDelta
+                        mutableAreaEndUs += adjustedDelta
+                    }
+                    catch (ise: IllegalStateException) {
+                        println(ise.message)
+                        audioClipState.fragmentSetState.remove(fragment)
+                        audioClipState.audioClip.removeFragment(fragment)
+                        dragSegment = FragmentDragState.Segment.Error
+                        onDragError()
+                        return
                     }
                 } else {
-                    mutableAreaEndUs += adjustedDelta
-                    rightImmutableAreaEndUs += adjustedDelta
+                    if (adjustedPositionUs < max(
+                            mutableAreaStartUs - thresholdUs,
+                            (fragment.leftBoundingFragment?.rightImmutableAreaEndUs
+                                ?: - leftImmutableAreaDurationUs) + leftImmutableAreaDurationUs
+                        )
+                    ) {
+                        val newMutableAreaEndUs = mutableAreaStartUs
+                        val newMutableAreaStartUs = mutableAreaStartUs - fragment.specs.minMutableAreaDurationUs
+                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
+                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+
+                        if (newMutableAreaStartUs >
+                            (fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(leftImmutableAreaDurationUs) ?: 0)
+                        ) {
+                            dragSegment = FragmentDragState.Segment.MutableLeftBound
+                            leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
+                            mutableAreaStartUs = newMutableAreaStartUs
+                            mutableAreaEndUs = newMutableAreaEndUs
+                            rightImmutableAreaEndUs = newRightImmutableAreaEndUs
+                            dragMutableLeftBound(delta, adjustedPositionUs, thresholdUs)
+                        }
+                    } else {
+                        mutableAreaEndUs += adjustedDelta
+                        rightImmutableAreaEndUs += adjustedDelta
+                    }
                 }
             }
         }

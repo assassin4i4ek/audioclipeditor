@@ -1,14 +1,16 @@
-package model.impl.fragment
+package model.impl.fragments
 
-import model.api.fragment.AudioClipFragment
-import model.api.fragment.AudioFragmentSpecs
+import model.api.fragments.AudioClipFragment
+import model.api.fragments.AudioFragmentSpecs
+import model.api.fragments.transformers.FragmentTransformer
 
 class AudioClipFragmentImpl(
     leftImmutableAreaStartUs: Long,
     mutableAreaStartUs: Long,
     mutableAreaEndUs: Long,
     rightImmutableAreaEndUs: Long,
-    override val specs: AudioFragmentSpecs
+    override val specs: AudioFragmentSpecs,
+    override var transformer: FragmentTransformer
 ) : AudioClipFragment {
     private fun <T> validateProperty(prevValue: T, newValue: T, setter: (T) -> Unit) {
         setter(newValue)
@@ -23,7 +25,7 @@ class AudioClipFragmentImpl(
 
     private fun validate() {
         check(leftImmutableAreaStartUs - (leftBoundingFragment?.rightImmutableAreaEndUs ?: (- mutableAreaStartUs + leftImmutableAreaStartUs)) >= 0) {
-            "Audio fragment's lower immutable area is invalid: $this"
+            "Audio fragment's left immutable area is invalid: $this"
         }
         check((mutableAreaStartUs - leftImmutableAreaStartUs) >= specs.minImmutableAreasDurationUs) {
             "Audio fragment's mutable area start is invalid: $this"
@@ -32,10 +34,10 @@ class AudioClipFragmentImpl(
             "Audio fragment's mutable area end is invalid: $this"
         }
         check((rightImmutableAreaEndUs - mutableAreaEndUs) >= specs.minImmutableAreasDurationUs) {
-            "Audio fragment's upper immutable area end is invalid: $this"
+            "Audio fragment's right immutable area end is invalid: $this"
         }
         check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (specs.maxRightBoundUs + rightImmutableAreaEndUs - mutableAreaEndUs)) - rightImmutableAreaEndUs >= 0) {
-            "Audio fragment's upper immutable area end is invalid: $this"
+            "Audio fragment's right immutable area end is invalid: $this"
         }
     }
 

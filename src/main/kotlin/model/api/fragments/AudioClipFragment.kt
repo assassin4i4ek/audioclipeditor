@@ -1,4 +1,6 @@
-package model.api.fragment
+package model.api.fragments
+
+import model.api.fragments.transformers.FragmentTransformer
 
 interface AudioClipFragment {
     var leftImmutableAreaStartUs: Long
@@ -10,5 +12,6 @@ interface AudioClipFragment {
     var rightBoundingFragment: AudioClipFragment?
 
     val specs: AudioFragmentSpecs
-//    val transformer
+
+    var transformer: FragmentTransformer
 }

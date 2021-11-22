@@ -1,6 +1,7 @@
 package views.composables.editor.pcm.views
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import views.composables.editor.pcm.PcmPathBuilder
 import views.states.api.editor.pcm.AudioClipState
 
@@ -98,21 +100,22 @@ fun AudioPcmView(
             }
 
             /* Draw Markup */
+//            drawLine(
+//                color = Color.DarkGray,
+//                start = Offset(0f, .0f),
+//                end = Offset(size.width, .0f)
+//            )
             drawLine(
-                color = Color.DarkGray,
-                start = Offset(0f, .5f),
-                end = Offset(size.width, .5f)
-            )
-            drawLine(
-                color = Color.DarkGray,
+                color = Color.Black,
                 start = Offset(0f, size.height / 2),
-                end = Offset(size.width, size.height / 2)
+                end = Offset(size.width, size.height / 2),
+                0.5.dp.toPx()
             )
-            drawLine(
-                color = Color.DarkGray,
-                start = Offset(0f, size.height - .5f),
-                end = Offset(size.width, size.height - .5f)
-            )
+//            drawLine(
+//                color = Color.DarkGray,
+//                start = Offset(0f, size.height - .0f),
+//                end = Offset(size.width, size.height - .0f)
+//            )
         }
     }
 }

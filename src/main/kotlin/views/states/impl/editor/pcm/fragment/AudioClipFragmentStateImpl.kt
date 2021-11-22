@@ -3,12 +3,17 @@ package views.states.impl.editor.pcm.fragment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import model.api.fragment.AudioClipFragment
+import model.api.AudioClipPlayer
+import model.api.fragments.AudioClipFragment
+import views.states.api.editor.pcm.cursor.CursorState
 import views.states.api.editor.pcm.fragment.AudioClipFragmentState
-import views.states.api.editor.pcm.fragment.FragmentDragState
+import kotlin.math.max
+import kotlin.math.min
 
 class AudioClipFragmentStateImpl(
     override val fragment: AudioClipFragment,
+    override val audioClipPlayer: AudioClipPlayer,
+    override val cursorState: CursorState,
 ): AudioClipFragmentState {
 
     private var _leftImmutableAreaStartUs: Long by mutableStateOf(fragment.leftImmutableAreaStartUs)
@@ -43,4 +48,65 @@ class AudioClipFragmentStateImpl(
             fragment.rightImmutableAreaEndUs = value
             _rightImmutableAreaEndUs = value
         }
+
+    override var isFragmentPlaying: Boolean by mutableStateOf(false)
+
+    override fun startPlayFragment() {
+        check(!isFragmentPlaying) {
+            "Invoked startPlayFragment() on already running fragment"
+        }
+        cursorState.xAbsolutePositionPx = cursorState.layoutState.toPx(max(leftImmutableAreaStartUs, 0))
+        val dstDurationUs = audioClipPlayer.play(fragment)
+        val srcDurationUs = min(rightImmutableAreaEndUs, fragment.specs.maxRightBoundUs) - max(leftImmutableAreaStartUs, 0)
+        val dstMutableAreaDurationUs = (dstDurationUs - leftImmutableAreaDurationUs - rightImmutableAreaDurationUs)
+
+        val totalDurationFraction = dstDurationUs.toFloat() / srcDurationUs
+        val mutableAreaDurationFraction = mutableAreaDurationUs.toFloat() / dstMutableAreaDurationUs
+
+        val relMutableAreaStart = leftImmutableAreaDurationUs.toFloat() / dstDurationUs
+        val relMutableAreaEnd = (dstDurationUs - rightImmutableAreaDurationUs).toFloat() / dstDurationUs
+
+        val relMutableAreaStartOffset = leftImmutableAreaDurationUs.toFloat() / srcDurationUs
+        val relMutableAreaEndOffset = (leftImmutableAreaDurationUs + mutableAreaDurationUs).toFloat() / srcDurationUs
+
+        isFragmentPlaying = true
+        cursorState.animatePositionTo(
+            targetPosition = cursorState.layoutState.toPx(min(rightImmutableAreaEndUs, fragment.specs.maxRightBoundUs)),
+            scrollTimeMs = (dstDurationUs / 1e3).toFloat(),
+            onFinish = {
+                audioClipPlayer.stop()
+                isFragmentPlaying = false
+                cursorState.restorePosition()
+            },
+            onInterrupt = {
+                audioClipPlayer.stop()
+                isFragmentPlaying = false
+//                startPlayClip()
+            },
+            saveBeforeAnimation = false,
+            easing = {
+                when {
+                    it < relMutableAreaStart -> {
+                        it * totalDurationFraction
+                    }
+                    it < relMutableAreaEnd -> {
+                        relMutableAreaStartOffset + (it - relMutableAreaStart) * mutableAreaDurationFraction * totalDurationFraction
+                    }
+                    else -> {
+                        relMutableAreaEndOffset + (it - relMutableAreaEnd) * totalDurationFraction
+                    }
+                }
+            }
+        )
+    }
+
+    override fun stopPlayFragment() {
+        check(isFragmentPlaying) {
+            "Invoke stopPlayFragment on NOT running fragment"
+        }
+        audioClipPlayer.stop()
+        isFragmentPlaying = false
+        cursorState.positionAnimationStop()
+        cursorState.restorePosition()
+    }
 }

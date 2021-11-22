@@ -1,27 +1,20 @@
 package model.api
 
-import model.api.fragment.AudioClipFragment
-import model.api.fragment.AudioFragmentSpecs
+import model.api.fragments.AudioClipFragment
+import model.api.fragments.AudioFragmentSpecs
 import javax.sound.sampled.AudioFormat
 
-interface AudioClip {
+interface AudioClip: PcmAudio {
     val name: String
     val filePath: String
     fun close()
 
-    val sampleRate: Int
     val audioFormat: AudioFormat
     val channelsPcm: List<FloatArray>
+    override val numChannels: Int
+        get() = channelsPcm.size
     val durationUs: Long
-
-    fun toPcmBytePosition(us: Long): Long {
-        return (1e-6 * us * sampleRate).toLong() * channelsPcm.size * 2
-    }
-    fun toUs(pcmBytePosition: Long) : Long {
-        return (1e6 * pcmBytePosition / (sampleRate * channelsPcm.size * 2)).toLong()
-    }
-
-    fun readPcm(startPosition: Int, size: Int, buffer: ByteArray): Int
+    fun readPcm(startPosition: Int, size: Int, buffer: ByteArray)
 
     val fragments: Iterable<AudioClipFragment>
     val audioFragmentSpecs: AudioFragmentSpecs

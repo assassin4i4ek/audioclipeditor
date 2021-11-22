@@ -1,11 +1,10 @@
 package views.states.impl.editor.pcm.cursor
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import views.states.api.editor.pcm.cursor.CursorState
@@ -35,7 +34,7 @@ class CursorStateImpl(
             }
         }
 
-    private var xAbsolutePositionPxBeforeAnimation: Float = xAbsolutePositionPx
+    private var xAbsolutePositionPxSaved: Float = xAbsolutePositionPx
     private lateinit var xAbsolutePositionPxAnimationInterruptCallback: (Float) -> Unit
     private val xAbsolutePositionPxAnimatable by lazy { Animatable(xAbsolutePositionPx) }
 
@@ -43,15 +42,19 @@ class CursorStateImpl(
         targetPosition: Float,
         scrollTimeMs: Float,
         onFinish: () -> Unit,
-        onInterrupt: (Float) -> Unit
+        onInterrupt: (Float) -> Unit,
+        saveBeforeAnimation: Boolean,
+        easing: Easing
     ) {
         coroutineScope.launch {
-            xAbsolutePositionPxBeforeAnimation = xAbsolutePositionPxState.value
+            if (saveBeforeAnimation) {
+                savePosition()
+            }
             xAbsolutePositionPxAnimationInterruptCallback = onInterrupt
             xAbsolutePositionPxAnimatable.snapTo(xAbsolutePositionPx)
             xAbsolutePositionPxAnimatable.animateTo(
                 targetValue = targetPosition,
-                animationSpec = tween(scrollTimeMs.roundToInt(), easing = LinearEasing),
+                animationSpec = tween(scrollTimeMs.roundToInt(), easing = easing),
             ) {
                 coroutineScope.launch {
                     xAbsolutePositionPxState.value = this@animateTo.value
@@ -70,7 +73,11 @@ class CursorStateImpl(
         }
     }
 
-    override fun restorePositionBeforeAnimation() {
-        xAbsolutePositionPxState.value = xAbsolutePositionPxBeforeAnimation
+    override fun savePosition() {
+        xAbsolutePositionPxSaved = xAbsolutePositionPxState.value
+    }
+
+    override fun restorePosition() {
+        xAbsolutePositionPxState.value = xAbsolutePositionPxSaved
     }
 }

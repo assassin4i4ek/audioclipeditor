@@ -22,22 +22,23 @@ class AudioClipStateImpl(
             "Invoked startPlayClip() on already running clip"
         }
         val currentCursorPositionUs = transformState.layoutState.toUs(cursorState.xAbsolutePositionPx)
+        val playDurationUs = audioClipPlayer.play(currentCursorPositionUs)
         isClipPlaying = true
         cursorState.animatePositionTo(
             targetPosition = transformState.layoutState.contentWidthPx,
-            scrollTimeMs = ((audioClip.durationUs - currentCursorPositionUs) / 1e3).toFloat(),
+            scrollTimeMs = (playDurationUs / 1e3).toFloat(),
             onFinish = {
                 audioClipPlayer.stop()
                 isClipPlaying = false
-                cursorState.restorePositionBeforeAnimation()
+                cursorState.restorePosition()
             },
             onInterrupt = {
                 audioClipPlayer.stop()
                 isClipPlaying = false
                 startPlayClip()
-            }
+            },
+            saveBeforeAnimation = true
         )
-        audioClipPlayer.play(currentCursorPositionUs)
     }
 
     override fun pausePlayClip() {
@@ -51,12 +52,12 @@ class AudioClipStateImpl(
 
     override fun stopPlayClip() {
         check(isClipPlaying) {
-            "Invoke stopPlayClip on not running clip"
+            "Invoke stopPlayClip on NOT running fragment"
         }
         audioClipPlayer.stop()
         isClipPlaying = false
         cursorState.positionAnimationStop()
-        cursorState.restorePositionBeforeAnimation()
+        cursorState.restorePosition()
     }
 
     override fun close() {

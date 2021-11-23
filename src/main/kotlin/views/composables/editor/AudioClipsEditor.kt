@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import views.composables.editor.advanced.GlobalAudioPcmView
 import views.composables.editor.advanced.EditableAudioPcmView
+import views.composables.editor.pcm.views.AudioClipFragmentSetControlPanelView
 import views.states.api.editor.AudioClipsEditorState
 import views.states.api.editor.InputDevice
 import views.states.impl.editor.AudioClipsEditorStateImpl
@@ -74,25 +75,46 @@ fun AudioClipsEditor() {
                                 if (selectedAudioClipState.isClipPlaying) {
                                     if (it.isShiftPressed) {
                                         selectedAudioClipState.stopPlayClip()
+                                        true
                                     } else {
                                         selectedAudioClipState.pausePlayClip()
+                                        true
                                     }
                                 }
                                 else if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.isFragmentPlaying == true) {
-                                    println("stopping fragment!")
                                     selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.stopPlayFragment()
+                                    true
                                 }
                                 else {
                                     selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState
                                         ?.startPlayFragment() ?: selectedAudioClipState.startPlayClip()
+                                    true
                                 }
-                                true
                             }
                             Key.Escape -> {
                                 if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
                                     selectedAudioClipState.fragmentSetState.fragmentSelectState.reset()
+                                    true
                                 }
-                                true
+                                else {
+                                    false
+                                }
+                            }
+                            Key.Delete -> {
+                                if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
+                                    val fragmentToRemove = selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState!!.run {
+                                        if (isFragmentPlaying) {
+                                            stopPlayFragment()
+                                        }
+                                        fragment
+                                    }
+                                    selectedAudioClipState.fragmentSetState.remove(fragmentToRemove)
+                                    selectedAudioClipState.audioClip.removeFragment(fragmentToRemove)
+                                    true
+                                }
+                                else {
+                                    false
+                                }
                             }
                             else -> false
                         }
@@ -149,6 +171,7 @@ fun AudioClipsEditor() {
                         Box(modifier = Modifier.weight(2f).border(.5.dp, Color.Black)) {
                             EditableAudioPcmView(selectedAudioClipState, audioClipsEditorState.inputDevice)
                         }
+                        AudioClipFragmentSetControlPanelView(selectedAudioClipState)
                     }
                 }
             }
@@ -169,7 +192,7 @@ fun AudioClipsEditor() {
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
-                    enabled = !selectedAudioClipState.isClipPlaying,//!clipRunningState.value,
+                    enabled = !selectedAudioClipState.isClipPlaying,
                     onClick = selectedAudioClipState::startPlayClip
                 ) {
                     Icon(svgResource("icons/play_arrow_black_24dp.svg"), "play")

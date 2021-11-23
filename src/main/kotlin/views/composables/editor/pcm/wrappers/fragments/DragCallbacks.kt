@@ -144,7 +144,7 @@ class DragCallbacks(
                 with(draggedFragmentState!!) {
                     dragSegment = when {
                         dragStartPositionUs < (leftImmutableAreaStartUs + 
-                                immutableAreaDragAreaFraction * leftImmutableAreaDurationUs) -> {
+                                immutableAreaDragAreaFraction * rawLeftImmutableAreaDurationUs) -> {
                             FragmentDragState.Segment.ImmutableLeftBound
                         }
                         dragStartPositionUs < mutableAreaStartUs -> {
@@ -163,7 +163,7 @@ class DragCallbacks(
                             FragmentDragState.Segment.MutableRightBound
                         }
                         dragStartPositionUs < (rightImmutableAreaEndUs -
-                                immutableAreaDragAreaFraction * rightImmutableAreaDurationUs) -> {
+                                immutableAreaDragAreaFraction * rawRightImmutableAreaDurationUs) -> {
                             FragmentDragState.Segment.Error
                         }
                         dragStartPositionUs < rightImmutableAreaEndUs -> {
@@ -236,10 +236,10 @@ class DragCallbacks(
                     max(
                         adjustedPositionUs,
                         fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(1)
-                            ?: (-leftImmutableAreaDurationUs)
+                            ?: (-rawLeftImmutableAreaDurationUs)
                     ),
                     (fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                        ?: (fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)) - totalDurationUs
+                        ?: (fragment.specs.maxRightBoundUs + rawRightImmutableAreaDurationUs)) - rawTotalDurationUs
                 )
                 translateRelative(adjustedDeltaUs)
             }
@@ -263,7 +263,7 @@ class DragCallbacks(
                         max(adjustedPositionUs,
                             fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(1) ?: 0)
                     }
-                    leftImmutableAreaDurationUs > thresholdUs -> {
+                    rawLeftImmutableAreaDurationUs > thresholdUs -> {
                         // amount of decrease is NOT allowed by threshold
                         mutableAreaStartUs - thresholdUs
                     }
@@ -294,7 +294,7 @@ class DragCallbacks(
                                 ?: fragment.specs.maxRightBoundUs
                         )
                     }
-                    rightImmutableAreaDurationUs > thresholdUs -> {
+                    rawRightImmutableAreaDurationUs > thresholdUs -> {
                         // amount of decrease is NOT allowed by threshold
                         mutableAreaEndUs + thresholdUs
                     }
@@ -313,7 +313,7 @@ class DragCallbacks(
                         max(
                             adjustedPositionUs,
                             fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                                ?.plus(leftImmutableAreaDurationUs) ?: 0
+                                ?.plus(rawLeftImmutableAreaDurationUs) ?: 0
                         ),
                         mutableAreaEndUs - thresholdUs
                     )
@@ -325,7 +325,7 @@ class DragCallbacks(
                             max(
                                 adjustedPositionUs,
                                 fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                                    ?.plus(leftImmutableAreaDurationUs) ?: 0
+                                    ?.plus(rawLeftImmutableAreaDurationUs) ?: 0
                             )
                         }
                         mutableAreaDurationUs > thresholdUs -> {
@@ -352,17 +352,17 @@ class DragCallbacks(
                     if (adjustedPositionUs > min(
                             mutableAreaEndUs + thresholdUs,
                             (fragment.rightBoundingFragment?.leftImmutableAreaStartUs ?: (
-                                    fragment.specs.maxRightBoundUs + rightImmutableAreaDurationUs)
-                               ) - rightImmutableAreaDurationUs
+                                    fragment.specs.maxRightBoundUs + rawRightImmutableAreaDurationUs)
+                               ) - rawRightImmutableAreaDurationUs
                         )
                     ) {
                         val newMutableAreaStartUs = mutableAreaEndUs
                         val newMutableAreaEndUs = mutableAreaEndUs + fragment.specs.minMutableAreaDurationUs
-                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
-                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - rawLeftImmutableAreaDurationUs
+                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rawRightImmutableAreaDurationUs
 
                         if (newMutableAreaEndUs <
-                            (fragment.rightBoundingFragment?.leftImmutableAreaStartUs?.minus(rightImmutableAreaDurationUs)
+                            (fragment.rightBoundingFragment?.leftImmutableAreaStartUs?.minus(rawRightImmutableAreaDurationUs)
                                 ?: fragment.specs.maxRightBoundUs)
                         ) {
                             dragSegment = FragmentDragState.Segment.MutableRightBound
@@ -390,7 +390,7 @@ class DragCallbacks(
                         min(
                             adjustedPositionUs,
                             fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                                ?.minus(rightImmutableAreaDurationUs)
+                                ?.minus(rawRightImmutableAreaDurationUs)
                                 ?: fragment.specs.maxRightBoundUs
                         ),
                         mutableAreaStartUs + thresholdUs
@@ -403,10 +403,10 @@ class DragCallbacks(
                             min(
                                 adjustedPositionUs,
                                 fragment.rightBoundingFragment?.leftImmutableAreaStartUs
-                                    ?.minus(rightImmutableAreaDurationUs) ?: fragment.specs.maxRightBoundUs
+                                    ?.minus(rawRightImmutableAreaDurationUs) ?: fragment.specs.maxRightBoundUs
                             )
                         }
-                        rightImmutableAreaDurationUs > thresholdUs -> {
+                        rawRightImmutableAreaDurationUs > thresholdUs -> {
                             mutableAreaStartUs + thresholdUs
                         }
                         else -> mutableAreaEndUs
@@ -430,16 +430,16 @@ class DragCallbacks(
                     if (adjustedPositionUs < max(
                             mutableAreaStartUs - thresholdUs,
                             (fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-                                ?: - leftImmutableAreaDurationUs) + leftImmutableAreaDurationUs
+                                ?: - rawLeftImmutableAreaDurationUs) + rawLeftImmutableAreaDurationUs
                         )
                     ) {
                         val newMutableAreaEndUs = mutableAreaStartUs
                         val newMutableAreaStartUs = mutableAreaStartUs - fragment.specs.minMutableAreaDurationUs
-                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - leftImmutableAreaDurationUs
-                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rightImmutableAreaDurationUs
+                        val newLeftImmutableAreaStartUs = newMutableAreaStartUs - rawLeftImmutableAreaDurationUs
+                        val newRightImmutableAreaEndUs = newMutableAreaEndUs + rawRightImmutableAreaDurationUs
 
                         if (newMutableAreaStartUs >
-                            (fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(leftImmutableAreaDurationUs) ?: 0)
+                            (fragment.leftBoundingFragment?.rightImmutableAreaEndUs?.plus(rawLeftImmutableAreaDurationUs) ?: 0)
                         ) {
                             dragSegment = FragmentDragState.Segment.MutableLeftBound
                             leftImmutableAreaStartUs = newLeftImmutableAreaStartUs

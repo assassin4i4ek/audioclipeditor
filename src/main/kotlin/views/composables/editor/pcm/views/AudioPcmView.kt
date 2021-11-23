@@ -28,6 +28,7 @@ fun AudioPcmView(
     audioClipState: AudioClipState,
 
     onPress: ((Offset) -> Unit)? = null,
+    onTap: ((Offset) -> Unit)? = null,
 
     onHorizontalDragStart: (Offset) -> Unit = {},
     onHorizontalDrag: (PointerInputChange, Float) -> Unit = { change, _ -> change.consumeAllChanges()},
@@ -70,7 +71,8 @@ fun AudioPcmView(
                     detectTapGestures(
                         onPress = {
                             onPress?.invoke(it)
-                        }
+                        },
+                        onTap = onTap
                     )
                 }
                 .pointerInput(onHorizontalDrag) {

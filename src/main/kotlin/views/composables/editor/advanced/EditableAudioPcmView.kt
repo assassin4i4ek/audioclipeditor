@@ -4,8 +4,12 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import views.composables.editor.pcm.views.AudioClipFragmentSetControlPanelView
 import views.composables.editor.pcm.views.AudioPcmView
 import views.composables.editor.pcm.wrappers.ScrollableOffsetAudioPcmWrapper
 import views.composables.editor.pcm.wrappers.ScrollableZoomAudioPcmWrapper
@@ -26,12 +30,15 @@ fun EditableAudioPcmView(
         audioClipState.transformState
     ) { onHorizontalOffsetScroll, onVerticalOffsetScroll ->
         ScrollableZoomAudioPcmWrapper(
-            when(inputDevice) {
+            when (inputDevice) {
                 InputDevice.Touchpad -> true
                 InputDevice.Mouse -> false
             }, audioClipState.transformState
         ) { onHorizontalZoomScroll, onVerticalZoomScroll ->
-            CursorAudioPcmWrapper(audioClipState.cursorState, audioClipState.transformState) { onCursorPositioned ->
+            CursorAudioPcmWrapper(
+                audioClipState.cursorState,
+                audioClipState.transformState
+            ) { onCursorPositioned ->
                 Box(
                     modifier = Modifier
                         .scrollable(
@@ -66,10 +73,19 @@ fun EditableAudioPcmView(
                                     },
                                     onHorizontalDragStart = {
                                         onDragStart(it)
-                                        onSelectFragment(it)
+                                        if (audioClipState.fragmentSetState.fragmentDragState.draggedFragmentState != null) {
+                                            onSelectFragment(it)
+                                        }
                                         audioClipState.cursorState.restorePosition()
                                     },
-                                    onHorizontalDrag = onDrag,
+                                    onHorizontalDrag = { change, delta ->
+                                        onDrag(change, delta)
+                                        audioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.apply {
+                                            if (isFragmentPlaying) {
+                                                stopPlayFragment()
+                                            }
+                                        }
+                                    },
                                     onHorizontalDragEnd = onDragEnd
                                 )
                             }

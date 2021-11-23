@@ -2,18 +2,14 @@ package views.composables.editor.pcm.views
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.dp
 import views.states.api.editor.pcm.AudioClipState
 import views.states.api.editor.pcm.fragment.draggable.FragmentDragState
@@ -56,7 +52,7 @@ fun AudioClipFragmentSetView(
                                 drawRect(
                                     Color.Green,
                                     Offset(toPx(audioFragmentState.leftImmutableAreaStartUs), 0.5f),
-                                    Size(toPx(audioFragmentState.leftImmutableAreaDurationUs) * immutableAreaDragAreaFraction, size.height - 0.5f),
+                                    Size(toPx(audioFragmentState.rawLeftImmutableAreaDurationUs) * immutableAreaDragAreaFraction, size.height - 0.5f),
                                     0.5f
                                 )
                                 drawRect(
@@ -75,10 +71,10 @@ fun AudioClipFragmentSetView(
                                 drawRect(
                                     Color.Green,
                                     Offset(toPx(audioFragmentState.rightImmutableAreaEndUs) -
-                                            toPx(audioFragmentState.rightImmutableAreaDurationUs) * immutableAreaDragAreaFraction,
+                                            toPx(audioFragmentState.rawRightImmutableAreaDurationUs) * immutableAreaDragAreaFraction,
                                         0.5f
                                     ),
-                                    Size(toPx(audioFragmentState.rightImmutableAreaDurationUs) * immutableAreaDragAreaFraction, size.height - 0.5f),
+                                    Size(toPx(audioFragmentState.rawRightImmutableAreaDurationUs) * immutableAreaDragAreaFraction, size.height - 0.5f),
                                     0.5f
                                 )
                             }
@@ -105,7 +101,7 @@ fun AudioClipFragmentSetView(
                         drawRect(
                             Color.Black,
                             Offset(toWindowOffset(toPx(audioFragmentState.leftImmutableAreaStartUs)), 1f),
-                            Size(toWindowSize(toPx(audioFragmentState.totalDurationUs)), size.height - 2f),
+                            Size(toWindowSize(toPx(audioFragmentState.rawTotalDurationUs)), size.height - 2f),
                             style = Stroke()
                         )
                     }
@@ -115,7 +111,7 @@ fun AudioClipFragmentSetView(
                         with(selectedFragmentState) {
                             drawRect(
                                 Color.Red, Offset(toWindowOffset(toPx(leftImmutableAreaStartUs)), 2.dp.toPx()),
-                                Size(toWindowSize(toPx(totalDurationUs)), size.height - 4.dp.toPx()),
+                                Size(toWindowSize(toPx(rawTotalDurationUs)), size.height - 4.dp.toPx()),
                                 style = Stroke(2.dp.toPx())
                             )
                         }

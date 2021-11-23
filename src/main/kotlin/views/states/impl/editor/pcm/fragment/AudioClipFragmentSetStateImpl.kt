@@ -41,5 +41,12 @@ class AudioClipFragmentSetStateImpl(
 
         val audioFragmentStateToRemove = _fragmentStatesMap.remove(audioClipFragment)!!
         _fragmentStatesList.remove(audioFragmentStateToRemove)
+
+        if (fragmentSelectState.selectedFragmentState == audioFragmentStateToRemove) {
+            fragmentSelectState.selectedFragmentState = null
+        }
+        if (fragmentDragState.draggedFragmentState == audioFragmentStateToRemove) {
+            fragmentDragState.draggedFragmentState = null
+        }
     }
 }

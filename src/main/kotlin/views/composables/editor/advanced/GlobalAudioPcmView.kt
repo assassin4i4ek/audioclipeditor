@@ -16,10 +16,10 @@ fun GlobalAudioPcmView(audioClipState: AudioClipState) {
         GlobalViewPannableOffsetAudioPcmWrapper(
             audioClipState.transformState,
             proxyAudioClipState.transformState
-        ) { onOffsetDrag ->
+        ) { onWindowPress, onWindowDrag ->
             CursorAudioPcmWrapper(proxyAudioClipState.cursorState, proxyAudioClipState.transformState) {
                 AudioClipFragmentSetView(proxyAudioClipState) {
-                    AudioPcmView(proxyAudioClipState, onHorizontalDrag = onOffsetDrag)
+                    AudioPcmView(proxyAudioClipState, onHorizontalDrag = onWindowDrag, onPress = onWindowPress)
                 }
             }
         }

@@ -4,6 +4,8 @@ import model.api.AudioClipPlayer
 import model.api.fragments.AudioClipFragment
 import views.states.api.editor.pcm.cursor.CursorState
 import views.states.api.editor.pcm.layout.LayoutState
+import kotlin.math.max
+import kotlin.math.min
 
 interface AudioClipFragmentState {
     val fragment: AudioClipFragment
@@ -17,10 +19,14 @@ interface AudioClipFragmentState {
         return us in leftImmutableAreaStartUs .. rightImmutableAreaEndUs
     }
 
-    val leftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
+    val rawLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
     val mutableAreaDurationUs: Long get() = mutableAreaEndUs - mutableAreaStartUs
-    val rightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
-    val totalDurationUs: Long get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
+    val rawRightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
+    val rawTotalDurationUs: Long get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
+
+    val adjustedLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - max(leftImmutableAreaStartUs, 0)
+    val adjustedRightImmutableAreaDurationUs: Long get() = min(rightImmutableAreaEndUs, fragment.specs.maxRightBoundUs) - mutableAreaEndUs
+    val adjustedTotalDuration: Long get() = min(rightImmutableAreaEndUs, fragment.specs.maxRightBoundUs) - max(leftImmutableAreaStartUs, 0)
 
     fun translateRelative(deltaUs: Long) {
         if (deltaUs < 0) {
@@ -41,4 +47,6 @@ interface AudioClipFragmentState {
     var isFragmentPlaying: Boolean
     fun startPlayFragment()
     fun stopPlayFragment()
+
+    val fragmentTransformerState: AudioClipFragmentTransformerState
 }

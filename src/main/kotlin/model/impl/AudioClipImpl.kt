@@ -5,13 +5,12 @@ import model.api.Mp3FileDecoder
 import model.api.fragments.AudioClipFragment
 import model.api.fragments.AudioFragmentSpecs
 import model.impl.fragments.AudioClipFragmentImpl
-import model.impl.fragments.transformers.FragmentTransformers
+import model.impl.fragments.transformers.SilenceTransformerImpl
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
 import javax.sound.sampled.AudioFormat
 import kotlin.Comparator
-import kotlin.math.min
 
 class AudioClipImpl(
     srcFilepath: String,
@@ -91,7 +90,7 @@ class AudioClipImpl(
             mutableAreaEndUs,
             rightImmutableAreaEndUs,
             audioFragmentSpecs,
-            FragmentTransformers.SilenceTransformer(sampleRate, numChannels)
+            SilenceTransformerImpl(sampleRate, numChannels)
         )
 
         val prevFragment = _fragments.lower(newFragment)

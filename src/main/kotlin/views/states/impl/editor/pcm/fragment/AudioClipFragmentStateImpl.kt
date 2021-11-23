@@ -57,17 +57,17 @@ class AudioClipFragmentStateImpl(
         }
         cursorState.xAbsolutePositionPx = cursorState.layoutState.toPx(max(leftImmutableAreaStartUs, 0))
         val dstDurationUs = audioClipPlayer.play(fragment)
-        val srcDurationUs = min(rightImmutableAreaEndUs, fragment.specs.maxRightBoundUs) - max(leftImmutableAreaStartUs, 0)
-        val dstMutableAreaDurationUs = (dstDurationUs - leftImmutableAreaDurationUs - rightImmutableAreaDurationUs)
+        val srcDurationUs = adjustedTotalDuration
+        val dstMutableAreaDurationUs = (dstDurationUs - adjustedLeftImmutableAreaDurationUs - adjustedRightImmutableAreaDurationUs)
 
         val totalDurationFraction = dstDurationUs.toFloat() / srcDurationUs
-        val mutableAreaDurationFraction = mutableAreaDurationUs.toFloat() / dstMutableAreaDurationUs
+        val mutableAreaDurationFraction = dstMutableAreaDurationUs.toFloat() / mutableAreaDurationUs
 
-        val relMutableAreaStart = leftImmutableAreaDurationUs.toFloat() / dstDurationUs
-        val relMutableAreaEnd = (dstDurationUs - rightImmutableAreaDurationUs).toFloat() / dstDurationUs
+        val relMutableAreaStart = adjustedLeftImmutableAreaDurationUs.toFloat() / dstDurationUs
+        val relMutableAreaEnd = (dstDurationUs - adjustedRightImmutableAreaDurationUs).toFloat() / dstDurationUs
 
-        val relMutableAreaStartOffset = leftImmutableAreaDurationUs.toFloat() / srcDurationUs
-        val relMutableAreaEndOffset = (leftImmutableAreaDurationUs + mutableAreaDurationUs).toFloat() / srcDurationUs
+        val relMutableAreaStartOffset = adjustedLeftImmutableAreaDurationUs.toFloat() / srcDurationUs
+        val relMutableAreaEndOffset = (adjustedTotalDuration - adjustedRightImmutableAreaDurationUs).toFloat() / srcDurationUs
 
         isFragmentPlaying = true
         cursorState.animatePositionTo(
@@ -90,7 +90,7 @@ class AudioClipFragmentStateImpl(
                         it * totalDurationFraction
                     }
                     it < relMutableAreaEnd -> {
-                        relMutableAreaStartOffset + (it - relMutableAreaStart) * mutableAreaDurationFraction * totalDurationFraction
+                        relMutableAreaStartOffset + (it - relMutableAreaStart) * totalDurationFraction / mutableAreaDurationFraction
                     }
                     else -> {
                         relMutableAreaEndOffset + (it - relMutableAreaEnd) * totalDurationFraction

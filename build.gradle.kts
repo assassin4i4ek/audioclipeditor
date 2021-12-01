@@ -51,6 +51,8 @@ dependencies {
     implementation( "com.google.protobuf:protobuf-kotlin:3.17.3")
     compileOnly("com.google.protobuf:protobuf-gradle-plugin:0.8.16")
     implementation("libs:Libresample4j-1.0")
+
+    // https://mvnrepository.com/artifact/androidx.datastore/datastore-preferences
 }
 
 tasks.withType<KotlinCompile> {

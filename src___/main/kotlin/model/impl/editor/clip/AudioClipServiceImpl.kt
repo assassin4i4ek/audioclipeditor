@@ -1,6 +1,5 @@
 package model.impl.editor.clip
 
-import kotlinx.coroutines.delay
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipCodec
 import model.api.editor.clip.AudioClipMetaCodec
@@ -22,7 +21,6 @@ class AudioClipServiceImpl: AudioClipService {
     }
 
     override suspend fun openAudioClip(audioClipFile: File): AudioClip {
-//        delay(3000)
         return when (audioClipFile.extension.lowercase()) {
             "mp3" -> audioClipMp3Codec.open(audioClipFile)
             "json" -> audioClipJsonCodec.open(audioClipFile)

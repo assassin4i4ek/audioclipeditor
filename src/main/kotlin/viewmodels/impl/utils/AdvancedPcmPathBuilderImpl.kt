@@ -3,6 +3,7 @@ package viewmodels.impl.utils
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.api.utils.PcmPathBuilder
@@ -11,6 +12,7 @@ import kotlin.math.*
 
 class AdvancedPcmPathBuilderImpl: AdvancedPcmPathBuilder {
     override suspend fun build(channelPcm: FloatArray, xStep: Int): Path {
+//        delay(2000)
         return withContext(Dispatchers.Default) {
             // channelPcm in range [-1.0, 1.0]
             val path = Path()

@@ -1,4 +1,4 @@
-package viewmodels.api.utils
+package specs.impl
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,29 +10,31 @@ import kotlin.reflect.KProperty
 @Suppress("UNCHECKED_CAST")
 class PreferenceSavableStatefulProperty<T, V, U>(
     private val defaultValue: V,
+    thisRef: T,
+    property: KProperty<*>,
     private val preferences: Preferences,
     private val toSupportedType: (V) -> U = { it as U },
     private val toActualType: (U) -> V = { it as V }
 ): ReadWriteProperty<T, V> {
-    private var localValue: V? by mutableStateOf(null)
+    private var localValue: V by mutableStateOf(initValue(thisRef, property))
 
-    override fun getValue(thisRef: T, property: KProperty<*>): V {
-        if (localValue == null) {
-            val key = "${thisRef!!::class.simpleName}/${property.name}"
+    private fun initValue(thisRef: T, property: KProperty<*>): V {
+        val key = "${thisRef!!::class.simpleName}/${property.name}"
 
-            val value = when (val defaultValueAsSupported = toSupportedType(defaultValue)) {
-                is Float -> preferences.getFloat(key, defaultValueAsSupported) as U
-                is String -> preferences.get(key, defaultValueAsSupported) as U
+        val value = when (val defaultValueAsSupported = toSupportedType(defaultValue)) {
+            is Float -> preferences.getFloat(key, defaultValueAsSupported) as U
+            is String -> preferences.get(key, defaultValueAsSupported) as U
 
-                else -> throw IllegalArgumentException(
-                    "Unsupported property type ${defaultValueAsSupported!!::class.java}"
-                )
-            }
-
-            localValue = toActualType(value)
+            else -> throw IllegalArgumentException(
+                "Unsupported property type ${defaultValueAsSupported!!::class.java}"
+            )
         }
 
-        return localValue!!
+        return toActualType(value)
+    }
+
+    override fun getValue(thisRef: T, property: KProperty<*>): V {
+        return localValue
     }
 
     override fun setValue(thisRef: T, property: KProperty<*>, value: V) {

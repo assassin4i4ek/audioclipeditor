@@ -6,15 +6,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.clip.ClipViewModel
 
 @Composable
 fun ClipView(
     clipViewModel: ClipViewModel
 ) {
+    LaunchedEffect(clipViewModel.initKey) {
+        clipViewModel.init()
+    }
+
     Column {
         Divider()
 
@@ -24,9 +32,9 @@ fun ClipView(
                     ClipChannelView(
                         channelPath = clipViewModel.channelPcmPaths!![iChannelPcmPath],
                         sampleRate = clipViewModel.audioClip.sampleRate,
-                        xStepDpPerSec = 50.dp,//audioClipViewModel.specs.xStepDpPerSec,
-                        zoom = 1f,//audioClipViewModel.audioPanelState.transformState.zoom,
-                        xAbsoluteOffsetPx = 0f//audioClipViewModel.audioPanelState.transformState.xAbsoluteOffsetPx
+                        xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
+                        zoom = clipViewModel.zoom,
+                        xAbsoluteOffsetPx = clipViewModel.xAbsoluteOffsetPx
                     )
                 } else {
                     CircularProgressIndicator()

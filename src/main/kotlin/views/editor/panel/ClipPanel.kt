@@ -1,5 +1,10 @@
 package views.editor.panel
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -7,9 +12,10 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.svgResource
-import viewmodels.api.InputDevice
+import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
 
@@ -29,8 +35,8 @@ fun ClipPanel(
                 }
             } else {
                 Column(modifier = Modifier
-                    .heightIn(max = clipPanelViewModel.maxPanelViewHeightDp)
-                    .requiredHeightIn(min = clipPanelViewModel.minPanelViewHeightDp)
+                    .heightIn(max = clipPanelViewModel.specs.maxPanelViewHeightDp)
+                    .requiredHeightIn(min = clipPanelViewModel.specs.minPanelViewHeightDp)
                     .onSizeChanged {
                         clipPanelViewModel.onSizeChanged(it)
                     }
@@ -42,12 +48,17 @@ fun ClipPanel(
                     }
                     Box(modifier = Modifier
                         .weight(2f)
-//                        .scrollable(rememberScrollableState {
-//                            audioPanelViewModel.onHorizontalScroll(it)
-//                        }, Orientation.Horizontal)
-//                        .scrollable(rememberScrollableState {
-//                            audioPanelViewModel.onVerticalScroll(it)
-//                        }, Orientation.Vertical)
+                        .scrollable(rememberScrollableState {
+                            clipPanelViewModel.onEditableClipViewHorizontalScroll(it)
+                        }, Orientation.Horizontal)
+                        .scrollable(rememberScrollableState {
+                            clipPanelViewModel.onEditableClipViewVerticalScroll(it)
+                        }, Orientation.Vertical)
+                        .pointerInput(clipPanelViewModel) {
+                            detectTapGestures(
+                                onTap = clipPanelViewModel::onEditableClipViewTap
+                            )
+                        }
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
                     }
@@ -63,19 +74,19 @@ fun ClipPanel(
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = {
-//                clipPanelViewModel.onIncreaseZoomClick()
+                clipPanelViewModel.onIncreaseZoomClick()
             }) {
                 Icon(svgResource("icons/zoom_in_black_24dp.svg"), "zoom_in")
             }
             Button(onClick = {
-//                clipPanelViewModel.onDecreaseZoomClick()
+                clipPanelViewModel.onDecreaseZoomClick()
             }) {
                 Icon(svgResource("icons/zoom_out_black_24dp.svg"), "zoom_out")
             }
             Button(onClick = {
                 clipPanelViewModel.onSwitchInputDevice()
             }) {
-                when (clipPanelViewModel.inputDevice) {
+                when (clipPanelViewModel.specs.inputDevice) {
                     InputDevice.Touchpad -> Icon(svgResource("icons/touch_app_black_24dp.svg"), "touchpad")
                     InputDevice.Mouse -> Icon(svgResource("icons/mouse_black_24dp.svg"), "mouse")
                 }

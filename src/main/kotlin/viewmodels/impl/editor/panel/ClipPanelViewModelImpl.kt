@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
@@ -15,8 +17,10 @@ import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import viewmodels.api.editor.panel.clip.ClipViewModel
+import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.ClipViewModelImpl
+import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 import java.io.File
 import kotlin.math.exp
 
@@ -58,6 +62,20 @@ class ClipPanelViewModelImpl(
             override val zoom: Float get() = panelWidthPx / contentWidthPx
         }, pcmPathBuilder, coroutineScope, specs
     )
+    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
+        object : CursorViewModelImpl.Parent {
+            override fun toWindowOffset(absolutePx: Float): Float {
+                return toWindowOffset(absolutePx, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+            }
+        }
+    )
+    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
+        object : CursorViewModelImpl.Parent {
+            override fun toWindowOffset(absolutePx: Float): Float {
+                return toWindowOffset(absolutePx, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx)
+            }
+        }
+    )
 
     /* Stateful properties */
     private var _isLoading: Boolean by mutableStateOf(true)
@@ -68,40 +86,48 @@ class ClipPanelViewModelImpl(
     private var panelWidthPx: Float by mutableStateOf(0f)
     private var panelHeightPx: Float by mutableStateOf(0f)
 
-    private var xAbsoluteOffsetPxRaw: Float by mutableStateOf(0f)
-    private val xAbsoluteOffsetPfAdjusted by derivedStateOf {
-        xAbsoluteOffsetPxRaw.coerceIn(
-            (toAbsoluteSize(panelWidthPx) - contentWidthPx).coerceAtMost(0f),
-            0f
-        ).apply {
-            check(isFinite()) {
-                "Invalid value of xAbsoluteOffsetPx: $this"
-            }
-        }
-    }
+    private var _xAbsoluteOffsetPx: Float by mutableStateOf(0f)
+
     private var xAbsoluteOffsetPx: Float
-        get() = xAbsoluteOffsetPfAdjusted
+        get() = _xAbsoluteOffsetPx
         set(value) {
-            xAbsoluteOffsetPxRaw = value
+            _xAbsoluteOffsetPx = value
+                .coerceIn(
+                    (toAbsoluteSize(panelWidthPx, zoom) - contentWidthPx).coerceAtMost(0f),
+                    0f
+                ).apply {
+                    check(isFinite()) {
+                        "Invalid value of xAbsoluteOffsetPx: $this"
+                    }
+                }
         }
 
-    private var zoomRaw: Float by mutableStateOf(1f)
-    private val zoomAdjusted: Float by derivedStateOf {
-        zoomRaw.coerceAtLeast((panelWidthPx / contentWidthPx).coerceAtMost(
-            1f
-        )).apply {
-            check(isFinite()) {
-                "Invalid value of zoom: $this"
-            }
-        }
-    }
+    private var _zoom: Float by mutableStateOf(1f)
+
     private var zoom: Float
-        get() = zoomAdjusted
+        get() = _zoom
         set(value) {
-            xAbsoluteOffsetPx += panelWidthPx / 2 / value - panelWidthPx / 2 / zoom
-            zoomRaw = value
+            val normValue = value
+                .coerceAtLeast(
+                    (panelWidthPx / contentWidthPx).coerceAtMost(1f)
+                ).apply {
+                check(isFinite()) {
+                    "Invalid value of zoom: $this"
+                }
+            }
+            xAbsoluteOffsetPx += panelWidthPx / 2 / normValue - panelWidthPx / 2 / zoom
+            _zoom = normValue
         }
 
+    override val windowOffset: Float
+        get() = toWindowOffset(toAbsoluteOffset(0f, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx), globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+    override val windowWidth: Float
+        get() = toWindowSize(toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom), globalClipViewModel.zoom)
+
+    private var _isClipPlaying: Boolean by mutableStateOf(false)
+    override val canPlayClip: Boolean get() = !_isLoading && !_isClipPlaying
+    override val canPauseClip: Boolean get() = !_isLoading && _isClipPlaying
+    override val canStopClip: Boolean get() = !_isLoading && _isClipPlaying
 
     /* Callbacks */
     init {
@@ -148,7 +174,7 @@ class ClipPanelViewModelImpl(
 
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
+                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta, zoom)
                 xAbsoluteOffsetPx += linearDelta
             }
             InputDevice.Mouse -> {
@@ -169,7 +195,7 @@ class ClipPanelViewModelImpl(
                 zoom *= sigmoidFunctionMultiplier
             }
             InputDevice.Mouse -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
+                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta, zoom)
                 xAbsoluteOffsetPx += linearDelta
             }
         }
@@ -178,14 +204,45 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onEditableClipViewTap(tap: Offset) {
-        println("${editableClipViewModel.audioClip.filePath} tap ${tap.x}")
+        val cursorAbsolutePositionPx = toAbsoluteOffset(
+            tap.x, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx
+        )
+        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+    }
+
+    override fun onGlobalClipViewTap(tap: Offset) {
+        val halfPanelAbsoluteSize = toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom) / 2
+        val tapAbsoluteOffsetPx = toAbsoluteOffset(tap.x, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+        xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
+    }
+
+    override fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset) {
+        change.consumeAllChanges()
+        val halfPanelAbsoluteSize = toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom) / 2
+        val tapAbsoluteOffsetPx = toAbsoluteOffset(change.position.x, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+        xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
+    }
+
+    override fun onPlayClicked() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onPauseClicked() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onStopClicked() {
+        TODO("Not yet implemented")
     }
 
     /* Methods */
-    private fun toAbsoluteOffset(windowPx: Float) = toAbsoluteSize(windowPx) - xAbsoluteOffsetPx
-    private fun toAbsoluteSize(windowPx: Float) = windowPx / zoom
-    private fun toWindowSize(absolutePx: Float) = absolutePx * zoom
-    private fun toWindowOffset(absolutePx: Float) = toWindowSize(absolutePx + xAbsoluteOffsetPx)
+    private fun toAbsoluteSize(windowPx: Float, zoom: Float) = windowPx / zoom
+    private fun toWindowSize(absolutePx: Float, zoom: Float) = absolutePx * zoom
+    private fun toAbsoluteOffset(windowPx: Float, zoom: Float, xAbsoluteOffsetPx: Float) =
+        toAbsoluteSize(windowPx, zoom) - xAbsoluteOffsetPx
+    private fun toWindowOffset(absolutePx: Float, zoom: Float, xAbsoluteOffsetPx: Float) =
+        toWindowSize(absolutePx + xAbsoluteOffsetPx, zoom)
 
     private fun adjustScrollDelta(
         delta: Float,

@@ -15,6 +15,12 @@ import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.ClipViewModelImpl
 import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
+import viewmodels.impl.editor.panel.components.cursor.ClipPanelCursorViewModelComponent
+import viewmodels.impl.editor.panel.components.cursor.ClipPanelCursorViewModelComponentImpl
+import viewmodels.impl.editor.panel.components.cursor.parents.EditableCursorViewModelParent
+import viewmodels.impl.editor.panel.components.cursor.parents.EditableCursorViewModelParentImpl
+import viewmodels.impl.editor.panel.components.cursor.parents.GlobalCursorViewModelParent
+import viewmodels.impl.editor.panel.components.cursor.parents.GlobalCursorViewModelParentImpl
 import viewmodels.impl.editor.panel.components.playable.ClipPanelPlayableViewModelComponent
 import viewmodels.impl.editor.panel.components.playable.ClipPanelPlayableViewModelComponentImpl
 import viewmodels.impl.editor.panel.components.transform.ClipPanelTransformViewModelComponent
@@ -29,18 +35,24 @@ class ClipPanelViewModelImpl private constructor(
     clipFile: File,
     private val parentViewModel: Parent,
     private val audioClipService: AudioClipService,
-    private val pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs,
-    override val editableClipViewModelParent: EditableClipViewModelParent,
-    override val globalClipViewModelParent: GlobalClipViewModelParent
+    private val editableClipViewModelParent: EditableClipViewModelParent,
+    private val globalClipViewModelParent: GlobalClipViewModelParent,
+    override val editableClipViewModel: ClipViewModel,
+    override val globalClipViewModel: ClipViewModel,
+    override val editableCursorViewModel: CursorViewModel,
+    override val globalCursorViewModel: CursorViewModel,
 ) :
     ClipPanelViewModel,
     ClipPanelTransformViewModelComponent by ClipPanelTransformViewModelComponentImpl(
         specs,
         editableClipViewModelParent,
         globalClipViewModelParent
+    ),
+    ClipPanelCursorViewModelComponent by ClipPanelCursorViewModelComponentImpl(
+        editableClipViewModelParent, editableCursorViewModel, globalCursorViewModel
     ),
     ClipPanelPlayableViewModelComponent by ClipPanelPlayableViewModelComponentImpl()
 {
@@ -50,16 +62,46 @@ class ClipPanelViewModelImpl private constructor(
             pcmPathBuilder: AdvancedPcmPathBuilder, coroutineScope: CoroutineScope, density: Density,
             specs: MutableEditorSpecs
         ): ClipPanelViewModelImpl {
+            /* Parents */
             val editableClipViewModelParent: EditableClipViewModelParent = EditableClipViewModelParentImpl(
                 pcmPathBuilder, specs
             )
             val globalClipViewModelParent: GlobalClipViewModelParent = GlobalClipViewModelParentImpl(
                 pcmPathBuilder, specs
             )
+            val editableCursorViewModelParent: EditableCursorViewModelParent = EditableCursorViewModelParentImpl(
+                editableClipViewModelParent
+            )
+            val globalCursorViewModelParent: GlobalCursorViewModelParent = GlobalCursorViewModelParentImpl(
+                globalClipViewModelParent
+            )
+            /* ViewModels */
+            val editableClipViewModel: ClipViewModel = ClipViewModelImpl(
+            editableClipViewModelParent, pcmPathBuilder, coroutineScope, specs
+            )
+            val globalClipViewModel: ClipViewModel = ClipViewModelImpl(
+                globalClipViewModelParent, pcmPathBuilder, coroutineScope, specs
+            )
+            val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
+                editableCursorViewModelParent
+            )
+            val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
+                globalCursorViewModelParent
+            )
 
             return ClipPanelViewModelImpl(
-                clipFile, parentViewModel, audioClipService, pcmPathBuilder, coroutineScope, density, specs,
-                editableClipViewModelParent, globalClipViewModelParent
+                clipFile,
+                parentViewModel,
+                audioClipService,
+                coroutineScope,
+                density,
+                specs,
+                editableClipViewModelParent,
+                globalClipViewModelParent,
+                editableClipViewModel,
+                globalClipViewModel,
+                editableCursorViewModel,
+                globalCursorViewModel
             )
         }
     }
@@ -70,26 +112,26 @@ class ClipPanelViewModelImpl private constructor(
     }
 
     /* Child ViewModels */
-    override val editableClipViewModel: ClipViewModel = ClipViewModelImpl(
-        editableClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-    )
-    override val globalClipViewModel: ClipViewModel = ClipViewModelImpl(
-        globalClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-    )
-    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
-        object : CursorViewModelImpl.Parent {
-            override fun toWindowOffset(absolutePx: Float): Float {
-                return globalClipViewModelParent.toWindowOffset(absolutePx)
-            }
-        }
-    )
-    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
-        object : CursorViewModelImpl.Parent {
-            override fun toWindowOffset(absolutePx: Float): Float {
-                return editableClipViewModelParent.toWindowOffset(absolutePx)
-            }
-        }
-    )
+//    override val editableClipViewModel: ClipViewModel = ClipViewModelImpl(
+//        editableClipViewModelParent, pcmPathBuilder, coroutineScope, specs
+//    )
+//    override val globalClipViewModel: ClipViewModel = ClipViewModelImpl(
+//        globalClipViewModelParent, pcmPathBuilder, coroutineScope, specs
+//    )
+//    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
+//        object : CursorViewModelImpl.Parent {
+//            override fun toWindowOffset(absolutePx: Float): Float {
+//                return globalClipViewModelParent.toWindowOffset(absolutePx)
+//            }
+//        }
+//    )
+//    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
+//        object : CursorViewModelImpl.Parent {
+//            override fun toWindowOffset(absolutePx: Float): Float {
+//                return editableClipViewModelParent.toWindowOffset(absolutePx)
+//            }
+//        }
+//    )
 
     /* Stateful properties */
     override val windowOffset: Float
@@ -125,11 +167,11 @@ class ClipPanelViewModelImpl private constructor(
         specs.inputDevice = InputDevice.values()[(currentInputDeviceIndex + 1) % InputDevice.values().size]
     }
 
-    override fun onEditableClipViewTap(tap: Offset) {
-        val cursorAbsolutePositionPx = editableClipViewModelParent.toAbsoluteOffset(tap.x)
-        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
-        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
-    }
+//    override fun onEditableClipViewTap(tap: Offset) {
+//        val cursorAbsolutePositionPx = editableClipViewModelParent.toAbsoluteOffset(tap.x)
+//        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+//        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+//    }
 
     override fun onGlobalClipViewTap(tap: Offset) {
         val halfPanelAbsoluteSize = editableClipViewModelParent.toAbsoluteSize(panelWidthPx) / 2

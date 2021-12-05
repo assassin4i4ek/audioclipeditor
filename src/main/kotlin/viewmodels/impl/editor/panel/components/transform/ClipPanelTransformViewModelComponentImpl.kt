@@ -13,8 +13,8 @@ import kotlin.math.exp
 
 class ClipPanelTransformViewModelComponentImpl(
     private val specs: EditorSpecs,
-    override val editableClipViewModelParent: EditableClipViewModelParent,
-    override val globalClipViewModelParent: GlobalClipViewModelParent
+    private val editableClipViewModelParent: EditableClipViewModelParent,
+    private val globalClipViewModelParent: GlobalClipViewModelParent
 
 ) : ClipPanelTransformViewModelComponent {
 

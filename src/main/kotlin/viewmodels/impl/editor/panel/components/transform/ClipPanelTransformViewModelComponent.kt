@@ -5,9 +5,6 @@ import viewmodels.impl.editor.panel.components.transform.parents.EditableClipVie
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
 
 interface ClipPanelTransformViewModelComponent {
-    val editableClipViewModelParent: EditableClipViewModelParent
-    val globalClipViewModelParent: GlobalClipViewModelParent
-
     var panelWidthPx: Float
     var panelHeightPx: Float
 

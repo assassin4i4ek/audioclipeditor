@@ -8,6 +8,7 @@ import specs.api.immutable.editor.InputDevice
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.ClipViewModel
 import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
+import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParent
 
 interface ClipPanelViewModel: BaseViewModel {
     /* Parent ViewModels */

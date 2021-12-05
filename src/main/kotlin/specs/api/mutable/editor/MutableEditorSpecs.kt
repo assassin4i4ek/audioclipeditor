@@ -14,9 +14,9 @@ interface MutableEditorSpecs: EditorSpecs {
 
     override var xStepDpPerSec: Dp
 
-    val transformZoomClickCoef: Float
-    val transformOffsetScrollCoef: Float
-    val transformZoomScrollCoef: Float
+    override var transformZoomClickCoef: Float
+    override var transformOffsetScrollCoef: Float
+    override var transformZoomScrollCoef: Float
 
     fun reset()
 }

@@ -51,15 +51,15 @@ class PreferenceEditorSpecs: MutableEditorSpecs {
         300.dp, ::xStepDpPerSec
     )
 
-    override val transformZoomClickCoef: Float by savableProperty(
+    override var transformZoomClickCoef: Float by savableProperty(
         1.5f, ::transformZoomClickCoef
     )
 
-    override val transformOffsetScrollCoef: Float by savableProperty(
+    override var transformOffsetScrollCoef: Float by savableProperty(
         50f, ::transformOffsetScrollCoef
     )
 
-    override val transformZoomScrollCoef: Float by savableProperty(
+    override var transformZoomScrollCoef: Float by savableProperty(
         2f, ::transformZoomScrollCoef
     )
 

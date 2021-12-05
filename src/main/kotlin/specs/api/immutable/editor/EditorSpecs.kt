@@ -11,4 +11,8 @@ interface EditorSpecs {
     val minPanelViewHeightDp: Dp
 
     val xStepDpPerSec: Dp
+
+    val transformZoomClickCoef: Float
+    val transformOffsetScrollCoef: Float
+    val transformZoomScrollCoef: Float
 }

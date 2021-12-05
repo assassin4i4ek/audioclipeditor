@@ -7,16 +7,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntSize
 import specs.api.immutable.editor.EditorSpecs
 import specs.api.immutable.editor.InputDevice
-import viewmodels.api.utils.AdvancedPcmPathBuilder
-import viewmodels.api.utils.PcmPathStepRecommender
 import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParent
-import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParentImpl
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
-import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParentImpl
 import kotlin.math.exp
 
 class ClipPanelTransformViewModelComponentImpl(
-    pathStepRecommender: PcmPathStepRecommender,
     private val specs: EditorSpecs,
     override val editableClipViewModelParent: EditableClipViewModelParent,
     override val globalClipViewModelParent: GlobalClipViewModelParent

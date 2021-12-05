@@ -59,12 +59,16 @@ class OpenedClipsTabViewModelImpl(
 
     /* Methods */
     override fun submitClips(clipNames: Map<String, String>) {
+        val newOpenedClips = LinkedHashMap(openedClips)
+
         clipNames.forEach{ (clipId, clipName) ->
             require(!openedClips.containsKey(clipId)) {
                 "Trying to submit an already opened clip with id $clipId to $openedClips"
             }
-            _openedClips[clipId] = clipName
+            newOpenedClips[clipId] = clipName
         }
+
+        _openedClips = newOpenedClips
 
         if (selectedClipId == null && openedClips.isNotEmpty()) {
             _selectedClipId = openedClips.keys.first()

@@ -47,7 +47,7 @@ class ClipEditorViewModelImpl(
 
         val viewModelsToAppend = clipFilesToAppend
             .mapValues { (_, clipFile) ->
-                ClipPanelViewModelImpl(
+                ClipPanelViewModelImpl.create(
                     clipFile = clipFile,
                     parentViewModel = this,
                     audioClipService = audioClipService,

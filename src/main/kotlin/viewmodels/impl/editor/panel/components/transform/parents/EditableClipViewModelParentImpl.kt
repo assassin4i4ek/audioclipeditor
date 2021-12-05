@@ -14,37 +14,42 @@ class EditableClipViewModelParentImpl(
     override var contentWidthPx: Float by mutableStateOf(0f)
     override var panelWidthPx: Float by mutableStateOf(0f)
 
-    private var _xAbsoluteOffsetPx: Float by mutableStateOf(0f)
+    private var xAbsoluteOffsetPxRaw: Float by mutableStateOf(0f)
+    private val xAbsoluteOffsetPxAdjusted: Float by derivedStateOf {
+        xAbsoluteOffsetPxRaw
+            .coerceIn(
+                (toAbsoluteSize(panelWidthPx) - contentWidthPx).coerceAtMost(0f),
+                0f
+            ).apply {
+            check(isFinite()) {
+                "Invalid value of xAbsoluteOffsetPx: $this"
+            }
+        }
+    }
 
     override var xAbsoluteOffsetPx: Float
-        get() = _xAbsoluteOffsetPx
+        get() = xAbsoluteOffsetPxAdjusted
         set(value) {
-            _xAbsoluteOffsetPx = value
-                .coerceIn(
-                    (toAbsoluteSize(panelWidthPx) - contentWidthPx).coerceAtMost(0f),
-                    0f
-                ).apply {
-                    check(isFinite()) {
-                        "Invalid value of xAbsoluteOffsetPx: $this"
-                    }
-                }
+            xAbsoluteOffsetPxRaw = value
         }
 
-    private var _zoom: Float by mutableStateOf(1f)
+    private var zoomRaw: Float by mutableStateOf(1f)
+    private val zoomAdjusted: Float by derivedStateOf {
+        zoomRaw
+            .coerceAtLeast(
+                (panelWidthPx / contentWidthPx).coerceAtMost(1f)
+            ).apply {
+                check(isFinite()) {
+                    "Invalid value of zoom: $this"
+                }
+            }
+    }
 
     override var zoom: Float
-        get() = _zoom
+        get() = zoomAdjusted
         set(value) {
-            val normValue = value
-                .coerceAtLeast(
-                    (panelWidthPx / contentWidthPx).coerceAtMost(1f)
-                ).apply {
-                    check(isFinite()) {
-                        "Invalid value of zoom: $this"
-                    }
-                }
-            xAbsoluteOffsetPx += panelWidthPx / 2 / normValue - panelWidthPx / 2 / zoom
-            _zoom = normValue
+            xAbsoluteOffsetPx += panelWidthPx / 2 / value - panelWidthPx / 2 / zoom
+            zoomRaw = value
         }
 
     override val pathBuilderXStep: Int by derivedStateOf {

@@ -18,8 +18,8 @@ class ClipPanelTransformViewModelComponentImpl(
 
 ) : ClipPanelTransformViewModelComponent {
 
-    override var panelWidthPx: Float by mutableStateOf(0f)
-    override var panelHeightPx: Float by mutableStateOf(0f)
+    private var panelWidthPx: Float by mutableStateOf(0f)
+    private var panelHeightPx: Float by mutableStateOf(0f)
 
     override fun onSizeChanged(size: IntSize) {
         panelWidthPx = size.width.toFloat()

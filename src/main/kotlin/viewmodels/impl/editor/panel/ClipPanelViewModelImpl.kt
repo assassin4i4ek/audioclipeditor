@@ -29,6 +29,8 @@ import viewmodels.impl.editor.panel.components.transform.parents.EditableClipVie
 import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParentImpl
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParentImpl
+import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponent
+import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponentImpl
 import java.io.File
 
 class ClipPanelViewModelImpl private constructor(
@@ -54,6 +56,8 @@ class ClipPanelViewModelImpl private constructor(
     ClipPanelCursorViewModelComponent by ClipPanelCursorViewModelComponentImpl(
         editableClipViewModelParent, editableCursorViewModel, globalCursorViewModel
     ),
+    ClipPanelWindowViewModelComponent by ClipPanelWindowViewModelComponentImpl(
+        editableClipViewModelParent, globalClipViewModelParent),
     ClipPanelPlayableViewModelComponent by ClipPanelPlayableViewModelComponentImpl()
 {
     companion object {
@@ -111,34 +115,6 @@ class ClipPanelViewModelImpl private constructor(
         fun openClips()
     }
 
-    /* Child ViewModels */
-//    override val editableClipViewModel: ClipViewModel = ClipViewModelImpl(
-//        editableClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-//    )
-//    override val globalClipViewModel: ClipViewModel = ClipViewModelImpl(
-//        globalClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-//    )
-//    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
-//        object : CursorViewModelImpl.Parent {
-//            override fun toWindowOffset(absolutePx: Float): Float {
-//                return globalClipViewModelParent.toWindowOffset(absolutePx)
-//            }
-//        }
-//    )
-//    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
-//        object : CursorViewModelImpl.Parent {
-//            override fun toWindowOffset(absolutePx: Float): Float {
-//                return editableClipViewModelParent.toWindowOffset(absolutePx)
-//            }
-//        }
-//    )
-
-    /* Stateful properties */
-    override val windowOffset: Float
-        get() = globalClipViewModelParent.toWindowOffset(editableClipViewModelParent.toAbsoluteOffset(0f))
-    override val windowWidth: Float
-        get() = globalClipViewModelParent.toWindowSize(editableClipViewModelParent.toAbsoluteSize(panelWidthPx))
-
     /* Callbacks */
     init {
         coroutineScope.launch {
@@ -158,6 +134,7 @@ class ClipPanelViewModelImpl private constructor(
         }
     }
 
+
     override fun onOpenClips() {
         parentViewModel.openClips()
     }
@@ -165,25 +142,6 @@ class ClipPanelViewModelImpl private constructor(
     override fun onSwitchInputDevice() {
         val currentInputDeviceIndex = InputDevice.values().indexOf(specs.inputDevice)
         specs.inputDevice = InputDevice.values()[(currentInputDeviceIndex + 1) % InputDevice.values().size]
-    }
-
-//    override fun onEditableClipViewTap(tap: Offset) {
-//        val cursorAbsolutePositionPx = editableClipViewModelParent.toAbsoluteOffset(tap.x)
-//        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
-//        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
-//    }
-
-    override fun onGlobalClipViewTap(tap: Offset) {
-        val halfPanelAbsoluteSize = editableClipViewModelParent.toAbsoluteSize(panelWidthPx) / 2
-        val tapAbsoluteOffsetPx = globalClipViewModelParent.toAbsoluteOffset(tap.x)
-        editableClipViewModelParent.xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
-    }
-
-    override fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset) {
-        change.consumeAllChanges()
-        val halfPanelAbsoluteSize = editableClipViewModelParent.toAbsoluteSize(panelWidthPx) / 2
-        val tapAbsoluteOffsetPx = globalClipViewModelParent.toAbsoluteOffset(change.position.x)
-        editableClipViewModelParent.xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
     }
 }
 

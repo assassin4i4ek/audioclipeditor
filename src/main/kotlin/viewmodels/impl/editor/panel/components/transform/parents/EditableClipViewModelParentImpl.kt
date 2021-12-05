@@ -6,19 +6,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.utils.PcmPathStepRecommender
+import viewmodels.impl.editor.panel.components.transform.utils.LayoutState
 
 class EditableClipViewModelParentImpl(
+    private val layoutState: LayoutState,
     private val pathStepRecommender: PcmPathStepRecommender,
     private val specs: EditorSpecs
 ): EditableClipViewModelParent {
-    override var contentWidthPx: Float by mutableStateOf(0f)
-    override var panelWidthPx: Float by mutableStateOf(0f)
-
     private var xAbsoluteOffsetPxRaw: Float by mutableStateOf(0f)
     private val xAbsoluteOffsetPxAdjusted: Float by derivedStateOf {
         xAbsoluteOffsetPxRaw
             .coerceIn(
-                (toAbsoluteSize(panelWidthPx) - contentWidthPx).coerceAtMost(0f),
+                (toAbsoluteSize(layoutState.panelWidthPx) - layoutState.contentWidthPx).coerceAtMost(0f),
                 0f
             ).apply {
             check(isFinite()) {
@@ -37,7 +36,7 @@ class EditableClipViewModelParentImpl(
     private val zoomAdjusted: Float by derivedStateOf {
         zoomRaw
             .coerceAtLeast(
-                (panelWidthPx / contentWidthPx).coerceAtMost(1f)
+                (layoutState.panelWidthPx / layoutState.contentWidthPx).coerceAtMost(1f)
             ).apply {
                 check(isFinite()) {
                     "Invalid value of zoom: $this"
@@ -48,7 +47,7 @@ class EditableClipViewModelParentImpl(
     override var zoom: Float
         get() = zoomAdjusted
         set(value) {
-            xAbsoluteOffsetPx += panelWidthPx / 2 / value - panelWidthPx / 2 / zoom
+            xAbsoluteOffsetPx += layoutState.panelWidthPx / 2 / value - layoutState.panelWidthPx / 2 / zoom
             zoomRaw = value
         }
 

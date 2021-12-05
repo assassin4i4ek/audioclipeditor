@@ -3,9 +3,6 @@ package viewmodels.impl.editor.panel.components.transform.parents
 import viewmodels.impl.editor.panel.clip.ClipViewModelImpl
 
 interface EditableClipViewModelParent: ClipViewModelImpl.Parent {
-    var contentWidthPx: Float
-    var panelWidthPx: Float
-
     override var xAbsoluteOffsetPx: Float
     override var zoom: Float
 

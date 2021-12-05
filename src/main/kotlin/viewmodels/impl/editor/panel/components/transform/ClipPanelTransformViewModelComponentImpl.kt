@@ -9,23 +9,19 @@ import specs.api.immutable.editor.EditorSpecs
 import specs.api.immutable.editor.InputDevice
 import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParent
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
+import viewmodels.impl.editor.panel.components.transform.utils.LayoutState
+import viewmodels.impl.editor.panel.components.transform.utils.MutableLayoutState
 import kotlin.math.exp
 
 class ClipPanelTransformViewModelComponentImpl(
+    private val layoutState: MutableLayoutState,
     private val specs: EditorSpecs,
     private val editableClipViewModelParent: EditableClipViewModelParent,
     private val globalClipViewModelParent: GlobalClipViewModelParent
-
 ) : ClipPanelTransformViewModelComponent {
-
-    private var panelWidthPx: Float by mutableStateOf(0f)
-    private var panelHeightPx: Float by mutableStateOf(0f)
-
     override fun onSizeChanged(size: IntSize) {
-        panelWidthPx = size.width.toFloat()
-        editableClipViewModelParent.panelWidthPx = panelWidthPx
-        globalClipViewModelParent.panelWidthPx = panelWidthPx
-        panelHeightPx = size.height.toFloat()
+        layoutState.panelWidthPx = size.width.toFloat()
+        layoutState.panelHeightPx = size.height.toFloat()
     }
 
     override fun onIncreaseZoomClick() {
@@ -41,7 +37,7 @@ class ClipPanelTransformViewModelComponentImpl(
             when(specs.inputDevice) {
                 InputDevice.Touchpad -> 1f
                 InputDevice.Mouse -> -1f
-            } * delta, Orientation.Horizontal, panelWidthPx, panelHeightPx
+            } * delta, Orientation.Horizontal, layoutState.panelWidthPx, layoutState.panelHeightPx
         )
 
         when(specs.inputDevice) {
@@ -61,7 +57,7 @@ class ClipPanelTransformViewModelComponentImpl(
     }
 
     override fun onEditableClipViewVerticalScroll(delta: Float): Float {
-        val adjustedDelta = adjustScrollDelta(delta, Orientation.Vertical, panelWidthPx, panelHeightPx)
+        val adjustedDelta = adjustScrollDelta(delta, Orientation.Vertical, layoutState.panelWidthPx, layoutState.panelHeightPx)
 
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {

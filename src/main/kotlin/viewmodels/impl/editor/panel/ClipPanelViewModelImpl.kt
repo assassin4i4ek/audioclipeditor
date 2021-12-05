@@ -29,6 +29,8 @@ import viewmodels.impl.editor.panel.components.transform.parents.EditableClipVie
 import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParentImpl
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
 import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParentImpl
+import viewmodels.impl.editor.panel.components.transform.utils.MutableLayoutState
+import viewmodels.impl.editor.panel.components.transform.utils.MutableLayoutStateImpl
 import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponent
 import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponentImpl
 import java.io.File
@@ -37,6 +39,7 @@ class ClipPanelViewModelImpl private constructor(
     clipFile: File,
     private val parentViewModel: Parent,
     private val audioClipService: AudioClipService,
+    private val layoutState: MutableLayoutState,
     coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs,
@@ -49,15 +52,13 @@ class ClipPanelViewModelImpl private constructor(
 ) :
     ClipPanelViewModel,
     ClipPanelTransformViewModelComponent by ClipPanelTransformViewModelComponentImpl(
-        specs,
-        editableClipViewModelParent,
-        globalClipViewModelParent
+        layoutState, specs, editableClipViewModelParent, globalClipViewModelParent
     ),
     ClipPanelCursorViewModelComponent by ClipPanelCursorViewModelComponentImpl(
         editableClipViewModelParent, editableCursorViewModel, globalCursorViewModel
     ),
     ClipPanelWindowViewModelComponent by ClipPanelWindowViewModelComponentImpl(
-        editableClipViewModelParent, globalClipViewModelParent),
+        layoutState, editableClipViewModelParent, globalClipViewModelParent),
     ClipPanelPlayableViewModelComponent by ClipPanelPlayableViewModelComponentImpl()
 {
     companion object {
@@ -66,12 +67,14 @@ class ClipPanelViewModelImpl private constructor(
             pcmPathBuilder: AdvancedPcmPathBuilder, coroutineScope: CoroutineScope, density: Density,
             specs: MutableEditorSpecs
         ): ClipPanelViewModelImpl {
+            val layoutState: MutableLayoutState = MutableLayoutStateImpl(0f, 0f, 0f)
+
             /* Parents */
             val editableClipViewModelParent: EditableClipViewModelParent = EditableClipViewModelParentImpl(
-                pcmPathBuilder, specs
+                layoutState, pcmPathBuilder, specs
             )
             val globalClipViewModelParent: GlobalClipViewModelParent = GlobalClipViewModelParentImpl(
-                pcmPathBuilder, specs
+                layoutState, pcmPathBuilder, specs
             )
             val editableCursorViewModelParent: EditableCursorViewModelParent = EditableCursorViewModelParentImpl(
                 editableClipViewModelParent
@@ -97,6 +100,7 @@ class ClipPanelViewModelImpl private constructor(
                 clipFile,
                 parentViewModel,
                 audioClipService,
+                layoutState,
                 coroutineScope,
                 density,
                 specs,
@@ -122,10 +126,7 @@ class ClipPanelViewModelImpl private constructor(
             val contentWidthPx =
                 with(density) { specs.xStepDpPerSec.toPx() } * (fetchedAudioClip.durationUs / 1e6).toFloat()
 
-            editableClipViewModelParent.contentWidthPx = contentWidthPx
-            globalClipViewModelParent.contentWidthPx = contentWidthPx
-            editableClipViewModelParent.panelWidthPx = contentWidthPx
-            globalClipViewModelParent.panelWidthPx = contentWidthPx
+            layoutState.contentWidthPx = contentWidthPx
 
             editableClipViewModel.submitClip(fetchedAudioClip)
             globalClipViewModel.submitClip(fetchedAudioClip)

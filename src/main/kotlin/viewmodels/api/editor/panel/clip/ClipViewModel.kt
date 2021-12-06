@@ -32,6 +32,17 @@ interface ClipViewModel: BaseViewModel {
     fun onDrag(change: PointerInputChange, drag: Offset)
 
     /* Methods */
+    fun toAbsoluteSize(windowPx: Float): Float {
+        return windowPx / zoom
+    }
+    fun toAbsoluteOffset(windowPx: Float): Float {
+        return toAbsoluteSize(windowPx) + xAbsoluteOffsetPx
+    }
+    fun toWindowSize(absolutePx: Float): Float {
+        return absolutePx * zoom
+    }
+    fun toWindowOffset(absolutePx: Float): Float {
+        return toWindowSize(absolutePx - xAbsoluteOffsetPx)
+    }
     fun submitClip(audioClip: AudioClip)
-    fun updateZoom(newZoom: Float)
 }

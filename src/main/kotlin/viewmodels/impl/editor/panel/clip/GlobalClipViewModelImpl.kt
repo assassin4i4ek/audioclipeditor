@@ -8,15 +8,21 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import specs.api.immutable.editor.EditorSpecs
+import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 
 class GlobalClipViewModelImpl(
+    private val siblingViewModel: Sibling,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs) {
+): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs), GlobalClipViewModel {
     /* Parent ViewModels */
+    interface Sibling {
+        val clipViewAbsoluteWidthPx: Float
+        var xAbsoluteOffsetPx: Float
+    }
 
     /* Child ViewModels */
 
@@ -27,12 +33,20 @@ class GlobalClipViewModelImpl(
 
     override val xAbsoluteOffsetPx: Float get() = 0f
     override val zoom: Float by derivedStateOf {
-        (clipViewWidthPx / contentWidthPx)
+        (clipViewWindowWidthPx / contentAbsoluteWidthPx)
             .apply {
-                check(isFinite()) {
+                check(isFinite() && this > 0f) {
                     "Invalid value of zoom: $this"
                 }
             }
+    }
+
+    override val globalClipViewAreaWindowOffsetPx: Float by derivedStateOf {
+        toWindowOffset(siblingViewModel.xAbsoluteOffsetPx)
+    }
+
+    override val globalClipViewAreaWindowWidthPx: Float by derivedStateOf {
+        toWindowSize(siblingViewModel.clipViewAbsoluteWidthPx)
     }
 
     /* Callbacks */
@@ -41,20 +55,18 @@ class GlobalClipViewModelImpl(
     override fun onVerticalScroll(delta: Float): Float = delta
 
     override fun onTap(tap: Offset) {
-        val halfPanelAbsoluteSize = toAbsoluteSize(clipViewWidthPx) / 2
-        val tapAbsoluteOffsetPx = toAbsoluteOffset(tap.x)
-//        xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
+        val halfAreaSize = siblingViewModel.clipViewAbsoluteWidthPx / 2
+        val absoluteOffsetPx = toAbsoluteOffset(tap.x)
+        siblingViewModel.xAbsoluteOffsetPx = absoluteOffsetPx - halfAreaSize
     }
 
     override fun onDrag(change: PointerInputChange, drag: Offset) {
         change.consumeAllChanges()
-        val halfPanelAbsoluteSize = toAbsoluteSize(clipViewWidthPx) / 2
-        val tapAbsoluteOffsetPx = toAbsoluteOffset(change.position.x)
-//        xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
+        val halfAreaSize = siblingViewModel.clipViewAbsoluteWidthPx / 2
+        val absoluteOffsetPx = toAbsoluteOffset(change.position.x)
+        siblingViewModel.xAbsoluteOffsetPx = absoluteOffsetPx - halfAreaSize
     }
 
     /* Methods */
-    override fun updateZoom(newZoom: Float) {
-        throw IllegalStateException("GlobalClipViewModel must NOT support zoom updates")
-    }
+
 }

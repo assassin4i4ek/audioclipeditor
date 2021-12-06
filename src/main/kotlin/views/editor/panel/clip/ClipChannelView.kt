@@ -28,7 +28,7 @@ fun ClipChannelView(
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             scale(zoom, 1f, Offset.Zero) {
-                translate(left = xAbsoluteOffsetPx) {
+                translate(left = -xAbsoluteOffsetPx) {
                     scale(xStepDpPerSec.toPx() / sampleRate, size.height / 2, Offset.Zero) {
                         drawPath(channelPath, Color.Blue, style = Stroke())
                     }

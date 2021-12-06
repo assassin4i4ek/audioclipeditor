@@ -1,6 +1,5 @@
 package views.editor.panel
 
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -8,14 +7,11 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.svgResource
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
-import views.editor.panel.clip.ClipCursor
 import views.editor.panel.clip.ClipView
-import views.editor.panel.clip.GlobalClipWindow
+import views.editor.panel.clip.GlobalClipViewArea
 
 @Composable
 fun ClipPanel(
@@ -48,7 +44,7 @@ fun ClipPanel(
 //                            )
 //                        }
                     ) {
-//                        GlobalClipWindow(clipPanelViewModel.windowOffset, clipPanelViewModel.windowWidth)
+                        GlobalClipViewArea(clipPanelViewModel.globalClipViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
 //                        ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }

@@ -32,14 +32,14 @@ abstract class BaseClipViewModelImpl(
     private var _channelPcmPaths: List<Path>? by mutableStateOf(null)
     override val channelPcmPaths: List<Path>? get() = _channelPcmPaths
 
-    protected var contentWidthPx by mutableStateOf(0f)
-    protected var clipViewWidthPx by mutableStateOf(0f)
-    protected var clipViewHeightPx by mutableStateOf(0f)
+    protected var contentAbsoluteWidthPx by mutableStateOf(0f)
+    protected open var clipViewWindowWidthPx by mutableStateOf(0f)
+    protected var clipViewWindowHeightPx by mutableStateOf(0f)
 
     /* Callbacks */
     override fun onSizeChanged(size: IntSize) {
-        clipViewWidthPx = size.width.toFloat()
-        clipViewHeightPx = size.height.toFloat()
+        clipViewWindowWidthPx = size.width.toFloat()
+        clipViewWindowHeightPx = size.height.toFloat()
     }
 
     /* Methods */
@@ -48,8 +48,8 @@ abstract class BaseClipViewModelImpl(
             "Cannot assign audio clip twice: new clip $audioClip, previous clip $_audioClip"
         }
         _audioClip = audioClip
-        contentWidthPx = with (density) { specs.xStepDpPerSec.toPx() } * (audioClip.durationUs / 1e6).toFloat()
-        clipViewWidthPx = contentWidthPx
+        contentAbsoluteWidthPx = with (density) { specs.xStepDpPerSec.toPx() } * (audioClip.durationUs / 1e6).toFloat()
+        clipViewWindowWidthPx = contentAbsoluteWidthPx
 
         coroutineScope.launch {
             snapshotFlow {
@@ -62,18 +62,5 @@ abstract class BaseClipViewModelImpl(
                 _channelPcmPaths = channelPcmPaths
             }
         }
-    }
-
-    protected fun toAbsoluteSize(windowPx: Float): Float {
-        return windowPx / zoom
-    }
-    protected fun toAbsoluteOffset(windowPx: Float): Float {
-        return toAbsoluteSize(windowPx) - xAbsoluteOffsetPx
-    }
-    protected fun toWindowSize(absolutePx: Float): Float {
-        return absolutePx * zoom
-    }
-    protected fun toWindowOffset(absolutePx: Float): Float {
-        return toWindowSize(absolutePx + xAbsoluteOffsetPx)
     }
 }

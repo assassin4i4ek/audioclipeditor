@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.*
 import specs.api.immutable.editor.EditorSpecs
 import specs.api.immutable.editor.InputDevice
+import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import kotlin.math.exp
 
@@ -17,7 +18,7 @@ class EditableClipViewModelImpl(
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs) {
+): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs), EditableClipViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -31,8 +32,8 @@ class EditableClipViewModelImpl(
     private val xAbsoluteOffsetPxAdjusted: Float by derivedStateOf {
         xAbsoluteOffsetPxRaw
             .coerceIn(
-                (toAbsoluteSize(clipViewWidthPx) - contentWidthPx).coerceAtMost(0f),
-                0f
+                0f,
+                (contentAbsoluteWidthPx - toAbsoluteSize(clipViewWindowWidthPx)).coerceAtLeast(0f),
             ).apply {
                 check(isFinite()) {
                     "Invalid value of xAbsoluteOffsetPx: $this"
@@ -49,9 +50,9 @@ class EditableClipViewModelImpl(
     private val zoomAdjusted: Float by derivedStateOf {
         zoomRaw
             .coerceAtLeast(
-                (clipViewWidthPx / contentWidthPx).coerceAtMost(1f)
+                (clipViewWindowWidthPx / contentAbsoluteWidthPx)//.coerceAtMost(1f)
             ).apply {
-                check(isFinite()) {
+                check(isFinite() && this > 0f) {
                     "Invalid value of zoom: $this"
                 }
             }
@@ -59,9 +60,20 @@ class EditableClipViewModelImpl(
     override var zoom: Float
         get() = zoomAdjusted
         private set(value) {
-            xAbsoluteOffsetPx += clipViewWidthPx / 2 / value - clipViewWidthPx / 2 / zoom
+            val oldClipViewAbsoluteWidthPx = toAbsoluteSize(clipViewWindowWidthPx)
             zoomRaw = value
+            val newClipViewAbsoluteWidthPx = toAbsoluteSize(clipViewWindowWidthPx)
+            // centering offset
+            xAbsoluteOffsetPx += oldClipViewAbsoluteWidthPx / 2 - newClipViewAbsoluteWidthPx / 2
+//
+//            xAbsoluteOffsetPx += clipViewWindowWidthPx / 2 / zoom - clipViewWindowWidthPx / 2 / value
+//            zoomRaw = value
         }
+
+    override val clipViewAbsoluteWidthPx: Float by derivedStateOf {
+        toAbsoluteSize(clipViewWindowWidthPx)
+    }
+
 
     /* Callbacks */
     override fun onHorizontalScroll(delta: Float): Float {
@@ -75,7 +87,7 @@ class EditableClipViewModelImpl(
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {
                 val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
-                xAbsoluteOffsetPx += linearDelta
+                xAbsoluteOffsetPx -= linearDelta
             }
             InputDevice.Mouse -> {
                 val sigmoidFunctionMultiplier = specs.transformZoomScrollCoef / (1 + exp(0.5f * adjustedDelta))
@@ -96,7 +108,7 @@ class EditableClipViewModelImpl(
             }
             InputDevice.Mouse -> {
                 val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
-                xAbsoluteOffsetPx += linearDelta
+                xAbsoluteOffsetPx -= linearDelta
             }
         }
 
@@ -105,7 +117,6 @@ class EditableClipViewModelImpl(
 
     override fun onTap(tap: Offset) {
         val cursorAbsolutePositionPx = toAbsoluteOffset(tap.x)
-        println(cursorAbsolutePositionPx)
 //        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
 //        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
     }
@@ -117,13 +128,17 @@ class EditableClipViewModelImpl(
         zoom = newZoom
     }
 
+    override fun updateXAbsoluteOffsetPx(newXAbsoluteOffsetPx: Float) {
+        xAbsoluteOffsetPx = newXAbsoluteOffsetPx
+    }
+
     private fun adjustScrollDelta(
         delta: Float,
         orientation: Orientation
     ): Float {
         val canvasSizeCoef = when (orientation) {
-            Orientation.Horizontal -> 982 / clipViewWidthPx
-            Orientation.Vertical -> 592 / clipViewHeightPx
+            Orientation.Horizontal -> 982 / clipViewWindowWidthPx
+            Orientation.Vertical -> 592 / clipViewWindowHeightPx
         }
         val orientationAlignmentCoef = when (orientation) {
             Orientation.Horizontal -> 1.0f / 147.3f

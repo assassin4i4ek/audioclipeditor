@@ -21,10 +21,6 @@ import views.editor.panel.clip.GlobalClipWindow
 fun ClipPanel(
     clipPanelViewModel: ClipPanelViewModel
 ) {
-//    LaunchedEffect(audioPanelViewModel.viewId) {
-//        audioPanelViewModel.onViewInit()
-//    }
-
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
             if (clipPanelViewModel.isLoading) {
@@ -35,43 +31,32 @@ fun ClipPanel(
                 Column(modifier = Modifier
                     .heightIn(max = clipPanelViewModel.specs.maxPanelViewHeightDp)
                     .requiredHeightIn(min = clipPanelViewModel.specs.minPanelViewHeightDp)
-                    .onSizeChanged {
-                        clipPanelViewModel.onSizeChanged(it)
-                    }
+//                    .onSizeChanged {
+//                        clipPanelViewModel.onSizeChanged(it)
+//                    }
                 ) {
                     Box(modifier = Modifier
                         .weight(1f)
-                        .pointerInput(clipPanelViewModel) {
-                            detectTapGestures(
-                                onTap = clipPanelViewModel::onGlobalClipViewTap
-                            )
-                        }
-                        .pointerInput(clipPanelViewModel) {
-                            detectDragGestures(
-                                onDrag = clipPanelViewModel::onGlobalClipViewDrag
-                            )
-                        }
+//                        .pointerInput(clipPanelViewModel) {
+//                            detectTapGestures(
+//                                onTap = clipPanelViewModel::onGlobalClipViewTap
+//                            )
+//                        }
+//                        .pointerInput(clipPanelViewModel) {
+//                            detectDragGestures(
+//                                onDrag = clipPanelViewModel::onGlobalClipViewDrag
+//                            )
+//                        }
                     ) {
-                        GlobalClipWindow(clipPanelViewModel.windowOffset, clipPanelViewModel.windowWidth)
+//                        GlobalClipWindow(clipPanelViewModel.windowOffset, clipPanelViewModel.windowWidth)
                         ClipView(clipPanelViewModel.globalClipViewModel)
-                        ClipCursor(clipPanelViewModel.globalCursorViewModel)
+//                        ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }
                     Box(modifier = Modifier
                         .weight(2f)
-                        .scrollable(rememberScrollableState {
-                            clipPanelViewModel.onEditableClipViewHorizontalScroll(it)
-                        }, Orientation.Horizontal)
-                        .scrollable(rememberScrollableState {
-                            clipPanelViewModel.onEditableClipViewVerticalScroll(it)
-                        }, Orientation.Vertical)
-                        .pointerInput(clipPanelViewModel) {
-                            detectTapGestures(
-                                onTap = clipPanelViewModel::onEditableClipViewTap
-                            )
-                        }
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
-                        ClipCursor(clipPanelViewModel.editableCursorViewModel)
+//                        ClipCursor(clipPanelViewModel.editableCursorViewModel)
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))

@@ -6,8 +6,8 @@ import specs.api.immutable.editor.InputDevice
 
 interface MutableEditorSpecs: EditorSpecs {
     override var inputDevice: InputDevice
-    override var editablePanelPathCompressionAmplifier: Float
-    override var globalPanelPathCompressionAmplifier: Float
+    override var editableClipViewCompressionAmplifier: Float
+    override var globalClipViewPathCompressionAmplifier: Float
 
     override var maxPanelViewHeightDp: Dp
     override var minPanelViewHeightDp: Dp

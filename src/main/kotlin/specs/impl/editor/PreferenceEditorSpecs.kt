@@ -31,12 +31,12 @@ class PreferenceEditorSpecs: MutableEditorSpecs {
         InputDevice.Touchpad, ::inputDevice, { it.name }, { InputDevice.valueOf(it) }
     )
 
-    override var editablePanelPathCompressionAmplifier: Float by savableProperty(
-        41f, ::editablePanelPathCompressionAmplifier
+    override var editableClipViewCompressionAmplifier: Float by savableProperty(
+        41f, ::editableClipViewCompressionAmplifier
     )
 
-    override var globalPanelPathCompressionAmplifier: Float by savableProperty(
-        41f, ::globalPanelPathCompressionAmplifier
+    override var globalClipViewPathCompressionAmplifier: Float by savableProperty(
+        41f, ::globalClipViewPathCompressionAmplifier
     )
 
     override var maxPanelViewHeightDp: Dp by savableProperty(

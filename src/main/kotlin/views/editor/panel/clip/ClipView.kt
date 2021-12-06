@@ -1,5 +1,6 @@
 package views.editor.panel.clip
 
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.clip.ClipViewModel
@@ -19,11 +22,29 @@ import viewmodels.api.editor.panel.clip.ClipViewModel
 fun ClipView(
     clipViewModel: ClipViewModel
 ) {
-    LaunchedEffect(clipViewModel.initKey) {
-        clipViewModel.init()
-    }
+//    LaunchedEffect(clipViewModel.initKey) {
+//        clipViewModel.init()
+//    }
 
-    Column {
+    Column(modifier = Modifier
+        .onSizeChanged {
+            clipViewModel.onSizeChanged(it)
+        }
+        .scrollable(rememberScrollableState {
+            clipViewModel.onHorizontalScroll(it)
+        }, Orientation.Horizontal)
+        .scrollable(rememberScrollableState {
+            clipViewModel.onVerticalScroll(it)
+        }, Orientation.Vertical)
+        .pointerInput(clipViewModel) {
+            detectTapGestures(
+                onTap = clipViewModel::onTap
+            )
+        }
+        .pointerInput(clipViewModel) {
+            detectDragGestures(onDrag = clipViewModel::onDrag)
+        }
+    ) {
         Divider()
 
         for (iChannelPcmPath in 0 until clipViewModel.audioClip.numChannels) {

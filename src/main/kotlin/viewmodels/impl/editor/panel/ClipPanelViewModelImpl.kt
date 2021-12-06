@@ -1,9 +1,15 @@
 package viewmodels.impl.editor.panel
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClipService
@@ -15,140 +21,10 @@ import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.ClipViewModelImpl
 import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
-import viewmodels.impl.editor.panel.components.cursor.ClipPanelCursorViewModelComponent
-import viewmodels.impl.editor.panel.components.cursor.ClipPanelCursorViewModelComponentImpl
-import viewmodels.impl.editor.panel.components.cursor.parents.EditableCursorViewModelParent
-import viewmodels.impl.editor.panel.components.cursor.parents.EditableCursorViewModelParentImpl
-import viewmodels.impl.editor.panel.components.cursor.parents.GlobalCursorViewModelParent
-import viewmodels.impl.editor.panel.components.cursor.parents.GlobalCursorViewModelParentImpl
-import viewmodels.impl.editor.panel.components.playable.ClipPanelPlayableViewModelComponent
-import viewmodels.impl.editor.panel.components.playable.ClipPanelPlayableViewModelComponentImpl
-import viewmodels.impl.editor.panel.components.transform.ClipPanelTransformViewModelComponent
-import viewmodels.impl.editor.panel.components.transform.ClipPanelTransformViewModelComponentImpl
-import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParent
-import viewmodels.impl.editor.panel.components.transform.parents.EditableClipViewModelParentImpl
-import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParent
-import viewmodels.impl.editor.panel.components.transform.parents.GlobalClipViewModelParentImpl
-import viewmodels.impl.editor.panel.components.transform.utils.MutableLayoutState
-import viewmodels.impl.editor.panel.components.transform.utils.MutableLayoutStateImpl
-import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponent
-import viewmodels.impl.editor.panel.components.window.ClipPanelWindowViewModelComponentImpl
 import java.io.File
+import kotlin.math.exp
 
-class ClipPanelViewModelImpl private constructor(
-    clipFile: File,
-    private val parentViewModel: Parent,
-    private val audioClipService: AudioClipService,
-    private val layoutState: MutableLayoutState,
-    coroutineScope: CoroutineScope,
-    density: Density,
-    override val specs: MutableEditorSpecs,
-    private val editableClipViewModelParent: EditableClipViewModelParent,
-    private val globalClipViewModelParent: GlobalClipViewModelParent,
-    override val editableClipViewModel: ClipViewModel,
-    override val globalClipViewModel: ClipViewModel,
-    override val editableCursorViewModel: CursorViewModel,
-    override val globalCursorViewModel: CursorViewModel,
-) :
-    ClipPanelViewModel,
-    ClipPanelTransformViewModelComponent by ClipPanelTransformViewModelComponentImpl(
-        layoutState, specs, editableClipViewModelParent, globalClipViewModelParent
-    ),
-    ClipPanelCursorViewModelComponent by ClipPanelCursorViewModelComponentImpl(
-        editableClipViewModelParent, editableCursorViewModel, globalCursorViewModel
-    ),
-    ClipPanelWindowViewModelComponent by ClipPanelWindowViewModelComponentImpl(
-        layoutState, editableClipViewModelParent, globalClipViewModelParent),
-    ClipPanelPlayableViewModelComponent by ClipPanelPlayableViewModelComponentImpl()
-{
-    companion object {
-        fun create(
-            clipFile: File, parentViewModel: Parent, audioClipService: AudioClipService,
-            pcmPathBuilder: AdvancedPcmPathBuilder, coroutineScope: CoroutineScope, density: Density,
-            specs: MutableEditorSpecs
-        ): ClipPanelViewModelImpl {
-            val layoutState: MutableLayoutState = MutableLayoutStateImpl(0f, 0f, 0f)
-
-            /* Parents */
-            val editableClipViewModelParent: EditableClipViewModelParent = EditableClipViewModelParentImpl(
-                layoutState, pcmPathBuilder, specs
-            )
-            val globalClipViewModelParent: GlobalClipViewModelParent = GlobalClipViewModelParentImpl(
-                layoutState, pcmPathBuilder, specs
-            )
-            val editableCursorViewModelParent: EditableCursorViewModelParent = EditableCursorViewModelParentImpl(
-                editableClipViewModelParent
-            )
-            val globalCursorViewModelParent: GlobalCursorViewModelParent = GlobalCursorViewModelParentImpl(
-                globalClipViewModelParent
-            )
-            /* ViewModels */
-            val editableClipViewModel: ClipViewModel = ClipViewModelImpl(
-            editableClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-            )
-            val globalClipViewModel: ClipViewModel = ClipViewModelImpl(
-                globalClipViewModelParent, pcmPathBuilder, coroutineScope, specs
-            )
-            val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
-                editableCursorViewModelParent
-            )
-            val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
-                globalCursorViewModelParent
-            )
-
-            return ClipPanelViewModelImpl(
-                clipFile,
-                parentViewModel,
-                audioClipService,
-                layoutState,
-                coroutineScope,
-                density,
-                specs,
-                editableClipViewModelParent,
-                globalClipViewModelParent,
-                editableClipViewModel,
-                globalClipViewModel,
-                editableCursorViewModel,
-                globalCursorViewModel
-            )
-        }
-    }
-
-    /* Parent ViewModels */
-    interface Parent {
-        fun openClips()
-    }
-
-    /* Callbacks */
-    init {
-        coroutineScope.launch {
-            val fetchedAudioClip = audioClipService.openAudioClip(clipFile)
-            val contentWidthPx =
-                with(density) { specs.xStepDpPerSec.toPx() } * (fetchedAudioClip.durationUs / 1e6).toFloat()
-
-            layoutState.contentWidthPx = contentWidthPx
-
-            editableClipViewModel.submitClip(fetchedAudioClip)
-            globalClipViewModel.submitClip(fetchedAudioClip)
-
-            isLoading = false
-        }
-    }
-
-
-    override fun onOpenClips() {
-        parentViewModel.openClips()
-    }
-
-    override fun onSwitchInputDevice() {
-        val currentInputDeviceIndex = InputDevice.values().indexOf(specs.inputDevice)
-        specs.inputDevice = InputDevice.values()[(currentInputDeviceIndex + 1) % InputDevice.values().size]
-    }
-}
-
-
-
-/*class ClipPanelViewModelImpl(
+class ClipPanelViewModelImpl(
     clipFile: File,
     private val parentViewModel: Parent,
     private val audioClipService: AudioClipService,
@@ -156,8 +32,7 @@ class ClipPanelViewModelImpl private constructor(
     coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs
-): ClipPanelViewModel,
-    ClipPanelTransformViewModelComponent by ClipPanelTransformViewModelComponentImpl(pcmPathBuilder, specs) {
+): ClipPanelViewModel {
     /* Parent ViewModels */
     interface Parent {
         fun openClips()
@@ -190,14 +65,14 @@ class ClipPanelViewModelImpl private constructor(
     override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
         object : CursorViewModelImpl.Parent {
             override fun toWindowOffset(absolutePx: Float): Float {
-                return toWindowOffset(absolutePx, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+                return globalClipViewModel.toWindowOffset(absolutePx)
             }
         }
     )
     override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
         object : CursorViewModelImpl.Parent {
             override fun toWindowOffset(absolutePx: Float): Float {
-                return toWindowOffset(absolutePx, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx)
+                return editableClipViewModel.toWindowOffset(absolutePx)
             }
         }
     )
@@ -211,43 +86,51 @@ class ClipPanelViewModelImpl private constructor(
     private var panelWidthPx: Float by mutableStateOf(0f)
     private var panelHeightPx: Float by mutableStateOf(0f)
 
-    private var _xAbsoluteOffsetPx: Float by mutableStateOf(0f)
+    private var xAbsoluteOffsetPxRaw: Float by mutableStateOf(0f)
+    private val xAbsoluteOffsetPxAdjusted: Float by derivedStateOf {
+        xAbsoluteOffsetPxRaw
+            .coerceIn(
+                (editableClipViewModel.toAbsoluteSize(panelWidthPx) - contentWidthPx).coerceAtMost(0f),
+                0f
+            ).apply {
+                check(isFinite()) {
+                    "Invalid value of xAbsoluteOffsetPx: $this"
+                }
+            }
+    }
 
     private var xAbsoluteOffsetPx: Float
-        get() = _xAbsoluteOffsetPx
+        get() = xAbsoluteOffsetPxAdjusted
         set(value) {
-            _xAbsoluteOffsetPx = value
-                .coerceIn(
-                    (toAbsoluteSize(panelWidthPx, zoom) - contentWidthPx).coerceAtMost(0f),
-                    0f
-                ).apply {
-                    check(isFinite()) {
-                        "Invalid value of xAbsoluteOffsetPx: $this"
-                    }
-                }
+            xAbsoluteOffsetPxRaw = value
         }
 
-    private var _zoom: Float by mutableStateOf(1f)
-
-    private var zoom: Float
-        get() = _zoom
-        set(value) {
-            val normValue = value
-                .coerceAtLeast(
-                    (panelWidthPx / contentWidthPx).coerceAtMost(1f)
-                ).apply {
+    private var zoomRaw: Float by mutableStateOf(1f)
+    private val zoomAdjusted: Float by derivedStateOf {
+        zoomRaw
+            .coerceAtLeast(
+                (panelWidthPx / contentWidthPx).coerceAtMost(1f)
+            ).apply {
                 check(isFinite()) {
                     "Invalid value of zoom: $this"
                 }
             }
-            xAbsoluteOffsetPx += panelWidthPx / 2 / normValue - panelWidthPx / 2 / zoom
-            _zoom = normValue
+    }
+
+    private var zoom: Float
+        get() = zoomAdjusted
+        set(value) {
+            xAbsoluteOffsetPx += panelWidthPx / 2 / value - panelWidthPx / 2 / zoom
+            zoomRaw = value
         }
 
-    override val windowOffset: Float
-        get() = toWindowOffset(toAbsoluteOffset(0f, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx), globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
-    override val windowWidth: Float
-        get() = toWindowSize(toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom), globalClipViewModel.zoom)
+    override val windowOffset: Float by derivedStateOf {
+        globalClipViewModel.toWindowOffset(editableClipViewModel.toAbsoluteOffset(0f))
+    }
+
+    override val windowWidth: Float by derivedStateOf {
+        globalClipViewModel.toWindowSize(editableClipViewModel.toAbsoluteSize(panelWidthPx))
+    }
 
     private var _isClipPlaying: Boolean by mutableStateOf(false)
     override val canPlayClip: Boolean get() = !_isLoading && !_isClipPlaying
@@ -299,7 +182,9 @@ class ClipPanelViewModelImpl private constructor(
 
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta, zoom)
+                val linearDelta = editableClipViewModel.toAbsoluteSize(
+                    specs.transformOffsetScrollCoef * adjustedDelta
+                )
                 xAbsoluteOffsetPx += linearDelta
             }
             InputDevice.Mouse -> {
@@ -320,7 +205,7 @@ class ClipPanelViewModelImpl private constructor(
                 zoom *= sigmoidFunctionMultiplier
             }
             InputDevice.Mouse -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta, zoom)
+                val linearDelta = editableClipViewModel.toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
                 xAbsoluteOffsetPx += linearDelta
             }
         }
@@ -329,23 +214,21 @@ class ClipPanelViewModelImpl private constructor(
     }
 
     override fun onEditableClipViewTap(tap: Offset) {
-        val cursorAbsolutePositionPx = toAbsoluteOffset(
-            tap.x, editableClipViewModel.zoom, editableClipViewModel.xAbsoluteOffsetPx
-        )
+        val cursorAbsolutePositionPx = editableClipViewModel.toAbsoluteOffset(tap.x)
         globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
         editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
     }
 
     override fun onGlobalClipViewTap(tap: Offset) {
-        val halfPanelAbsoluteSize = toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom) / 2
-        val tapAbsoluteOffsetPx = toAbsoluteOffset(tap.x, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+        val halfPanelAbsoluteSize = editableClipViewModel.toAbsoluteSize(panelWidthPx) / 2
+        val tapAbsoluteOffsetPx = globalClipViewModel.toAbsoluteOffset(tap.x)
         xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
     }
 
     override fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset) {
         change.consumeAllChanges()
-        val halfPanelAbsoluteSize = toAbsoluteSize(panelWidthPx, editableClipViewModel.zoom) / 2
-        val tapAbsoluteOffsetPx = toAbsoluteOffset(change.position.x, globalClipViewModel.zoom, globalClipViewModel.xAbsoluteOffsetPx)
+        val halfPanelAbsoluteSize = editableClipViewModel.toAbsoluteSize(panelWidthPx) / 2
+        val tapAbsoluteOffsetPx = globalClipViewModel.toAbsoluteOffset(change.position.x)
         xAbsoluteOffsetPx = halfPanelAbsoluteSize - tapAbsoluteOffsetPx
     }
 
@@ -362,6 +245,18 @@ class ClipPanelViewModelImpl private constructor(
     }
 
     /* Methods */
+    private fun ClipViewModel.toAbsoluteSize(windowPx: Float): Float {
+        return windowPx / this.zoom
+    }
+    private fun ClipViewModel.toAbsoluteOffset(windowPx: Float): Float {
+        return this.toAbsoluteSize(windowPx) - this.xAbsoluteOffsetPx
+    }
+    private fun ClipViewModel.toWindowSize(absolutePx: Float): Float {
+        return absolutePx * this.zoom
+    }
+    private fun ClipViewModel.toWindowOffset(absolutePx: Float): Float {
+        return this.toWindowSize(absolutePx + this.xAbsoluteOffsetPx)
+    }
 
     private fun adjustScrollDelta(
         delta: Float,
@@ -379,4 +274,4 @@ class ClipPanelViewModelImpl private constructor(
         }
         return delta * canvasSizeCoef * orientationAlignmentCoef
     }
-}*/
+}

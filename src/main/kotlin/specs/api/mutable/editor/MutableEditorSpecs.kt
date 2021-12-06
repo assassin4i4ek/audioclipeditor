@@ -17,6 +17,4 @@ interface MutableEditorSpecs: EditorSpecs {
     override var transformZoomClickCoef: Float
     override var transformOffsetScrollCoef: Float
     override var transformZoomScrollCoef: Float
-
-    fun reset()
 }

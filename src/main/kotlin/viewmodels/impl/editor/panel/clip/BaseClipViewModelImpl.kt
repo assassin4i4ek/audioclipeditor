@@ -12,13 +12,14 @@ import model.api.editor.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.clip.ClipViewModel
 import viewmodels.api.utils.PcmPathBuilder
+import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 
 abstract class BaseClipViewModelImpl(
     private val pcmPathBuilder: PcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     private val density: Density,
     override val specs: EditorSpecs
-): ClipViewModel {
+): ClipViewModel, CursorViewModelImpl.Parent {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -63,4 +64,11 @@ abstract class BaseClipViewModelImpl(
             }
         }
     }
+
+    override fun toWindowOffset(absolutePx: Float): Float {
+        return super.toWindowOffset(absolutePx)
+    }
+
+    override fun toUs(absPx: Float): Long = (absPx.toDouble() / contentAbsoluteWidthPx * audioClip.durationUs).toLong()
+    override fun toAbsPx(us: Long): Float = (us.toDouble() / audioClip.durationUs * contentAbsoluteWidthPx).toFloat()
 }

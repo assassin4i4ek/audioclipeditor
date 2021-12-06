@@ -56,7 +56,7 @@ open class AudioClipMp3CodecImpl: AudioClipCodec {
                     }
                 }
 
-                AudioClipImpl(audioClipFile.absolutePath, sampleRate, durationUs, channelsPcm)
+                AudioClipImpl(audioClipFile.absolutePath, sampleRate, durationUs, audioFormat, channelsPcm, pcmBytes)
             }
         }
         println("${audioClip.filePath} decoded in $decodingTime ms")

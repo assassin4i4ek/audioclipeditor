@@ -17,6 +17,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.clip.ClipViewModel
+import views.editor.panel.clip.cursor.ClipCursor
 
 @Composable
 fun ClipView(
@@ -26,7 +27,7 @@ fun ClipView(
 //        clipViewModel.init()
 //    }
 
-    Column(modifier = Modifier
+    Box(modifier = Modifier
         .onSizeChanged {
             clipViewModel.onSizeChanged(it)
         }
@@ -45,23 +46,26 @@ fun ClipView(
             detectDragGestures(onDrag = clipViewModel::onDrag)
         }
     ) {
-        Divider()
-
-        for (iChannelPcmPath in 0 until clipViewModel.audioClip.numChannels) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (clipViewModel.channelPcmPaths != null) {
-                    ClipChannelView(
-                        channelPath = clipViewModel.channelPcmPaths!![iChannelPcmPath],
-                        sampleRate = clipViewModel.audioClip.sampleRate,
-                        xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
-                        zoom = clipViewModel.zoom,
-                        xAbsoluteOffsetPx = clipViewModel.xAbsoluteOffsetPx
-                    )
-                } else {
-                    CircularProgressIndicator()
-                }
-            }
+        Column {
             Divider()
+
+            for (iChannelPcmPath in 0 until clipViewModel.audioClip.numChannels) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    if (clipViewModel.channelPcmPaths != null) {
+                        ClipChannelView(
+                            channelPath = clipViewModel.channelPcmPaths!![iChannelPcmPath],
+                            sampleRate = clipViewModel.audioClip.sampleRate,
+                            xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
+                            zoom = clipViewModel.zoom,
+                            xAbsoluteOffsetPx = clipViewModel.xAbsoluteOffsetPx
+                        )
+                    } else {
+                        CircularProgressIndicator()
+                    }
+                }
+                Divider()
+            }
         }
+        ClipCursor(clipViewModel.cursorViewModel)
     }
 }

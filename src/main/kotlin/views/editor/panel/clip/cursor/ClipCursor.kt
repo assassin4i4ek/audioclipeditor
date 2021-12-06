@@ -1,4 +1,4 @@
-package views.editor.panel.clip
+package views.editor.panel.clip.cursor
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize

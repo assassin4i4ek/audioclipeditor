@@ -27,32 +27,17 @@ fun ClipPanel(
                 Column(modifier = Modifier
                     .heightIn(max = clipPanelViewModel.specs.maxPanelViewHeightDp)
                     .requiredHeightIn(min = clipPanelViewModel.specs.minPanelViewHeightDp)
-//                    .onSizeChanged {
-//                        clipPanelViewModel.onSizeChanged(it)
-//                    }
                 ) {
                     Box(modifier = Modifier
                         .weight(1f)
-//                        .pointerInput(clipPanelViewModel) {
-//                            detectTapGestures(
-//                                onTap = clipPanelViewModel::onGlobalClipViewTap
-//                            )
-//                        }
-//                        .pointerInput(clipPanelViewModel) {
-//                            detectDragGestures(
-//                                onDrag = clipPanelViewModel::onGlobalClipViewDrag
-//                            )
-//                        }
                     ) {
                         GlobalClipViewArea(clipPanelViewModel.globalClipViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
-//                        ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }
                     Box(modifier = Modifier
                         .weight(2f)
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
-//                        ClipCursor(clipPanelViewModel.editableCursorViewModel)
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))

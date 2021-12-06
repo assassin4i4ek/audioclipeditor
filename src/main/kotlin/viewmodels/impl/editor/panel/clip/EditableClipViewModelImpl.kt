@@ -9,19 +9,26 @@ import kotlinx.coroutines.*
 import specs.api.immutable.editor.EditorSpecs
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
+import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
+import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 import kotlin.math.exp
 
 
 class EditableClipViewModelImpl(
+    private val sibling: Sibling,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
 ): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs), EditableClipViewModel {
     /* Parent ViewModels */
+    interface Sibling {
+        fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float)
+    }
 
     /* Child ViewModels */
+    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this)
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {
@@ -117,8 +124,8 @@ class EditableClipViewModelImpl(
 
     override fun onTap(tap: Offset) {
         val cursorAbsolutePositionPx = toAbsoluteOffset(tap.x)
-//        globalCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
-//        editableCursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+        cursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
+        sibling.setCursorXAbsolutePositionPx(cursorAbsolutePositionPx)
     }
 
     override fun onDrag(change: PointerInputChange, drag: Offset) {}

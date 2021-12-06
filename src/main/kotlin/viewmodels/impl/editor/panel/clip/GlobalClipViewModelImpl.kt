@@ -9,7 +9,9 @@ import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
+import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
+import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 
 class GlobalClipViewModelImpl(
     private val siblingViewModel: Sibling,
@@ -25,6 +27,7 @@ class GlobalClipViewModelImpl(
     }
 
     /* Child ViewModels */
+    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this)
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {
@@ -68,5 +71,7 @@ class GlobalClipViewModelImpl(
     }
 
     /* Methods */
-
+    override fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float) {
+        cursorViewModel.setXAbsolutePositionPx(xAbsolutePositionPx)
+    }
 }

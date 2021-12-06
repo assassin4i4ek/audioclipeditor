@@ -14,7 +14,6 @@ fun GlobalClipViewArea(
     globalClipViewModel: GlobalClipViewModel
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        println(globalClipViewModel.globalClipViewAreaWindowOffsetPx)
         drawRect(
             Color.Yellow,
             Offset(globalClipViewModel.globalClipViewAreaWindowOffsetPx, 0f),

@@ -4,16 +4,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.IntSize
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.flow.Flow
 import model.api.editor.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.BaseViewModel
+import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 
 interface ClipViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
+    val cursorViewModel: CursorViewModel
 
     /* Specs */
     val specs: EditorSpecs
@@ -44,5 +44,8 @@ interface ClipViewModel: BaseViewModel {
     fun toWindowOffset(absolutePx: Float): Float {
         return toWindowSize(absolutePx - xAbsoluteOffsetPx)
     }
+
+    fun toUs(absPx: Float): Long
+    fun toAbsPx(us: Long): Float
     fun submitClip(audioClip: AudioClip)
 }

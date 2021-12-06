@@ -12,4 +12,5 @@ interface GlobalClipViewModel: ClipViewModel {
     /* Callbacks */
 
     /* Methods */
+    fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float)
 }

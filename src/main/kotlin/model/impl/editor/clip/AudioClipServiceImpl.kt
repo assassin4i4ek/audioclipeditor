@@ -1,13 +1,13 @@
 package model.impl.editor.clip
 
-import kotlinx.coroutines.delay
-import model.api.editor.clip.AudioClip
-import model.api.editor.clip.AudioClipCodec
-import model.api.editor.clip.AudioClipMetaCodec
-import model.api.editor.clip.AudioClipService
+import model.api.editor.clip.*
+import specs.api.immutable.audio.AudioServiceSpecs
+import specs.impl.audio.PreferenceAudioServiceSpecs
 import java.io.File
 
-class AudioClipServiceImpl: AudioClipService {
+class AudioClipServiceImpl(
+    private val specs: AudioServiceSpecs
+): AudioClipService {
     private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl()
     private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl()
 
@@ -32,43 +32,12 @@ class AudioClipServiceImpl: AudioClipService {
         }
     }
 
-    override fun closeAudioClip(audioClip: AudioClip) {
-
+    override fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {
+        audioClip.close()
+        player.close()
     }
 
-//    private val _audioClipsMap: MutableMap<String, AudioClip> = LinkedHashMap()
-//
-//    override val audioClips: Collection<AudioClip>
-//        get() = _audioClipsMap.values
-//
-//
-//    override fun isOpened(audioClipFile: File): Boolean {
-//        return when (audioClipFile.extension.lowercase()) {
-//            "mp3" -> _audioClipsMap.containsKey(audioClipFile.absolutePath)
-//            "json" -> _audioClipsMap.containsKey(audioClipJsonCodec.getSourceFilePath(audioClipFile))
-//            else -> throw IllegalArgumentException(
-//                "Trying to open file with unsupported extension (not in [mp3, json])"
-//            )
-//        }
-//    }
-//
-//    override suspend fun submitAudioClip(audioClipFile: File) {
-//        require(!isOpened(audioClipFile)) {
-//            "Trying to submit an already opened audio clip"
-//        }
-//
-//        val audioClip = when (audioClipFile.extension.lowercase()) {
-//            "mp3" -> audioClipMp3Codec.open(audioClipFile)
-//            "json" -> audioClipJsonCodec.open(audioClipFile)
-//            else -> throw IllegalArgumentException(
-//                "Trying to open file with unsupported extension (not in [mp3, json])"
-//            )
-//        }
-//
-//        _audioClipsMap[audioClip.filePath] = audioClip
-//    }
-//
-//    override fun removeAudioClip(audioClip: AudioClip) {
-//
-//    }
+    override fun createPlayer(audioClip: AudioClip): AudioClipPlayer {
+        return AudioClipPlayerImpl(audioClip, specs.dataLineMaxBufferDesolation)
+    }
 }

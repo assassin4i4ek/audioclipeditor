@@ -4,28 +4,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
+import specs.impl.BasePreferenceSpecs
 import specs.impl.PreferenceSavableStatefulProperty
 import java.util.prefs.Preferences
 import kotlin.reflect.KProperty
 
-class PreferenceEditorSpecs: MutableEditorSpecs {
-    private val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
-
-    private fun <V, U> savableProperty(
-        defaultValue: V, property: KProperty<*>, toSupportedType: (V) -> U, toActualType: (U) -> V
-    ): PreferenceSavableStatefulProperty<PreferenceEditorSpecs, V, U> {
-        return PreferenceSavableStatefulProperty(
-            defaultValue, this, property, preferences, toSupportedType, toActualType
-        )
-    }
-
-    private fun savableProperty(defaultValue: Float, property: KProperty<*>):
-            PreferenceSavableStatefulProperty<PreferenceEditorSpecs, Float, Float> =
-        savableProperty(defaultValue, property, { it }, { it })
-
-    private fun savableProperty(defaultValue: Dp, property: KProperty<*>):
-            PreferenceSavableStatefulProperty<PreferenceEditorSpecs, Dp, Float> =
-        savableProperty(defaultValue, property, { it.value }, { it.dp })
+class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
+    override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
 
     override var inputDevice by savableProperty(
         InputDevice.Touchpad, ::inputDevice, { it.name }, { InputDevice.valueOf(it) }
@@ -62,8 +47,4 @@ class PreferenceEditorSpecs: MutableEditorSpecs {
     override var transformZoomScrollCoef: Float by savableProperty(
         2f, ::transformZoomScrollCoef
     )
-
-    override fun reset() {
-        preferences.clear()
-    }
 }

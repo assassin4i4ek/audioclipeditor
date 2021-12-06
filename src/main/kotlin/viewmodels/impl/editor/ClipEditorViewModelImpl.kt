@@ -68,7 +68,9 @@ class ClipEditorViewModelImpl(
         require(_panelViewModels.containsKey(clipId)) {
             "Trying to remove panel view model with id $clipId which is absent if $_panelViewModels"
         }
-        _panelViewModels = HashMap(_panelViewModels).apply { remove(clipId) }
+        _panelViewModels = HashMap(_panelViewModels).apply {
+            remove(clipId)!!.close()
+        }
     }
 
     override fun openClips() {

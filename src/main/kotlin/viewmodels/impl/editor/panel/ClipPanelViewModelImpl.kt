@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import model.api.editor.clip.AudioClip
+import model.api.editor.clip.AudioClipPlayer
 import model.api.editor.clip.AudioClipService
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
@@ -22,7 +24,7 @@ class ClipPanelViewModelImpl(
     private val parentViewModel: Parent,
     private val audioClipService: AudioClipService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
-    coroutineScope: CoroutineScope,
+    private val coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs
 ): ClipPanelViewModel {
@@ -33,7 +35,11 @@ class ClipPanelViewModelImpl(
 
     /* Child ViewModels */
     override val editableClipViewModel: EditableClipViewModel = EditableClipViewModelImpl(
-        pcmPathBuilder, coroutineScope, density, specs
+        object : EditableClipViewModelImpl.Sibling {
+            override fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float) {
+                globalClipViewModel.setCursorXAbsolutePositionPx(xAbsolutePositionPx)
+            }
+        }, pcmPathBuilder, coroutineScope, density, specs
     )
     override val globalClipViewModel: GlobalClipViewModel = GlobalClipViewModelImpl(
         object : GlobalClipViewModelImpl.Sibling {
@@ -49,6 +55,9 @@ class ClipPanelViewModelImpl(
     )
 
     /* Stateful properties */
+    private lateinit var _audioClip: AudioClip
+    private lateinit var _player: AudioClipPlayer
+
     private var _isLoading: Boolean by mutableStateOf(true)
     override val isLoading: Boolean get() = _isLoading
 
@@ -60,9 +69,10 @@ class ClipPanelViewModelImpl(
     /* Callbacks */
     init {
         coroutineScope.launch {
-            val fetchedAudioClip = audioClipService.openAudioClip(clipFile)
-            editableClipViewModel.submitClip(fetchedAudioClip)
-            globalClipViewModel.submitClip(fetchedAudioClip)
+            _audioClip = audioClipService.openAudioClip(clipFile)
+            _player = audioClipService.createPlayer(_audioClip)
+            editableClipViewModel.submitClip(_audioClip)
+            globalClipViewModel.submitClip(_audioClip)
 
             _isLoading = false
         }
@@ -86,16 +96,27 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onPlayClicked() {
-        TODO("Not yet implemented")
+        _isClipPlaying = true
+        val cursorWindowPositionPx = editableClipViewModel.cursorViewModel.xWindowPositionPx
+        val cursorAbsolutePositionPx = editableClipViewModel.toAbsoluteOffset(cursorWindowPositionPx)
+        val cursorPositionUs = editableClipViewModel.toUs(cursorAbsolutePositionPx)
+        coroutineScope.launch {
+            _player.play(cursorPositionUs)
+        }
     }
 
     override fun onPauseClicked() {
-        TODO("Not yet implemented")
+        _isClipPlaying = false
+        _player.stop()
     }
 
     override fun onStopClicked() {
-        TODO("Not yet implemented")
+        _isClipPlaying = false
+        _player.stop()
     }
 
     /* Methods */
+    override fun close() {
+        audioClipService.closeAudioClip(_audioClip, _player)
+    }
 }

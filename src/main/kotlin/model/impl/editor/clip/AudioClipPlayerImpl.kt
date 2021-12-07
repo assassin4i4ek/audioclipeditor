@@ -31,12 +31,14 @@ class AudioClipPlayerImpl(
                 var currentPosition = startPosition
                 dataLine.start()
 
-                while (currentPosition < endPosition) {
-                    println("write start at pos $currentPosition, available = ${dataLine.available()}")
-                    val readSize = (currentPosition + dataLine.available()).coerceAtMost(endPosition) - currentPosition
-                    audioClip.readPcm(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
-                    currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
-                    delay(bufferRefreshPeriodMs)
+                withContext(Dispatchers.Default) {
+                    while (currentPosition < endPosition) {
+                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
+                        val readSize = (currentPosition + dataLine.available()).coerceAtMost(endPosition) - currentPosition
+                        audioClip.readPcm(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
+                        currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
+                        delay(bufferRefreshPeriodMs)
+                    }
                 }
             }
         }

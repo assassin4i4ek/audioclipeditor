@@ -15,12 +15,16 @@ import viewmodels.api.utils.PcmPathBuilder
 import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 
 abstract class BaseClipViewModelImpl(
+    private val parentViewModel: Parent,
     private val pcmPathBuilder: PcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     private val density: Density,
     override val specs: EditorSpecs
 ): ClipViewModel, CursorViewModelImpl.Parent {
     /* Parent ViewModels */
+    interface Parent {
+        fun notifyPlayFinish()
+    }
 
     /* Child ViewModels */
 
@@ -63,6 +67,26 @@ abstract class BaseClipViewModelImpl(
                 _channelPcmPaths = channelPcmPaths
             }
         }
+    }
+
+    override fun startPlayClip() {
+        cursorViewModel.saveXAbsolutePositionPxState()
+        cursorViewModel.animateToXAbsolutePositionPx(
+            toAbsPx(audioClip.durationUs),
+            audioClip.durationUs - toUs(toAbsoluteOffset(cursorViewModel.xWindowPositionPx))
+        )
+    }
+
+    override fun stopPlayClip(restoreStateBeforePlay: Boolean) {
+        cursorViewModel.interruptXAbsolutePositionPxAnimation()
+        if (restoreStateBeforePlay) {
+            cursorViewModel.restoreXAbsolutePositionPxState()
+        }
+    }
+
+    override fun notifyAnimationFinish() {
+        cursorViewModel.restoreXAbsolutePositionPxState()
+        parentViewModel.notifyPlayFinish()
     }
 
     override fun toWindowOffset(absolutePx: Float): Float {

@@ -32,6 +32,13 @@ interface ClipViewModel: BaseViewModel {
     fun onDrag(change: PointerInputChange, drag: Offset)
 
     /* Methods */
+    fun submitClip(audioClip: AudioClip)
+    fun startPlayClip()
+    fun stopPlayClip(restoreStateBeforePlay: Boolean)
+
+    fun toUs(absPx: Float): Long
+    fun toAbsPx(us: Long): Float
+
     fun toAbsoluteSize(windowPx: Float): Float {
         return windowPx / zoom
     }
@@ -44,8 +51,7 @@ interface ClipViewModel: BaseViewModel {
     fun toWindowOffset(absolutePx: Float): Float {
         return toWindowSize(absolutePx - xAbsoluteOffsetPx)
     }
-
-    fun toUs(absPx: Float): Long
-    fun toAbsPx(us: Long): Float
-    fun submitClip(audioClip: AudioClip)
+    fun cursorPositionUs(): Long {
+        return toUs(toAbsoluteOffset(cursorViewModel.xWindowPositionPx))
+    }
 }

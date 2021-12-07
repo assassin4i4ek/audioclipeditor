@@ -17,18 +17,22 @@ import kotlin.math.exp
 
 class EditableClipViewModelImpl(
     private val sibling: Sibling,
+    private val parent: Parent,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs), EditableClipViewModel {
+): BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs), EditableClipViewModel {
     /* Parent ViewModels */
     interface Sibling {
         fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float)
     }
+    interface Parent: BaseClipViewModelImpl.Parent {
+        fun notifyNewCursorPosition()
+    }
 
     /* Child ViewModels */
-    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this)
+    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {
@@ -72,9 +76,6 @@ class EditableClipViewModelImpl(
             val newClipViewAbsoluteWidthPx = toAbsoluteSize(clipViewWindowWidthPx)
             // centering offset
             xAbsoluteOffsetPx += oldClipViewAbsoluteWidthPx / 2 - newClipViewAbsoluteWidthPx / 2
-//
-//            xAbsoluteOffsetPx += clipViewWindowWidthPx / 2 / zoom - clipViewWindowWidthPx / 2 / value
-//            zoomRaw = value
         }
 
     override val clipViewAbsoluteWidthPx: Float by derivedStateOf {
@@ -126,9 +127,12 @@ class EditableClipViewModelImpl(
         val cursorAbsolutePositionPx = toAbsoluteOffset(tap.x)
         cursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
         sibling.setCursorXAbsolutePositionPx(cursorAbsolutePositionPx)
+        parent.notifyNewCursorPosition()
     }
 
-    override fun onDrag(change: PointerInputChange, drag: Offset) {}
+    override fun onDrag(change: PointerInputChange, drag: Offset) {
+
+    }
 
     /* Methods */
     override fun updateZoom(newZoom: Float) {

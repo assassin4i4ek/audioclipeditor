@@ -27,7 +27,7 @@ class ClipPanelViewModelImpl(
     private val coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs
-): ClipPanelViewModel {
+): ClipPanelViewModel, EditableClipViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
         fun openClips()
@@ -39,7 +39,7 @@ class ClipPanelViewModelImpl(
             override fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float) {
                 globalClipViewModel.setCursorXAbsolutePositionPx(xAbsolutePositionPx)
             }
-        }, pcmPathBuilder, coroutineScope, density, specs
+        }, this, pcmPathBuilder, coroutineScope, density, specs
     )
     override val globalClipViewModel: GlobalClipViewModel = GlobalClipViewModelImpl(
         object : GlobalClipViewModelImpl.Sibling {
@@ -51,7 +51,7 @@ class ClipPanelViewModelImpl(
                 set(value) {
                     editableClipViewModel.updateXAbsoluteOffsetPx(value)
                 }
-        }, pcmPathBuilder, coroutineScope, density, specs
+        }, this, pcmPathBuilder, coroutineScope, density, specs
     )
 
     /* Stateful properties */
@@ -97,26 +97,47 @@ class ClipPanelViewModelImpl(
 
     override fun onPlayClicked() {
         _isClipPlaying = true
-        val cursorWindowPositionPx = editableClipViewModel.cursorViewModel.xWindowPositionPx
-        val cursorAbsolutePositionPx = editableClipViewModel.toAbsoluteOffset(cursorWindowPositionPx)
-        val cursorPositionUs = editableClipViewModel.toUs(cursorAbsolutePositionPx)
-        coroutineScope.launch {
-            _player.play(cursorPositionUs)
-        }
+        startPlayClip()
     }
 
     override fun onPauseClicked() {
         _isClipPlaying = false
-        _player.stop()
+        stopPlayClip(false)
     }
 
     override fun onStopClicked() {
         _isClipPlaying = false
-        _player.stop()
+        stopPlayClip(true)
     }
 
     /* Methods */
     override fun close() {
         audioClipService.closeAudioClip(_audioClip, _player)
+    }
+
+    private fun startPlayClip() {
+        val cursorPositionUs = editableClipViewModel.cursorPositionUs()
+        editableClipViewModel.startPlayClip()
+        globalClipViewModel.startPlayClip()
+        coroutineScope.launch {
+            _player.play(cursorPositionUs)
+        }
+    }
+
+    private fun stopPlayClip(restoreStateBeforePlay: Boolean) {
+        _player.stop()
+        editableClipViewModel.stopPlayClip(restoreStateBeforePlay)
+        globalClipViewModel.stopPlayClip(restoreStateBeforePlay)
+    }
+
+    override fun notifyNewCursorPosition() {
+        if (_isClipPlaying) {
+            stopPlayClip(false)
+            startPlayClip()
+        }
+    }
+
+    override fun notifyPlayFinish() {
+        _isClipPlaying = false
     }
 }

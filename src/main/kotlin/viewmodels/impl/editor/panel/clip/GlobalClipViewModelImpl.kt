@@ -15,11 +15,12 @@ import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
 
 class GlobalClipViewModelImpl(
     private val siblingViewModel: Sibling,
+    parent: Parent,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs), GlobalClipViewModel {
+): BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs), GlobalClipViewModel {
     /* Parent ViewModels */
     interface Sibling {
         val clipViewAbsoluteWidthPx: Float
@@ -27,7 +28,7 @@ class GlobalClipViewModelImpl(
     }
 
     /* Child ViewModels */
-    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this)
+    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {

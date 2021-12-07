@@ -1,12 +1,20 @@
 package views.editor.panel
 
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.svgResource
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
@@ -17,7 +25,18 @@ import views.editor.panel.clip.GlobalClipViewArea
 fun ClipPanel(
     clipPanelViewModel: ClipPanelViewModel
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    val focusRequester = remember(clipPanelViewModel) { FocusRequester() }
+
+    LaunchedEffect(clipPanelViewModel) {
+        focusRequester.requestFocus()
+    }
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .onPreviewKeyEvent(clipPanelViewModel::onKeyEvent)
+        .focusRequester(focusRequester)
+        .focusable()
+    ) {
         Column(modifier = Modifier.weight(1f)) {
             if (clipPanelViewModel.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -36,6 +55,9 @@ fun ClipPanel(
                     }
                     Box(modifier = Modifier
                         .weight(2f)
+                        .pointerInput(Unit) {
+                            detectDragGestures { change, dragAmount -> println(dragAmount) }
+                        }
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
                     }

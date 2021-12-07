@@ -1,5 +1,6 @@
 package viewmodels.api.editor.panel
 
+import androidx.compose.ui.input.key.KeyEvent
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
@@ -29,6 +30,7 @@ interface ClipPanelViewModel: BaseViewModel {
     fun onPlayClicked()
     fun onPauseClicked()
     fun onStopClicked()
+    fun onKeyEvent(event: KeyEvent): Boolean
 
     /* Methods */
     fun close()

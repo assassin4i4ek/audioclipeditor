@@ -3,6 +3,8 @@ package viewmodels.impl.editor.panel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -108,6 +110,65 @@ class ClipPanelViewModelImpl(
     override fun onStopClicked() {
         _isClipPlaying = false
         stopPlayClip(true)
+    }
+
+    @ExperimentalComposeUiApi
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        return if (event.nativeKeyEvent.id == NativeKeyEvent.KEY_PRESSED) {
+            when (event.key) {
+                Key.Spacebar -> {
+                    if (canPauseClip || canStopClip) {
+                        if (event.isShiftPressed) {
+                            onStopClicked()
+                            true
+                        } else {
+                            onPauseClicked()
+                            true
+                        }
+                    }
+//                    else if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.isFragmentPlaying == true) {
+//                        selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.stopPlayFragment()
+//                        true
+//                    }
+                    else if (canPlayClip) {
+//                        selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState
+//                            ?.startPlayFragment() ?: selectedAudioClipState.startPlayClip()
+                        onPlayClicked()
+                        true
+                    } else {
+                        false
+                    }
+                }
+                /*
+                Key.Escape -> {
+                    if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
+                        selectedAudioClipState.fragmentSetState.fragmentSelectState.reset()
+                        true
+                    }
+                    else {
+                        false
+                    }
+                }
+                Key.Delete -> {
+                    if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
+                        val fragmentToRemove = selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState!!.run {
+                            if (isFragmentPlaying) {
+                                stopPlayFragment()
+                            }
+                            fragment
+                        }
+                        selectedAudioClipState.fragmentSetState.remove(fragmentToRemove)
+                        selectedAudioClipState.audioClip.removeFragment(fragmentToRemove)
+                        true
+                    }
+                    else {
+                        false
+                    }
+                }*/
+                else -> false
+            }
+        }
+        else false
     }
 
     /* Methods */

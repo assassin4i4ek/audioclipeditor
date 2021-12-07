@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
 
@@ -38,8 +39,10 @@ class CursorViewModelImpl(
         _xAbsolutePositionPx = xAbsolutePositionPx
     }
 
+    private var animationRoutine: Job? = null
+
     override fun animateToXAbsolutePositionPx(targetXAbsolutePositionPx: Float, durationUs: Long) {
-        coroutineScope.launch {
+        animationRoutine = coroutineScope.launch {
             xAbsolutePositionPxAnimatable.snapTo(_xAbsolutePositionPx)
             xAbsolutePositionPxAnimatable.animateTo(
                 targetValue = targetXAbsolutePositionPx,
@@ -60,6 +63,11 @@ class CursorViewModelImpl(
         check(xAbsolutePositionPxAnimatable.isRunning) {
             "Tried to interrupt not yer running xAbsolutePositionPx animation"
         }
+        check(animationRoutine != null) {
+            "Running unstored animation routine"
+        }
+        animationRoutine!!.cancel()
+        animationRoutine = null
         coroutineScope.launch {
             xAbsolutePositionPxAnimatable.stop()
         }

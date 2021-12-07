@@ -23,12 +23,14 @@ interface ClipViewModel: BaseViewModel {
     val audioClip: AudioClip
     val zoom: Float
     val xAbsoluteOffsetPx: Float
+    val detectTap: Boolean
+    val detectDrag: Boolean
 
     /* Callbacks */
     fun onSizeChanged(size: IntSize)
     fun onHorizontalScroll(delta: Float): Float
     fun onVerticalScroll(delta: Float): Float
-    fun onTap(tap: Offset)
+    suspend fun onTap(tap: Offset)
     fun onDrag(change: PointerInputChange, drag: Offset)
 
     /* Methods */

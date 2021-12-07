@@ -37,13 +37,24 @@ fun ClipView(
         .scrollable(rememberScrollableState {
             clipViewModel.onVerticalScroll(it)
         }, Orientation.Vertical)
-        .pointerInput(clipViewModel) {
-            detectTapGestures(
-                onTap = clipViewModel::onTap
-            )
+        .run {
+            if (clipViewModel.detectTap) {
+                pointerInput(clipViewModel) {
+                    detectTapGestures(
+                        onPress = {
+                            clipViewModel.onTap(it)
+                        }
+                    )
+                }
+            }
+            else this
         }
-        .pointerInput(clipViewModel) {
-            detectDragGestures(onDrag = clipViewModel::onDrag)
+        .run {
+            if (clipViewModel.detectDrag) {
+                pointerInput(clipViewModel) {
+                    detectDragGestures(onDrag = clipViewModel::onDrag)
+                }
+            } else this
         }
     ) {
         Column {

@@ -82,6 +82,9 @@ class EditableClipViewModelImpl(
         toAbsoluteSize(clipViewWindowWidthPx)
     }
 
+    override val detectTap: Boolean get() = true
+    override val detectDrag: Boolean get() = false
+
 
     /* Callbacks */
     override fun onHorizontalScroll(delta: Float): Float {
@@ -123,7 +126,7 @@ class EditableClipViewModelImpl(
         return delta
     }
 
-    override fun onTap(tap: Offset) {
+    override suspend fun onTap(tap: Offset) {
         val cursorAbsolutePositionPx = toAbsoluteOffset(tap.x)
         cursorViewModel.setXAbsolutePositionPx(cursorAbsolutePositionPx)
         sibling.setCursorXAbsolutePositionPx(cursorAbsolutePositionPx)

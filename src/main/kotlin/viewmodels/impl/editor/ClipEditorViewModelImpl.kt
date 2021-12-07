@@ -1,5 +1,6 @@
 package viewmodels.impl.editor
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,8 +33,9 @@ class ClipEditorViewModelImpl(
 
     private var _panelViewModels: Map<String, ClipPanelViewModel> by mutableStateOf(emptyMap())
 
-    override val selectedPanel: ClipPanelViewModel?
-        get() = openedClipsTabViewModel.selectedClipId?.let { _panelViewModels[it] }
+    override val selectedPanel: ClipPanelViewModel? by derivedStateOf {
+        openedClipsTabViewModel.selectedClipId?.let { _panelViewModels[it] }
+    }
 
     /* Callbacks */
     override fun onOpenClips() {

@@ -53,12 +53,15 @@ class GlobalClipViewModelImpl(
         toWindowSize(siblingViewModel.clipViewAbsoluteWidthPx)
     }
 
+    override val detectTap: Boolean get() = true
+    override val detectDrag: Boolean get() = true
+
     /* Callbacks */
     override fun onHorizontalScroll(delta: Float): Float = delta
 
     override fun onVerticalScroll(delta: Float): Float = delta
 
-    override fun onTap(tap: Offset) {
+    override suspend fun onTap(tap: Offset) {
         val halfAreaSize = siblingViewModel.clipViewAbsoluteWidthPx / 2
         val absoluteOffsetPx = toAbsoluteOffset(tap.x)
         siblingViewModel.xAbsoluteOffsetPx = absoluteOffsetPx - halfAreaSize

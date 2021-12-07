@@ -55,9 +55,6 @@ fun ClipPanel(
                     }
                     Box(modifier = Modifier
                         .weight(2f)
-                        .pointerInput(Unit) {
-                            detectDragGestures { change, dragAmount -> println(dragAmount) }
-                        }
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
                     }

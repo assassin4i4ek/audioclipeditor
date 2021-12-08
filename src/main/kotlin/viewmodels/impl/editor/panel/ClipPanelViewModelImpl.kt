@@ -38,8 +38,16 @@ class ClipPanelViewModelImpl(
     /* Child ViewModels */
     override val editableClipViewModel: EditableClipViewModel = EditableClipViewModelImpl(
         object : EditableClipViewModelImpl.Sibling {
-            override fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float) {
-                globalClipViewModel.setCursorXAbsolutePositionPx(xAbsolutePositionPx)
+            override fun setCursorAbsolutePositionPx(absolutePositionPx: Float) {
+                globalClipViewModel.setCursorAbsolutePositionPx(absolutePositionPx)
+            }
+
+            override fun setFragmentFirstBoundUs(firstBoundUs: Long) {
+                globalClipViewModel.setFragmentFirstBoundUs(firstBoundUs)
+            }
+
+            override fun setFragmentSecondBoundUs(secondBoundUs: Long) {
+                globalClipViewModel.setFragmentSecondBoundUs(secondBoundUs)
             }
         }, this, pcmPathBuilder, coroutineScope, density, specs
     )

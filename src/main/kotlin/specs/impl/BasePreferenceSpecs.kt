@@ -25,6 +25,10 @@ abstract class BasePreferenceSpecs {
             PreferenceSavableStatefulProperty<BasePreferenceSpecs, Dp, Float> =
         savableProperty(defaultValue, property, { it.value }, { it.dp })
 
+    protected fun savableProperty(defaultValue: Long, property: KProperty<*>):
+            PreferenceSavableStatefulProperty<BasePreferenceSpecs, Long, Long> =
+        savableProperty(defaultValue, property, { it }, { it })
+
     fun reset() {
         preferences.clear()
     }

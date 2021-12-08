@@ -7,15 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.clip.ClipViewModel
 import views.editor.panel.clip.cursor.ClipCursor
 
@@ -37,24 +32,17 @@ fun ClipView(
         .scrollable(rememberScrollableState {
             clipViewModel.onVerticalScroll(it)
         }, Orientation.Vertical)
-        .run {
-            if (clipViewModel.detectTap) {
-                pointerInput(clipViewModel) {
-                    detectTapGestures(
-                        onPress = {
-                            clipViewModel.onTap(it)
-                        }
-                    )
-                }
-            }
-            else this
+        .pointerInput(clipViewModel) {
+            detectTapGestures(
+                onPress = { clipViewModel.onPress(it) }
+            )
         }
-        .run {
-            if (clipViewModel.detectDrag) {
-                pointerInput(clipViewModel) {
-                    detectDragGestures(onDrag = clipViewModel::onDrag)
-                }
-            } else this
+        .pointerInput(clipViewModel) {
+            detectDragGestures(
+                onDragStart = clipViewModel::onDragStart,
+                onDrag = clipViewModel::onDrag,
+                onDragEnd = clipViewModel::onDragEnd
+            )
         }
     ) {
         Column {

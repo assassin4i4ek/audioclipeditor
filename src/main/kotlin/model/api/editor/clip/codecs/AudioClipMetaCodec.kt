@@ -1,4 +1,4 @@
-package model.api.editor.clip
+package model.api.editor.clip.codecs
 
 import java.io.File
 

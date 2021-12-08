@@ -1,15 +1,18 @@
 package model.impl.editor.clip
 
 import model.api.editor.clip.*
+import model.api.editor.clip.codecs.AudioClipCodec
+import model.api.editor.clip.codecs.AudioClipMetaCodec
+import model.impl.editor.clip.codecs.AudioClipJsonCodecImpl
+import model.impl.editor.clip.codecs.AudioClipMp3CodecImpl
 import specs.api.immutable.audio.AudioServiceSpecs
-import specs.impl.audio.PreferenceAudioServiceSpecs
 import java.io.File
 
 class AudioClipServiceImpl(
     private val specs: AudioServiceSpecs
 ): AudioClipService {
-    private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl()
-    private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl()
+    private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(specs)
+    private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(specs)
 
     override fun getAudioClipId(audioClipFile: File): String {
         return when (audioClipFile.extension.lowercase()) {

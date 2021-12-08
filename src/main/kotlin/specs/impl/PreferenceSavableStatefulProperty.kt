@@ -23,6 +23,7 @@ class PreferenceSavableStatefulProperty<T, V, U>(
 
         val value = when (val defaultValueAsSupported = toSupportedType(defaultValue)) {
             is Float -> preferences.getFloat(key, defaultValueAsSupported) as U
+            is Long -> preferences.getLong(key, defaultValueAsSupported) as U
             is String -> preferences.get(key, defaultValueAsSupported) as U
 
             else -> throw IllegalArgumentException(
@@ -42,6 +43,7 @@ class PreferenceSavableStatefulProperty<T, V, U>(
 
         when (val valueAsSupportedType = toSupportedType(value)) {
             is Float -> preferences.putFloat(key, valueAsSupportedType as Float)
+            is Long -> preferences.putLong(key, valueAsSupportedType as Long)
             is String -> preferences.put(key, valueAsSupportedType as String)
 
             else -> throw IllegalArgumentException(

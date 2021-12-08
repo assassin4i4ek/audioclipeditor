@@ -35,7 +35,7 @@ class CursorViewModelImpl(
     /* Callbacks */
 
     /* Methods */
-    override fun setXAbsolutePositionPx(xAbsolutePositionPx: Float) {
+    override fun setAbsolutePositionPx(xAbsolutePositionPx: Float) {
         _xAbsolutePositionPx = xAbsolutePositionPx
     }
 

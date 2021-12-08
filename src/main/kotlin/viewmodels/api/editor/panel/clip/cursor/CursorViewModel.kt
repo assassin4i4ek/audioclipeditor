@@ -13,7 +13,7 @@ interface CursorViewModel: BaseViewModel {
     /* Callbacks */
 
     /* Methods */
-    fun setXAbsolutePositionPx(xAbsolutePositionPx: Float)
+    fun setAbsolutePositionPx(xAbsolutePositionPx: Float)
     fun animateToXAbsolutePositionPx(targetXAbsolutePositionPx: Float, durationUs: Long)
     fun interruptXAbsolutePositionPxAnimation()
     fun saveXAbsolutePositionPxState()

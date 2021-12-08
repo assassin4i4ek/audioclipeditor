@@ -31,8 +31,8 @@ abstract class BaseClipViewModelImpl(
     /* Stateful properties */
     protected abstract val pathBuilderXStep: Int
 
-    private var _audioClip: AudioClip? by mutableStateOf(null)
-    override val audioClip: AudioClip get() = _audioClip!!
+    private lateinit var _audioClip: AudioClip
+    override val audioClip: AudioClip get() = _audioClip
 
     private var _channelPcmPaths: List<Path>? by mutableStateOf(null)
     override val channelPcmPaths: List<Path>? get() = _channelPcmPaths
@@ -49,10 +49,12 @@ abstract class BaseClipViewModelImpl(
 
     /* Methods */
     override fun submitClip(audioClip: AudioClip) {
-        check (_audioClip == null) {
-            "Cannot assign audio clip twice: new clip $audioClip, previous clip $_audioClip"
+        check (!this::_audioClip.isInitialized) {
+            "Cannot assign audio clip twice: new clip $audioClip, previous clip $audioClip"
         }
-        _audioClip = audioClip
+        this._audioClip = audioClip
+        fragmentSetViewModel.submitClip(audioClip)
+
         contentAbsoluteWidthPx = with (density) { specs.xStepDpPerSec.toPx() } * (audioClip.durationUs / 1e6).toFloat()
         clipViewWindowWidthPx = contentAbsoluteWidthPx
 

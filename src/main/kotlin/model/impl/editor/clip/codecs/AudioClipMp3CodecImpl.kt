@@ -1,10 +1,12 @@
-package model.impl.editor.clip
+package model.impl.editor.clip.codecs
 
 import com.cloudburst.lame.lowlevel.LameDecoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.api.editor.clip.AudioClip
-import model.api.editor.clip.AudioClipCodec
+import model.api.editor.clip.codecs.AudioClipCodec
+import model.impl.editor.clip.AudioClipImpl
+import specs.api.immutable.audio.AudioServiceSpecs
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -12,7 +14,9 @@ import java.nio.ByteOrder
 import javax.sound.sampled.AudioFormat
 import kotlin.system.measureTimeMillis
 
-open class AudioClipMp3CodecImpl: AudioClipCodec {
+open class AudioClipMp3CodecImpl(
+    protected val specs: AudioServiceSpecs
+): AudioClipCodec {
     override suspend fun open(audioClipFile: File): AudioClip {
         var audioClip: AudioClip
 
@@ -56,7 +60,7 @@ open class AudioClipMp3CodecImpl: AudioClipCodec {
                     }
                 }
 
-                AudioClipImpl(audioClipFile.absolutePath, sampleRate, durationUs, audioFormat, channelsPcm, pcmBytes)
+                AudioClipImpl(audioClipFile.absolutePath, sampleRate, durationUs, audioFormat, channelsPcm, pcmBytes, specs)
             }
         }
         println("${audioClip.filePath} decoded in $decodingTime ms")

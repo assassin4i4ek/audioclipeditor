@@ -10,8 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
+import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
+import viewmodels.impl.editor.panel.clip.fragments.EditableFragmentSetViewModelImpl
+import viewmodels.impl.editor.panel.clip.fragments.GlobalFragmentSetViewModel
 
 class GlobalClipViewModelImpl(
     private val siblingViewModel: Sibling,
@@ -29,6 +32,7 @@ class GlobalClipViewModelImpl(
 
     /* Child ViewModels */
     override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
+    override val fragmentSetViewModel: FragmentSetViewModel = GlobalFragmentSetViewModel()
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {
@@ -53,18 +57,19 @@ class GlobalClipViewModelImpl(
         toWindowSize(siblingViewModel.clipViewAbsoluteWidthPx)
     }
 
-    override val detectTap: Boolean get() = true
-    override val detectDrag: Boolean get() = true
-
     /* Callbacks */
     override fun onHorizontalScroll(delta: Float): Float = delta
 
     override fun onVerticalScroll(delta: Float): Float = delta
 
-    override suspend fun onTap(tap: Offset) {
+    override suspend fun onPress(tap: Offset) {
         val halfAreaSize = siblingViewModel.clipViewAbsoluteWidthPx / 2
         val absoluteOffsetPx = toAbsoluteOffset(tap.x)
         siblingViewModel.xAbsoluteOffsetPx = absoluteOffsetPx - halfAreaSize
+    }
+
+    override fun onDragStart(dragStart: Offset) {
+
     }
 
     override fun onDrag(change: PointerInputChange, drag: Offset) {
@@ -74,8 +79,20 @@ class GlobalClipViewModelImpl(
         siblingViewModel.xAbsoluteOffsetPx = absoluteOffsetPx - halfAreaSize
     }
 
+    override fun onDragEnd() {
+
+    }
+
     /* Methods */
-    override fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float) {
-        cursorViewModel.setXAbsolutePositionPx(xAbsolutePositionPx)
+    override fun setCursorAbsolutePositionPx(absolutePositionPx: Float) {
+        cursorViewModel.setAbsolutePositionPx(absolutePositionPx)
+    }
+
+    override fun setFragmentFirstBoundUs(firstBoundUs: Long) {
+        fragmentSetViewModel.setFirstBoundUs(firstBoundUs)
+    }
+
+    override fun setFragmentSecondBoundUs(secondBoundUs: Long) {
+        fragmentSetViewModel.setSecondBoundUs(secondBoundUs)
     }
 }

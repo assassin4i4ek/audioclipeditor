@@ -1,5 +1,7 @@
 package model.api.editor.clip
 
+import model.api.editor.clip.fragment.AudioClipFragment
+import java.util.*
 import javax.sound.sampled.AudioFormat
 
 interface AudioClip: AudioPcm {
@@ -8,9 +10,12 @@ interface AudioClip: AudioPcm {
     val durationUs: Long
     val audioFormat: AudioFormat
     val channelsPcm: List<FloatArray>
-    override val numChannels: Int
-        get() = channelsPcm.size
+
+    override val numChannels: Int get() = channelsPcm.size
+
+    val fragments: Set<AudioClipFragment>
 
     fun readPcm(startPosition: Int, size: Int, buffer: ByteArray)
+    fun createFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): AudioClipFragment
     fun close()
 }

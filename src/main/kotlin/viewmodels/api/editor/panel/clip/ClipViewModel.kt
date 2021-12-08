@@ -1,5 +1,6 @@
 package viewmodels.api.editor.panel.clip
 
+import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -8,30 +9,32 @@ import model.api.editor.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
+import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
 
 interface ClipViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
     val cursorViewModel: CursorViewModel
+    val fragmentSetViewModel: FragmentSetViewModel
 
     /* Specs */
     val specs: EditorSpecs
 
     /* Stateful properties */
-    val channelPcmPaths: List<Path>?
     val audioClip: AudioClip
+    val channelPcmPaths: List<Path>?
     val zoom: Float
     val xAbsoluteOffsetPx: Float
-    val detectTap: Boolean
-    val detectDrag: Boolean
 
     /* Callbacks */
     fun onSizeChanged(size: IntSize)
     fun onHorizontalScroll(delta: Float): Float
     fun onVerticalScroll(delta: Float): Float
-    suspend fun onTap(tap: Offset)
+    suspend fun onPress(tap: Offset)
+    fun onDragStart(dragStart: Offset)
     fun onDrag(change: PointerInputChange, drag: Offset)
+    fun onDragEnd()
 
     /* Methods */
     fun submitClip(audioClip: AudioClip)

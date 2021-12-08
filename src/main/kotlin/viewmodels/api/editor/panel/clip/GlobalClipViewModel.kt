@@ -12,5 +12,7 @@ interface GlobalClipViewModel: ClipViewModel {
     /* Callbacks */
 
     /* Methods */
-    fun setCursorXAbsolutePositionPx(xAbsolutePositionPx: Float)
+    fun setCursorAbsolutePositionPx(absolutePositionPx: Float)
+    fun setFragmentFirstBoundUs(firstBoundUs: Long)
+    fun setFragmentSecondBoundUs(secondBoundUs: Long)
 }

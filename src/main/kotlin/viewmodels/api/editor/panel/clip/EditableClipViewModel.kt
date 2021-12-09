@@ -5,6 +5,8 @@ interface EditableClipViewModel: ClipViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
     val clipViewAbsoluteWidthPx: Float
 

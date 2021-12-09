@@ -5,6 +5,8 @@ interface BaseViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
 
     /* Callbacks */

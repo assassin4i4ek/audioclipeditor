@@ -24,13 +24,16 @@ class CursorViewModelImpl(
 
     /* Child ViewModels */
 
+    /* Simple properties */
+    private val xAbsolutePositionPxAnimatable = Animatable(0f)
+    private var xAbsolutePositionPxSaved: Float = 0f
+    private var animationRoutine: Job? = null
+
     /* Stateful properties */
     private var _xAbsolutePositionPx: Float by mutableStateOf(0f)
     override val xWindowPositionPx: Float by derivedStateOf {
         parentViewModel.toWindowOffset(_xAbsolutePositionPx)
     }
-    private val xAbsolutePositionPxAnimatable = Animatable(_xAbsolutePositionPx)
-    private var xAbsolutePositionPxSaved: Float = _xAbsolutePositionPx
 
     /* Callbacks */
 
@@ -38,8 +41,6 @@ class CursorViewModelImpl(
     override fun setAbsolutePositionPx(xAbsolutePositionPx: Float) {
         _xAbsolutePositionPx = xAbsolutePositionPx
     }
-
-    private var animationRoutine: Job? = null
 
     override fun animateToXAbsolutePositionPx(targetXAbsolutePositionPx: Float, durationUs: Long) {
         animationRoutine = coroutineScope.launch {

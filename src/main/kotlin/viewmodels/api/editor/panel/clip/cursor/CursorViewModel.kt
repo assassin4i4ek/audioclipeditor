@@ -7,6 +7,8 @@ interface CursorViewModel: BaseViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
     val xWindowPositionPx: Float
 

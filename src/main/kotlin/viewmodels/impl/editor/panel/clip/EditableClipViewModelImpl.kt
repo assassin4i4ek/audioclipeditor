@@ -24,7 +24,9 @@ class EditableClipViewModelImpl(
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs), EditableClipViewModel {
+):
+    BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs),
+    EditableClipViewModel, EditableFragmentSetViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Sibling {
         fun setCursorAbsolutePositionPx(absolutePositionPx: Float)
@@ -37,7 +39,9 @@ class EditableClipViewModelImpl(
 
     /* Child ViewModels */
     override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
-    override val fragmentSetViewModel: FragmentSetViewModel = EditableFragmentSetViewModelImpl()
+    override val fragmentSetViewModel: FragmentSetViewModel = EditableFragmentSetViewModelImpl(this)
+
+    /* Simple properties */
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {

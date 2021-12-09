@@ -14,6 +14,7 @@ import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
 interface ClipViewModel: BaseViewModel {
     /* Parent ViewModels */
 
+
     /* Child ViewModels */
     val cursorViewModel: CursorViewModel
     val fragmentSetViewModel: FragmentSetViewModel
@@ -21,8 +22,11 @@ interface ClipViewModel: BaseViewModel {
     /* Specs */
     val specs: EditorSpecs
 
+    /* Simple properties */
+
     /* Stateful properties */
-    val audioClip: AudioClip
+    val numChannels: Int
+    val sampleRate: Int
     val channelPcmPaths: List<Path>?
     val zoom: Float
     val xAbsoluteOffsetPx: Float

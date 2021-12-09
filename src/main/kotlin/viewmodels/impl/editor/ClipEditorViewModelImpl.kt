@@ -27,6 +27,8 @@ class ClipEditorViewModelImpl(
     /* Child ViewModels */
     override val openedClipsTabViewModel: OpenedClipsTabViewModel = OpenedClipsTabViewModelImpl(this)
 
+    /* Simple properties */
+
     /* Stateful Properties */
     private var _showFileChooser by mutableStateOf(false)
     override val showFileChooser: Boolean get() = _showFileChooser

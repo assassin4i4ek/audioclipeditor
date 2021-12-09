@@ -64,10 +64,11 @@ class ClipPanelViewModelImpl(
         }, this, pcmPathBuilder, coroutineScope, density, specs
     )
 
-    /* Stateful properties */
+    /* Simple properties */
     private lateinit var _audioClip: AudioClip
     private lateinit var _player: AudioClipPlayer
 
+    /* Stateful properties */
     private var _isLoading: Boolean by mutableStateOf(true)
     override val isLoading: Boolean get() = _isLoading
 

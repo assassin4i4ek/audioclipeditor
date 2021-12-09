@@ -16,6 +16,8 @@ interface ClipPanelViewModel: BaseViewModel {
     /* Specs */
     val specs: EditorSpecs
 
+    /* Simple properties */
+
     /* Stateful properties */
     val isLoading: Boolean
     val canPlayClip: Boolean

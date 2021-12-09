@@ -1,5 +1,6 @@
 package viewmodels.impl.editor
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,12 +9,14 @@ import viewmodels.api.editor.OpenedClipsTabViewModel
 class OpenedClipsTabViewModelImpl(
     private val parentViewModel: Parent,
 ): OpenedClipsTabViewModel {
-    /* Parents */
+    /* Parent ViewModels */
     interface Parent {
         fun removeClip(clipId: String)
     }
 
-    /* ViewModels */
+    /* Child ViewModels */
+
+    /* Simple properties */
 
     /* Stateful properties */
     private var _openedClips: MutableMap<String, String> by mutableStateOf(LinkedHashMap())
@@ -22,7 +25,9 @@ class OpenedClipsTabViewModelImpl(
     private var _selectedClipId: String? by mutableStateOf(null)
     override val selectedClipId: String? get() = _selectedClipId
 
-    override val selectedClipIndex: Int get() = openedClips.keys.indexOf(selectedClipId)
+    override val selectedClipIndex: Int by derivedStateOf {
+        openedClips.keys.indexOf(selectedClipId)
+    }
 
     /* Callbacks */
     override fun onSelectClip(clipId: String) {

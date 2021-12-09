@@ -7,6 +7,8 @@ interface OpenedClipsTabViewModel: BaseViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
     val openedClips: Map<String, String> //clipId -> clipName
     val selectedClipId: String?

@@ -13,6 +13,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import viewmodels.api.editor.panel.clip.ClipViewModel
 import views.editor.panel.clip.cursor.ClipCursor
+import views.editor.panel.clip.fragments.FragmentSetView
 
 @Composable
 fun ClipView(
@@ -48,12 +49,12 @@ fun ClipView(
         Column {
             Divider()
 
-            for (iChannelPcmPath in 0 until clipViewModel.audioClip.numChannels) {
+            for (iChannelPcmPath in 0 until clipViewModel.numChannels) {
                 Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     if (clipViewModel.channelPcmPaths != null) {
                         ClipChannelView(
                             channelPath = clipViewModel.channelPcmPaths!![iChannelPcmPath],
-                            sampleRate = clipViewModel.audioClip.sampleRate,
+                            sampleRate = clipViewModel.sampleRate,
                             xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
                             zoom = clipViewModel.zoom,
                             xAbsoluteOffsetPx = clipViewModel.xAbsoluteOffsetPx
@@ -65,6 +66,7 @@ fun ClipView(
                 Divider()
             }
         }
+        FragmentSetView(clipViewModel.fragmentSetViewModel)
         ClipCursor(clipViewModel.cursorViewModel)
     }
 }

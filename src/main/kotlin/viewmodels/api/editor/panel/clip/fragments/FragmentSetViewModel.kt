@@ -8,7 +8,10 @@ interface FragmentSetViewModel: BaseViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
+    val fragmentViewModels: List<FragmentViewModel>
 
     /* Callbacks */
 

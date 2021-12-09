@@ -10,6 +10,8 @@ interface ClipEditorViewModel: BaseViewModel {
     /* Child ViewModels */
     val openedClipsTabViewModel: OpenedClipsTabViewModel
 
+    /* Simple properties */
+
     /* Stateful properties */
     val showFileChooser: Boolean
     val selectedPanel: ClipPanelViewModel?

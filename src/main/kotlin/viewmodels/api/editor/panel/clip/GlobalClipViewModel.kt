@@ -5,6 +5,8 @@ interface GlobalClipViewModel: ClipViewModel {
 
     /* Child ViewModels */
 
+    /* Simple properties */
+
     /* Stateful properties */
     val globalClipViewAreaWindowWidthPx: Float
     val globalClipViewAreaWindowOffsetPx: Float

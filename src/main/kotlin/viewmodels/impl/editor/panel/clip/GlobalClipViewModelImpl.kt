@@ -23,7 +23,7 @@ class GlobalClipViewModelImpl(
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
-): BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs), GlobalClipViewModel {
+): BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs), GlobalClipViewModel, GlobalFragmentSetViewModel.Parent {
     /* Parent ViewModels */
     interface Sibling {
         val clipViewAbsoluteWidthPx: Float
@@ -32,7 +32,9 @@ class GlobalClipViewModelImpl(
 
     /* Child ViewModels */
     override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
-    override val fragmentSetViewModel: FragmentSetViewModel = GlobalFragmentSetViewModel()
+    override val fragmentSetViewModel: FragmentSetViewModel = GlobalFragmentSetViewModel(this)
+
+    /* Simple properties */
 
     /* Stateful properties */
     override val pathBuilderXStep: Int by derivedStateOf {

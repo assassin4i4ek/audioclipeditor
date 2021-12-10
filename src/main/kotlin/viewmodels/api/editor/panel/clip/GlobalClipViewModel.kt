@@ -8,13 +8,8 @@ interface GlobalClipViewModel: ClipViewModel {
     /* Simple properties */
 
     /* Stateful properties */
-    val globalClipViewAreaWindowWidthPx: Float
-    val globalClipViewAreaWindowOffsetPx: Float
 
     /* Callbacks */
 
     /* Methods */
-    fun setCursorAbsolutePositionPx(absolutePositionPx: Float)
-    fun setFragmentFirstBoundUs(firstBoundUs: Long)
-    fun setFragmentSecondBoundUs(secondBoundUs: Long)
 }

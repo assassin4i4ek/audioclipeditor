@@ -1,7 +1,7 @@
 package views.editor.panel
 
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -19,7 +19,8 @@ import androidx.compose.ui.res.svgResource
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
-import views.editor.panel.clip.GlobalClipViewArea
+import views.editor.panel.clip.GlobalWindowClipView
+import views.editor.panel.cursor.ClipCursor
 
 @Composable
 fun ClipPanel(
@@ -49,14 +50,38 @@ fun ClipPanel(
                 ) {
                     Box(modifier = Modifier
                         .weight(1f)
+                        .pointerInput(clipPanelViewModel) {
+                            detectTapGestures(
+                                onPress = { clipPanelViewModel.onGlobalClipViewPress(it) }
+                            )
+                        }.pointerInput(clipPanelViewModel) {
+                            detectDragGestures(
+                                onDrag = clipPanelViewModel::onGlobalClipViewDrag
+                            )
+                        }
                     ) {
-                        GlobalClipViewArea(clipPanelViewModel.globalClipViewModel)
+                        GlobalWindowClipView(clipPanelViewModel.globalWindowClipViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
+                        ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }
                     Box(modifier = Modifier
                         .weight(2f)
+                        .pointerInput(clipPanelViewModel) {
+                            detectTapGestures(
+                                onPress = { clipPanelViewModel.onEditableClipViewPress(it) }
+                            )
+                        }
+                        .scrollable(
+                            rememberScrollableState(clipPanelViewModel::onEditableClipViewHorizontalScroll),
+                            Orientation.Horizontal
+                        )
+                        .scrollable(
+                            rememberScrollableState(clipPanelViewModel::onEditableClipViewVerticalScroll),
+                            Orientation.Vertical
+                        )
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
+                        ClipCursor(clipPanelViewModel.editableCursorViewModel)
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))

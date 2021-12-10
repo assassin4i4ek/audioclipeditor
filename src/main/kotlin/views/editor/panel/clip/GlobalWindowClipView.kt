@@ -7,17 +7,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import viewmodels.api.editor.panel.clip.GlobalClipViewModel
+import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 
 @Composable
-fun GlobalClipViewArea(
-    globalClipViewModel: GlobalClipViewModel
+fun GlobalWindowClipView(
+    globalWindowClipViewModel: GlobalWindowClipViewModel
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawRect(
             Color.Yellow,
-            Offset(globalClipViewModel.globalClipViewAreaWindowOffsetPx, 0f),
-            Size(globalClipViewModel.globalClipViewAreaWindowWidthPx, size.height),
+            Offset(globalWindowClipViewModel.xOffsetWinPx, 0f),
+            Size(globalWindowClipViewModel.widthWinPx, size.height),
             0.5f
         )
     }

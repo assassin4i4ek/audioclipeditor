@@ -1,17 +1,15 @@
-package viewmodels.impl.editor.panel.clip.fragments
+package viewmodels.impl.editor.panel.fragments
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import model.api.editor.clip.AudioClip
-import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
-import viewmodels.api.editor.panel.clip.fragments.FragmentViewModel
+import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
+import viewmodels.api.editor.panel.fragments.FragmentViewModel
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class BaseFragmentSetViewModel(
-    private val parentViewModel: Parent
+/*class FragmentSetViewModelImpl(
+    private val parentViewModel: Parent,
 ): FragmentSetViewModel, FragmentViewModelImpl.Parent {
+
     /* Parent ViewModels */
     interface Parent {
         fun toWindowOffset(absolutePx: Float): Float
@@ -21,12 +19,14 @@ abstract class BaseFragmentSetViewModel(
     /* Child ViewModels */
 
     /* Simple properties */
-    protected lateinit var audioClip: AudioClip
+    private lateinit var audioClip: AudioClip
     private var firstBoundUs: Long = 0
 
     /* Stateful properties */
     private var _fragmentViewModels: List<FragmentViewModel> by mutableStateOf(emptyList())
-    override val fragmentViewModels: List<FragmentViewModel> get() = _fragmentViewModels
+    override val fragmentViewModels: List<FragmentViewModel> by derivedStateOf {
+        _fragmentViewModels
+    }
 
     /* Callbacks */
 
@@ -58,7 +58,7 @@ abstract class BaseFragmentSetViewModel(
         firstBoundUs = 0
     }
 
-    protected open fun createNewFragment(firstBoundUs: Long, secondBoundUs: Long): FragmentViewModel {
+    private fun createNewFragment(firstBoundUs: Long, secondBoundUs: Long): FragmentViewModel {
         return FragmentViewModelImpl(
             min(firstBoundUs, secondBoundUs) - 100000,
             min(firstBoundUs, secondBoundUs),
@@ -67,4 +67,4 @@ abstract class BaseFragmentSetViewModel(
             this
         )
     }
-}
+}*/

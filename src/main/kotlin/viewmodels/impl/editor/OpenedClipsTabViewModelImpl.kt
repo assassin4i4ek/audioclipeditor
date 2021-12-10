@@ -29,6 +29,7 @@ class OpenedClipsTabViewModelImpl(
         openedClips.keys.indexOf(selectedClipId)
     }
 
+
     /* Callbacks */
     override fun onSelectClip(clipId: String) {
         require(openedClips.containsKey(clipId)) {

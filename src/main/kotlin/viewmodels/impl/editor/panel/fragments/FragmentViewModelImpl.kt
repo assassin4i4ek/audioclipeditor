@@ -1,16 +1,17 @@
-package viewmodels.impl.editor.panel.clip.fragments
+package viewmodels.impl.editor.panel.fragments
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import viewmodels.api.editor.panel.clip.fragments.FragmentViewModel
 
+/*
 class FragmentViewModelImpl(
     leftImmutableAreaStartUs: Long,
     mutableAreaStartUs: Long,
     mutableAreaEndUs: Long,
-    rightImmutableAreaEndUs: Long,
+    rightImmutableAreaEndUs: Lon
+    g,
     private val parentViewModel: Parent,
 ): FragmentViewModel {
     /* Parent ViewModels */
@@ -54,4 +55,4 @@ class FragmentViewModelImpl(
 
     /* Methods */
 
-}
+}*/

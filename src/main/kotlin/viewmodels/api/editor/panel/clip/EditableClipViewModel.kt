@@ -8,11 +8,14 @@ interface EditableClipViewModel: ClipViewModel {
     /* Simple properties */
 
     /* Stateful properties */
-    val clipViewAbsoluteWidthPx: Float
+    val clipViewWidthAbsPx: Float
 
     /* Callbacks */
 
     /* Methods */
     fun updateZoom(newZoom: Float)
-    fun updateXAbsoluteOffsetPx(newXAbsoluteOffsetPx: Float)
+    fun updateXOffsetAbsPx(newXOffsetAbsPx: Float)
+
+    fun performHorizontalScroll(delta: Float)
+    fun performVerticalScroll(delta: Float)
 }

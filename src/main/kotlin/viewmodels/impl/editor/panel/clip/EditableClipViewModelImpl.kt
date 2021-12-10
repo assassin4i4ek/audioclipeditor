@@ -2,44 +2,28 @@ package viewmodels.impl.editor.panel.clip
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.*
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.*
 import specs.api.immutable.editor.EditorSpecs
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
-import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
-import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
-import viewmodels.impl.editor.panel.clip.cursor.CursorViewModelImpl
-import viewmodels.impl.editor.panel.clip.fragments.EditableFragmentSetViewModelImpl
 import kotlin.math.exp
 
 
 class EditableClipViewModelImpl(
-    private val sibling: Sibling,
-    private val parent: Parent,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     coroutineScope: CoroutineScope,
     density: Density,
     specs: EditorSpecs
 ):
-    BaseClipViewModelImpl(parent, pcmPathBuilder, coroutineScope, density, specs),
-    EditableClipViewModel, EditableFragmentSetViewModelImpl.Parent {
+    BaseClipViewModelImpl(pcmPathBuilder, coroutineScope, density, specs),
+    EditableClipViewModel {
     /* Parent ViewModels */
-    interface Sibling {
-        fun setCursorAbsolutePositionPx(absolutePositionPx: Float)
-        fun setFragmentFirstBoundUs(firstBoundUs: Long)
-        fun setFragmentSecondBoundUs(secondBoundUs: Long)
-    }
-    interface Parent: BaseClipViewModelImpl.Parent {
-        fun notifyNewCursorPosition()
-    }
 
     /* Child ViewModels */
-    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, coroutineScope)
-    override val fragmentSetViewModel: FragmentSetViewModel = EditableFragmentSetViewModelImpl(this)
+//    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, sharedCursorState, coroutineScope)
+//    override val fragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(this)
 
     /* Simple properties */
 
@@ -53,14 +37,14 @@ class EditableClipViewModelImpl(
         xAbsoluteOffsetPxRaw
             .coerceIn(
                 0f,
-                (contentAbsoluteWidthPx - toAbsoluteSize(clipViewWindowWidthPx)).coerceAtLeast(0f),
+                (contentAbsoluteWidthPx - toAbsSize(clipViewWindowWidthPx)).coerceAtLeast(0f),
             ).apply {
                 check(isFinite()) {
                     "Invalid value of xAbsoluteOffsetPx: $this"
                 }
             }
     }
-    override var xAbsoluteOffsetPx: Float
+    override var xOffsetAbsPx: Float
         get() = xAbsoluteOffsetPxAdjusted
         private set(value) {
             xAbsoluteOffsetPxRaw = value
@@ -80,19 +64,19 @@ class EditableClipViewModelImpl(
     override var zoom: Float
         get() = zoomAdjusted
         private set(value) {
-            val oldClipViewAbsoluteWidthPx = toAbsoluteSize(clipViewWindowWidthPx)
+            val oldClipViewAbsoluteWidthPx = toAbsSize(clipViewWindowWidthPx)
             zoomRaw = value
-            val newClipViewAbsoluteWidthPx = toAbsoluteSize(clipViewWindowWidthPx)
+            val newClipViewAbsoluteWidthPx = toAbsSize(clipViewWindowWidthPx)
             // centering offset
-            xAbsoluteOffsetPx += oldClipViewAbsoluteWidthPx / 2 - newClipViewAbsoluteWidthPx / 2
+            xOffsetAbsPx += oldClipViewAbsoluteWidthPx / 2 - newClipViewAbsoluteWidthPx / 2
         }
 
-    override val clipViewAbsoluteWidthPx: Float by derivedStateOf {
-        toAbsoluteSize(clipViewWindowWidthPx)
+    override val clipViewWidthAbsPx: Float by derivedStateOf {
+        toAbsSize(clipViewWindowWidthPx)
     }
 
     /* Callbacks */
-    override fun onHorizontalScroll(delta: Float): Float {
+    override fun performHorizontalScroll(delta: Float) {
         val adjustedDelta = adjustScrollDelta(
             when(specs.inputDevice) {
                 InputDevice.Touchpad -> 1f
@@ -102,19 +86,17 @@ class EditableClipViewModelImpl(
 
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
-                xAbsoluteOffsetPx -= linearDelta
+                val linearDelta = toAbsSize(specs.transformOffsetScrollCoef * adjustedDelta)
+                xOffsetAbsPx -= linearDelta
             }
             InputDevice.Mouse -> {
                 val sigmoidFunctionMultiplier = specs.transformZoomScrollCoef / (1 + exp(0.5f * adjustedDelta))
                 zoom *= sigmoidFunctionMultiplier
             }
         }
-
-        return delta
     }
 
-    override fun onVerticalScroll(delta: Float): Float {
+    override fun performVerticalScroll(delta: Float) {
         val adjustedDelta = adjustScrollDelta(delta, Orientation.Vertical)
 
         when(specs.inputDevice) {
@@ -123,46 +105,33 @@ class EditableClipViewModelImpl(
                 zoom *= sigmoidFunctionMultiplier
             }
             InputDevice.Mouse -> {
-                val linearDelta = toAbsoluteSize(specs.transformOffsetScrollCoef * adjustedDelta)
-                xAbsoluteOffsetPx -= linearDelta
+                val linearDelta = toAbsSize(specs.transformOffsetScrollCoef * adjustedDelta)
+                xOffsetAbsPx -= linearDelta
             }
         }
-
-        return delta
     }
 
-    override suspend fun onPress(tap: Offset) {
-        val tapAbsolutePositionPx = toAbsoluteOffset(tap.x)
-        cursorViewModel.setAbsolutePositionPx(tapAbsolutePositionPx)
-        sibling.setCursorAbsolutePositionPx(tapAbsolutePositionPx)
-        parent.notifyNewCursorPosition()
-
-        val tapUs = toUs(tapAbsolutePositionPx)
-        fragmentSetViewModel.setFirstBoundUs(tapUs)
-        sibling.setFragmentFirstBoundUs(tapUs)
-    }
-
-    override fun onDragStart(dragStart: Offset) {
-        val dragStartUs = toUs(toAbsoluteOffset(dragStart.x))
-        fragmentSetViewModel.setSecondBoundUs(dragStartUs)
-        sibling.setFragmentSecondBoundUs(dragStartUs)
-    }
-
-    override fun onDrag(change: PointerInputChange, drag: Offset) {
-
-    }
-
-    override fun onDragEnd() {
-
-    }
+//    override suspend fun onPress(tap: Offset) {
+//        val tapAbsolutePositionPx = toAbsoluteOffset(tap.x)
+//        cursorViewModel.setAbsolutePositionPx(tapAbsolutePositionPx)
+//        parent.notifyNewCursorPosition()
+//
+//        val tapUs = toUs(tapAbsolutePositionPx)
+//        fragmentSetViewModel.setFirstBoundUs(tapUs)
+//    }
+//
+//    override fun onDragStart(dragStart: Offset) {
+//        val dragStartUs = toUs(toAbsoluteOffset(dragStart.x))
+//        fragmentSetViewModel.setSecondBoundUs(dragStartUs)
+//    }
 
     /* Methods */
     override fun updateZoom(newZoom: Float) {
         zoom = newZoom
     }
 
-    override fun updateXAbsoluteOffsetPx(newXAbsoluteOffsetPx: Float) {
-        xAbsoluteOffsetPx = newXAbsoluteOffsetPx
+    override fun updateXOffsetAbsPx(newXOffsetAbsPx: Float) {
+        xOffsetAbsPx = newXOffsetAbsPx
     }
 
     private fun adjustScrollDelta(

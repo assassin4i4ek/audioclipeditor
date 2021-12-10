@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import viewmodels.api.editor.panel.clip.fragments.FragmentSetViewModel
+import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
 
 @Composable
 fun FragmentSetView(

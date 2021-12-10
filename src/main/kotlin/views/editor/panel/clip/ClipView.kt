@@ -1,6 +1,5 @@
 package views.editor.panel.clip
 
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,42 +8,35 @@ import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import viewmodels.api.editor.panel.clip.ClipViewModel
-import views.editor.panel.clip.cursor.ClipCursor
-import views.editor.panel.clip.fragments.FragmentSetView
 
 @Composable
 fun ClipView(
     clipViewModel: ClipViewModel
 ) {
-//    LaunchedEffect(clipViewModel.initKey) {
-//        clipViewModel.init()
-//    }
-
     Box(modifier = Modifier
         .onSizeChanged {
             clipViewModel.onSizeChanged(it)
         }
-        .scrollable(rememberScrollableState {
-            clipViewModel.onHorizontalScroll(it)
-        }, Orientation.Horizontal)
-        .scrollable(rememberScrollableState {
-            clipViewModel.onVerticalScroll(it)
-        }, Orientation.Vertical)
-        .pointerInput(clipViewModel) {
-            detectTapGestures(
-                onPress = { clipViewModel.onPress(it) }
-            )
-        }
-        .pointerInput(clipViewModel) {
-            detectDragGestures(
-                onDragStart = clipViewModel::onDragStart,
-                onDrag = clipViewModel::onDrag,
-                onDragEnd = clipViewModel::onDragEnd
-            )
-        }
+//        .scrollable(rememberScrollableState {
+//            clipViewModel.onHorizontalScroll(it)
+//        }, Orientation.Horizontal)
+//        .scrollable(rememberScrollableState {
+//            clipViewModel.onVerticalScroll(it)
+//        }, Orientation.Vertical)
+//        .pointerInput(clipViewModel) {
+//            detectTapGestures(
+//                onPress = { clipViewModel.onPress(it) }
+//            )
+//        }
+//        .pointerInput(clipViewModel) {
+//            detectDragGestures(
+//                onDragStart = clipViewModel::onDragStart,
+//                onDrag = clipViewModel::onDrag,
+//                onDragEnd = clipViewModel::onDragEnd
+//            )
+//        }
     ) {
         Column {
             Divider()
@@ -57,7 +49,7 @@ fun ClipView(
                             sampleRate = clipViewModel.sampleRate,
                             xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
                             zoom = clipViewModel.zoom,
-                            xAbsoluteOffsetPx = clipViewModel.xAbsoluteOffsetPx
+                            xAbsoluteOffsetPx = clipViewModel.xOffsetAbsPx
                         )
                     } else {
                         CircularProgressIndicator()
@@ -66,7 +58,5 @@ fun ClipView(
                 Divider()
             }
         }
-        FragmentSetView(clipViewModel.fragmentSetViewModel)
-        ClipCursor(clipViewModel.cursorViewModel)
     }
 }

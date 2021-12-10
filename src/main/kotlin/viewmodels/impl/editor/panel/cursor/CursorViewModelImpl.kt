@@ -1,4 +1,4 @@
-package viewmodels.impl.editor.panel.clip.cursor
+package viewmodels.impl.editor.panel.cursor
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import viewmodels.api.editor.panel.clip.cursor.CursorViewModel
+import viewmodels.api.editor.panel.cursor.CursorViewModel
 
 class CursorViewModelImpl(
     private val parentViewModel: Parent,
@@ -18,34 +18,35 @@ class CursorViewModelImpl(
 ): CursorViewModel {
     /* Parent ViewModels */
     interface Parent {
-        fun toWindowOffset(absolutePx: Float): Float
+        fun toWinOffset(absPx: Float): Float
         fun notifyAnimationFinish()
     }
 
     /* Child ViewModels */
 
     /* Simple properties */
-    private val xAbsolutePositionPxAnimatable = Animatable(0f)
-    private var xAbsolutePositionPxSaved: Float = 0f
+    private val xPositionAbsPxAnimatable = Animatable(0f)
+    private var xPositionAbsPxSaved: Float = 0f
     private var animationRoutine: Job? = null
 
     /* Stateful properties */
-    private var _xAbsolutePositionPx: Float by mutableStateOf(0f)
-    override val xWindowPositionPx: Float by derivedStateOf {
-        parentViewModel.toWindowOffset(_xAbsolutePositionPx)
+    private var xPositionAbsPx: Float by mutableStateOf(0f)
+
+    override val xPositionWinPx: Float by derivedStateOf {
+        parentViewModel.toWinOffset(xPositionAbsPx)
     }
 
     /* Callbacks */
 
     /* Methods */
-    override fun setAbsolutePositionPx(xAbsolutePositionPx: Float) {
-        _xAbsolutePositionPx = xAbsolutePositionPx
+    override fun updatePositionAbsPx(xPositionAbsPx: Float) {
+        this.xPositionAbsPx = xPositionAbsPx
     }
 
-    override fun animateToXAbsolutePositionPx(targetXAbsolutePositionPx: Float, durationUs: Long) {
+    override fun animateToXPositionAbsPx(targetXAbsolutePositionPx: Float, durationUs: Long) {
         animationRoutine = coroutineScope.launch {
-            xAbsolutePositionPxAnimatable.snapTo(_xAbsolutePositionPx)
-            xAbsolutePositionPxAnimatable.animateTo(
+            xPositionAbsPxAnimatable.snapTo(xPositionAbsPx)
+            xPositionAbsPxAnimatable.animateTo(
                 targetValue = targetXAbsolutePositionPx,
                 animationSpec = tween(
                     durationMillis = (durationUs.toDouble() / 1e3).toInt(),
@@ -53,15 +54,15 @@ class CursorViewModelImpl(
                 )
             ) {
                 launch {
-                    _xAbsolutePositionPx = value
+                    xPositionAbsPx = value
                 }
             }
             parentViewModel.notifyAnimationFinish()
         }
     }
 
-    override fun interruptXAbsolutePositionPxAnimation() {
-        check(xAbsolutePositionPxAnimatable.isRunning) {
+    override fun interruptXPositionAbsPxAnimation() {
+        check(xPositionAbsPxAnimatable.isRunning) {
             "Tried to interrupt not yer running xAbsolutePositionPx animation"
         }
         check(animationRoutine != null) {
@@ -70,15 +71,15 @@ class CursorViewModelImpl(
         animationRoutine!!.cancel()
         animationRoutine = null
         coroutineScope.launch {
-            xAbsolutePositionPxAnimatable.stop()
+            xPositionAbsPxAnimatable.stop()
         }
     }
 
-    override fun saveXAbsolutePositionPxState() {
-        xAbsolutePositionPxSaved = _xAbsolutePositionPx
+    override fun saveXPositionAbsPxState() {
+        xPositionAbsPxSaved = xPositionAbsPx
     }
 
-    override fun restoreXAbsolutePositionPxState() {
-        _xAbsolutePositionPx = xAbsolutePositionPxSaved
+    override fun restoreXPositionAbsPxState() {
+        xPositionAbsPx = xPositionAbsPxSaved
     }
 }

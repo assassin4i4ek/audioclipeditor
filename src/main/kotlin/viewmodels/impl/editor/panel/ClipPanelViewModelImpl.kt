@@ -3,10 +3,14 @@ package viewmodels.impl.editor.panel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
@@ -16,9 +20,13 @@ import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
+import viewmodels.api.editor.panel.cursor.CursorViewModel
+import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.EditableClipViewModelImpl
 import viewmodels.impl.editor.panel.clip.GlobalClipViewModelImpl
+import viewmodels.impl.editor.panel.cursor.CursorViewModelImpl
+import viewmodels.impl.editor.panel.global.GlobalWindowClipViewModelImpl
 import java.io.File
 
 class ClipPanelViewModelImpl(
@@ -29,7 +37,7 @@ class ClipPanelViewModelImpl(
     private val coroutineScope: CoroutineScope,
     density: Density,
     override val specs: MutableEditorSpecs
-): ClipPanelViewModel, EditableClipViewModelImpl.Parent {
+): ClipPanelViewModel {
     /* Parent ViewModels */
     interface Parent {
         fun openClips()
@@ -37,31 +45,43 @@ class ClipPanelViewModelImpl(
 
     /* Child ViewModels */
     override val editableClipViewModel: EditableClipViewModel = EditableClipViewModelImpl(
-        object : EditableClipViewModelImpl.Sibling {
-            override fun setCursorAbsolutePositionPx(absolutePositionPx: Float) {
-                globalClipViewModel.setCursorAbsolutePositionPx(absolutePositionPx)
-            }
-
-            override fun setFragmentFirstBoundUs(firstBoundUs: Long) {
-                globalClipViewModel.setFragmentFirstBoundUs(firstBoundUs)
-            }
-
-            override fun setFragmentSecondBoundUs(secondBoundUs: Long) {
-                globalClipViewModel.setFragmentSecondBoundUs(secondBoundUs)
-            }
-        }, this, pcmPathBuilder, coroutineScope, density, specs
+        pcmPathBuilder, coroutineScope, density, specs
     )
     override val globalClipViewModel: GlobalClipViewModel = GlobalClipViewModelImpl(
-        object : GlobalClipViewModelImpl.Sibling {
-            override val clipViewAbsoluteWidthPx: Float
-                get() = editableClipViewModel.clipViewAbsoluteWidthPx
+        pcmPathBuilder, coroutineScope, density, specs
+    )
+    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
+        object : CursorViewModelImpl.Parent {
+            override fun toWinOffset(absPx: Float): Float {
+                return editableClipViewModel.toWinOffset(absPx)
+            }
 
-            override var xAbsoluteOffsetPx: Float
-                get() = editableClipViewModel.xAbsoluteOffsetPx
-                set(value) {
-                    editableClipViewModel.updateXAbsoluteOffsetPx(value)
-                }
-        }, this, pcmPathBuilder, coroutineScope, density, specs
+            override fun notifyAnimationFinish() {
+                notifyPlayFinish()
+            }
+        }, coroutineScope
+    )
+    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
+        object : CursorViewModelImpl.Parent {
+            override fun toWinOffset(absPx: Float): Float {
+                return globalClipViewModel.toWinOffset(absPx)
+            }
+
+            override fun notifyAnimationFinish() {
+
+            }
+        }, coroutineScope
+    )
+    override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(
+        object : GlobalWindowClipViewModelImpl.Parent {
+            override fun toWinOffset(absPx: Float): Float {
+                return globalClipViewModel.toWinOffset(absPx)
+            }
+
+            override fun toWinSize(absPx: Float): Float {
+                return globalClipViewModel.toWinSize(absPx)
+            }
+        }
     )
 
     /* Simple properties */
@@ -87,6 +107,20 @@ class ClipPanelViewModelImpl(
 
             _isLoading = false
         }
+        coroutineScope.launch {
+            snapshotFlow {
+                editableClipViewModel.clipViewWidthAbsPx
+            }.collect { editableClipViewWidthAbsPx ->
+                globalWindowClipViewModel.updateWidthAbsPx(editableClipViewWidthAbsPx)
+            }
+        }
+        coroutineScope.launch {
+            snapshotFlow {
+                editableClipViewModel.xOffsetAbsPx
+            }.collect { editableXOffsetAbsPx ->
+                globalWindowClipViewModel.updateXOffsetAbsPx(editableXOffsetAbsPx)
+            }
+        }
     }
 
     override fun onOpenClips() {
@@ -104,6 +138,43 @@ class ClipPanelViewModelImpl(
 
     override fun onDecreaseZoomClick() {
         editableClipViewModel.run { updateZoom(zoom / specs.transformZoomClickCoef) }
+    }
+
+
+    override fun onEditableClipViewHorizontalScroll(delta: Float): Float {
+        editableClipViewModel.performHorizontalScroll(delta)
+        return delta
+    }
+
+    override fun onEditableClipViewVerticalScroll(delta: Float): Float {
+        editableClipViewModel.performVerticalScroll(delta)
+        return delta
+    }
+
+    override fun onEditableClipViewPress(press: Offset) {
+        val pressPositionAbsPx = editableClipViewModel.toAbsOffset(press.x)
+        // update cursor position
+        editableCursorViewModel.updatePositionAbsPx(pressPositionAbsPx)
+        globalCursorViewModel.updatePositionAbsPx(pressPositionAbsPx)
+        // update clip playing
+        if (_isClipPlaying) {
+            stopPlayClip(false)
+            startPlayClip()
+        }
+        // handle fragments manipulation
+        
+    }
+
+    override fun onGlobalClipViewPress(press: Offset) {
+        val halfAreaSize = editableClipViewModel.clipViewWidthAbsPx / 2
+        val absoluteOffsetPx = globalClipViewModel.toAbsOffset(press.x)
+        editableClipViewModel.updateXOffsetAbsPx(absoluteOffsetPx - halfAreaSize)
+    }
+
+    override fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset) {
+        val halfAreaSize = editableClipViewModel.clipViewWidthAbsPx / 2
+        val absoluteOffsetPx = globalClipViewModel.toAbsOffset(change.position.x)
+        editableClipViewModel.updateXOffsetAbsPx(absoluteOffsetPx - halfAreaSize)
     }
 
     override fun onPlayClicked() {
@@ -186,28 +257,36 @@ class ClipPanelViewModelImpl(
     }
 
     private fun startPlayClip() {
-        val cursorPositionUs = editableClipViewModel.cursorPositionUs()
-        editableClipViewModel.startPlayClip()
-        globalClipViewModel.startPlayClip()
-        coroutineScope.launch {
-            _player.play(cursorPositionUs)
+        with(editableClipViewModel) {
+            val cursorPositionUs = toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
+            val playDuration = _audioClip.durationUs - toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
+            editableCursorViewModel.saveXPositionAbsPxState()
+            globalCursorViewModel.saveXPositionAbsPxState()
+            editableCursorViewModel.animateToXPositionAbsPx(
+                toAbsPx(_audioClip.durationUs), playDuration
+            )
+            globalCursorViewModel.animateToXPositionAbsPx(
+                toAbsPx(_audioClip.durationUs), playDuration
+            )
+            coroutineScope.launch {
+                _player.play(cursorPositionUs)
+            }
         }
     }
 
     private fun stopPlayClip(restoreStateBeforePlay: Boolean) {
         _player.stop()
-        editableClipViewModel.stopPlayClip(restoreStateBeforePlay)
-        globalClipViewModel.stopPlayClip(restoreStateBeforePlay)
-    }
-
-    override fun notifyNewCursorPosition() {
-        if (_isClipPlaying) {
-            stopPlayClip(false)
-            startPlayClip()
+        editableCursorViewModel.interruptXPositionAbsPxAnimation()
+        globalCursorViewModel.interruptXPositionAbsPxAnimation()
+        if (restoreStateBeforePlay) {
+            editableCursorViewModel.restoreXPositionAbsPxState()
+            globalCursorViewModel.restoreXPositionAbsPxState()
         }
     }
 
-    override fun notifyPlayFinish() {
+    private fun notifyPlayFinish() {
         _isClipPlaying = false
+        editableCursorViewModel.restoreXPositionAbsPxState()
+        globalCursorViewModel.restoreXPositionAbsPxState()
     }
 }

@@ -1,4 +1,4 @@
-package viewmodels.api.editor.panel.clip.fragments
+package viewmodels.api.editor.panel.fragments
 
 import viewmodels.api.BaseViewModel
 

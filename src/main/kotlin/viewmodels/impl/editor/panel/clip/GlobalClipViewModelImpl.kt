@@ -28,7 +28,7 @@ class GlobalClipViewModelImpl(
 
     override val xOffsetAbsPx: Float get() = 0f
     override val zoom: Float by derivedStateOf {
-        (clipViewWindowWidthPx / contentAbsoluteWidthPx)
+        (clipViewWidthWinPx / contentWidthAbsPx)
             .apply {
                 check(isFinite() && this > 0f) {
                     "Invalid value of zoom: $this"

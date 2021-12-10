@@ -16,8 +16,7 @@ interface CursorViewModel: BaseViewModel {
 
     /* Methods */
     fun updatePositionAbsPx(xPositionAbsPx: Float)
-    fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long)
-    fun interruptXPositionAbsPxAnimation()
+    suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long)
     fun saveXPositionAbsPxState()
     fun restoreXPositionAbsPxState()
 }

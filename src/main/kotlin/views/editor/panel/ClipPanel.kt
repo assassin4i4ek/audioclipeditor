@@ -20,6 +20,7 @@ import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
 import views.editor.panel.clip.GlobalWindowClipView
+import views.editor.panel.clip.fragments.FragmentSetView
 import views.editor.panel.cursor.ClipCursor
 
 @Composable
@@ -54,13 +55,15 @@ fun ClipPanel(
                             detectTapGestures(
                                 onPress = { clipPanelViewModel.onGlobalClipViewPress(it) }
                             )
-                        }.pointerInput(clipPanelViewModel) {
+                        }
+                        .pointerInput(clipPanelViewModel) {
                             detectDragGestures(
                                 onDrag = clipPanelViewModel::onGlobalClipViewDrag
                             )
                         }
                     ) {
                         GlobalWindowClipView(clipPanelViewModel.globalWindowClipViewModel)
+                        FragmentSetView(clipPanelViewModel.globalFragmentSetViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
                         ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }
@@ -69,6 +72,12 @@ fun ClipPanel(
                         .pointerInput(clipPanelViewModel) {
                             detectTapGestures(
                                 onPress = { clipPanelViewModel.onEditableClipViewPress(it) }
+                            )
+                        }
+                        .pointerInput(clipPanelViewModel) {
+                            detectDragGestures(
+                                onDragStart = clipPanelViewModel::onEditableClipViewDragStart,
+                                onDrag = {_,_ ->}
                             )
                         }
                         .scrollable(
@@ -81,6 +90,7 @@ fun ClipPanel(
                         )
                     ) {
                         ClipView(clipPanelViewModel.editableClipViewModel)
+                        FragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
                         ClipCursor(clipPanelViewModel.editableCursorViewModel)
                     }
                 }

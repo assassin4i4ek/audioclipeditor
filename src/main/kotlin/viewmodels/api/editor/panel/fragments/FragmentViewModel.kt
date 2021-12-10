@@ -10,17 +10,19 @@ interface FragmentViewModel: BaseViewModel {
     /* Simple properties */
 
     /* Stateful properties */
-    val leftImmutableAreaStartWindowPositionPx: Float
-    val mutableAreaStartWindowPositionPx: Float
-    val mutableAreaEndWindowPositionPx: Float
-    val rightImmutableAreaEndWindowPositionPx: Float
+    val leftImmutableAreaStartPositionWinPx: Float
+    val mutableAreaStartPositionWinPx: Float
+    val mutableAreaEndPositionWinPx: Float
+    val rightImmutableAreaEndPositionWinPx: Float
 
-    val leftImmutableAreaWidthWindowPx: Float
-        get() = mutableAreaStartWindowPositionPx - leftImmutableAreaStartWindowPositionPx
-    val mutableAreaWidthWindowPx: Float
-        get() = mutableAreaEndWindowPositionPx - mutableAreaStartWindowPositionPx
-    val rightImmutableAreaWidthWindowPx: Float
-        get() = rightImmutableAreaEndWindowPositionPx - mutableAreaEndWindowPositionPx
+    val leftImmutableAreaWidthWinPx: Float
+        get() = mutableAreaStartPositionWinPx - leftImmutableAreaStartPositionWinPx
+    val mutableAreaWidthWinPx: Float
+        get() = mutableAreaEndPositionWinPx - mutableAreaStartPositionWinPx
+    val rightImmutableAreaWidthWinPx: Float
+        get() = rightImmutableAreaEndPositionWinPx - mutableAreaEndPositionWinPx
+    val totalWidthWinPx: Float
+        get() = leftImmutableAreaWidthWinPx + mutableAreaWidthWinPx + rightImmutableAreaWidthWinPx
 
     /* Callbacks */
 

@@ -10,7 +10,9 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
@@ -21,13 +23,17 @@ import viewmodels.api.editor.panel.ClipPanelViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
+import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.EditableClipViewModelImpl
 import viewmodels.impl.editor.panel.clip.GlobalClipViewModelImpl
 import viewmodels.impl.editor.panel.cursor.CursorViewModelImpl
+import viewmodels.impl.editor.panel.fragments.FragmentSetViewModelImpl
 import viewmodels.impl.editor.panel.global.GlobalWindowClipViewModelImpl
 import java.io.File
+import kotlin.math.max
+import kotlin.math.min
 
 class ClipPanelViewModelImpl(
     clipFile: File,
@@ -55,22 +61,14 @@ class ClipPanelViewModelImpl(
             override fun toWinOffset(absPx: Float): Float {
                 return editableClipViewModel.toWinOffset(absPx)
             }
-
-            override fun notifyAnimationFinish() {
-                notifyPlayFinish()
-            }
-        }, coroutineScope
+        }
     )
     override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
         object : CursorViewModelImpl.Parent {
             override fun toWinOffset(absPx: Float): Float {
                 return globalClipViewModel.toWinOffset(absPx)
             }
-
-            override fun notifyAnimationFinish() {
-
-            }
-        }, coroutineScope
+        }
     )
     override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(
         object : GlobalWindowClipViewModelImpl.Parent {
@@ -83,27 +81,51 @@ class ClipPanelViewModelImpl(
             }
         }
     )
+    override val editableFragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(
+        object : FragmentSetViewModelImpl.Parent {
+            override fun toWindowOffset(absPx: Float): Float {
+                return editableClipViewModel.toWinOffset(absPx)
+            }
+
+            override fun toAbsPx(us: Long): Float {
+                return editableClipViewModel.toAbsPx(us)
+            }
+        }
+    )
+    override val globalFragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(
+        object : FragmentSetViewModelImpl.Parent {
+            override fun toWindowOffset(absPx: Float): Float {
+                return globalClipViewModel.toWinOffset(absPx)
+            }
+
+            override fun toAbsPx(us: Long): Float {
+                return globalClipViewModel.toAbsPx(us)
+            }
+        }
+    )
 
     /* Simple properties */
-    private lateinit var _audioClip: AudioClip
-    private lateinit var _player: AudioClipPlayer
+    private lateinit var audioClip: AudioClip
+    private lateinit var player: AudioClipPlayer
+    private var clipPlayJob: Job? = null
+    private var pressPositionUs: Long = 0
 
     /* Stateful properties */
     private var _isLoading: Boolean by mutableStateOf(true)
     override val isLoading: Boolean get() = _isLoading
 
-    private var _isClipPlaying: Boolean by mutableStateOf(false)
-    override val canPlayClip: Boolean get() = !_isLoading && !_isClipPlaying
-    override val canPauseClip: Boolean get() = !_isLoading && _isClipPlaying
-    override val canStopClip: Boolean get() = !_isLoading && _isClipPlaying
+    private var isClipPlaying: Boolean by mutableStateOf(false)
+    override val canPlayClip: Boolean get() = !_isLoading && !isClipPlaying
+    override val canPauseClip: Boolean get() = !_isLoading && isClipPlaying
+    override val canStopClip: Boolean get() = !_isLoading && isClipPlaying
 
     /* Callbacks */
     init {
         coroutineScope.launch {
-            _audioClip = audioClipService.openAudioClip(clipFile)
-            _player = audioClipService.createPlayer(_audioClip)
-            editableClipViewModel.submitClip(_audioClip)
-            globalClipViewModel.submitClip(_audioClip)
+            audioClip = audioClipService.openAudioClip(clipFile)
+            player = audioClipService.createPlayer(audioClip)
+            editableClipViewModel.submitClip(audioClip)
+            globalClipViewModel.submitClip(audioClip)
 
             _isLoading = false
         }
@@ -157,12 +179,34 @@ class ClipPanelViewModelImpl(
         editableCursorViewModel.updatePositionAbsPx(pressPositionAbsPx)
         globalCursorViewModel.updatePositionAbsPx(pressPositionAbsPx)
         // update clip playing
-        if (_isClipPlaying) {
+        if (isClipPlaying) {
             stopPlayClip(false)
             startPlayClip()
         }
         // handle fragments manipulation
-        
+        pressPositionUs = editableClipViewModel.toUs(pressPositionAbsPx)
+
+        val selectedFragment = audioClip.fragments.find { fragment -> pressPositionUs in fragment }
+        if (selectedFragment != null) {
+            editableFragmentSetViewModel.selectFragment(selectedFragment)
+            globalFragmentSetViewModel.selectFragment(selectedFragment)
+        }
+        else {
+            editableFragmentSetViewModel.deselectFragment()
+            globalFragmentSetViewModel.deselectFragment()
+        }
+   }
+
+    override fun onEditableClipViewDragStart(dragStart: Offset) {
+        val dragStartPositionUs = editableClipViewModel.toUs(editableClipViewModel.toAbsOffset(dragStart.x))
+        if (editableFragmentSetViewModel.selectedFragmentViewModel == null) {
+            val newFragment = audioClip.createFragment(
+                min(pressPositionUs, dragStartPositionUs), max(pressPositionUs, dragStartPositionUs)
+            )
+            editableFragmentSetViewModel.submitFragment(newFragment)
+            globalFragmentSetViewModel.submitFragment(newFragment)
+            println("Created fragment")
+        }
     }
 
     override fun onGlobalClipViewPress(press: Offset) {
@@ -178,17 +222,17 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onPlayClicked() {
-        _isClipPlaying = true
+        isClipPlaying = true
         startPlayClip()
     }
 
     override fun onPauseClicked() {
-        _isClipPlaying = false
+        isClipPlaying = false
         stopPlayClip(false)
     }
 
     override fun onStopClicked() {
-        _isClipPlaying = false
+        isClipPlaying = false
         stopPlayClip(true)
     }
 
@@ -253,40 +297,40 @@ class ClipPanelViewModelImpl(
 
     /* Methods */
     override fun close() {
-        audioClipService.closeAudioClip(_audioClip, _player)
+        audioClipService.closeAudioClip(audioClip, player)
     }
 
     private fun startPlayClip() {
         with(editableClipViewModel) {
             val cursorPositionUs = toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
-            val playDuration = _audioClip.durationUs - toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
+            val playDuration = audioClip.durationUs - toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
             editableCursorViewModel.saveXPositionAbsPxState()
             globalCursorViewModel.saveXPositionAbsPxState()
-            editableCursorViewModel.animateToXPositionAbsPx(
-                toAbsPx(_audioClip.durationUs), playDuration
-            )
-            globalCursorViewModel.animateToXPositionAbsPx(
-                toAbsPx(_audioClip.durationUs), playDuration
-            )
-            coroutineScope.launch {
-                _player.play(cursorPositionUs)
+
+            clipPlayJob = coroutineScope.launch {
+                val playerJob = launch {
+                    player.play(cursorPositionUs)
+                }
+                val editableCursorAnimationJob = launch {
+                    editableCursorViewModel.animateToXPositionAbsPx(toAbsPx(audioClip.durationUs), playDuration)
+                }
+                val globalCursorAnimationJob = launch {
+                    globalCursorViewModel.animateToXPositionAbsPx(toAbsPx(audioClip.durationUs), playDuration)
+                }
+                joinAll(playerJob, editableCursorAnimationJob, globalCursorAnimationJob)
+                isClipPlaying = false
+                stopPlayClip(true)
             }
         }
     }
 
     private fun stopPlayClip(restoreStateBeforePlay: Boolean) {
-        _player.stop()
-        editableCursorViewModel.interruptXPositionAbsPxAnimation()
-        globalCursorViewModel.interruptXPositionAbsPxAnimation()
+        clipPlayJob!!.cancel()
+        clipPlayJob = null
+        player.stop()
         if (restoreStateBeforePlay) {
             editableCursorViewModel.restoreXPositionAbsPxState()
             globalCursorViewModel.restoreXPositionAbsPxState()
         }
-    }
-
-    private fun notifyPlayFinish() {
-        _isClipPlaying = false
-        editableCursorViewModel.restoreXPositionAbsPxState()
-        globalCursorViewModel.restoreXPositionAbsPxState()
     }
 }

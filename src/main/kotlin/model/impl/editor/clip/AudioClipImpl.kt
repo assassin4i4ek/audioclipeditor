@@ -2,6 +2,7 @@ package model.impl.editor.clip
 
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
 import model.impl.editor.clip.fragment.AudioClipFragmentImpl
 import specs.api.immutable.audio.AudioServiceSpecs
 import java.util.*
@@ -17,17 +18,17 @@ class AudioClipImpl(
     private val originalPcmByteArray: ByteArray,
     private val specs: AudioServiceSpecs
 ) : AudioClip {
-    private val _fragments: TreeSet<AudioClipFragment> = sortedSetOf(Comparator { a, b ->
+    private val _fragments: TreeSet<MutableAudioClipFragment> = sortedSetOf(Comparator { a, b ->
         (a.leftImmutableAreaStartUs - b.leftImmutableAreaStartUs).toInt()
     })
 
-    override val fragments: Set<AudioClipFragment> get() = _fragments
+    override val fragments: Set<MutableAudioClipFragment> get() = _fragments
 
     override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray) {
         System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)
     }
 
-    override fun createFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): AudioClipFragment {
+    override fun createFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): MutableAudioClipFragment {
         val newFragment = AudioClipFragmentImpl(
             mutableAreaStartUs - specs.minImmutableAreasDurationUs,
             mutableAreaStartUs,

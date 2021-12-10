@@ -8,11 +8,11 @@ import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
+import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 
 interface ClipPanelViewModel: BaseViewModel {
     /* Parent ViewModels */
-
 
     /* Child ViewModels */
     val editableClipViewModel: EditableClipViewModel
@@ -20,6 +20,8 @@ interface ClipPanelViewModel: BaseViewModel {
     val editableCursorViewModel: CursorViewModel
     val globalCursorViewModel: CursorViewModel
     val globalWindowClipViewModel: GlobalWindowClipViewModel
+    val editableFragmentSetViewModel: FragmentSetViewModel
+    val globalFragmentSetViewModel: FragmentSetViewModel
 
     /* Specs */
     val specs: EditorSpecs
@@ -42,6 +44,7 @@ interface ClipPanelViewModel: BaseViewModel {
     fun onEditableClipViewHorizontalScroll(delta: Float): Float
     fun onEditableClipViewVerticalScroll(delta: Float): Float
     fun onEditableClipViewPress(press: Offset)
+    fun onEditableClipViewDragStart(dragStart: Offset)
 
     fun onGlobalClipViewPress(press: Offset)
     fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset)

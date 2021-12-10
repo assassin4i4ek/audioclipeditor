@@ -1,6 +1,7 @@
 package model.impl.editor.clip.fragment
 
 import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.audio.AudioServiceSpecs
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -12,7 +13,7 @@ class AudioClipFragmentImpl(
     rightImmutableAreaEndUs: Long,
     private val specs: AudioServiceSpecs,
     audioClipDurationUs: Long,
-): AudioClipFragment {
+): MutableAudioClipFragment {
     override val maxRightBoundUs: Long = audioClipDurationUs
 
     private fun validateBounds() {

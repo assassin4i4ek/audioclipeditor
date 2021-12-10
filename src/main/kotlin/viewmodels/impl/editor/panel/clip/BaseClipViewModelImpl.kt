@@ -38,14 +38,14 @@ abstract class BaseClipViewModelImpl(
     private var _channelPcmPaths: List<Path>? by mutableStateOf(null)
     override val channelPcmPaths: List<Path>? get() = _channelPcmPaths
 
-    protected var contentAbsoluteWidthPx by mutableStateOf(0f)
-    protected open var clipViewWindowWidthPx by mutableStateOf(0f)
-    protected var clipViewWindowHeightPx by mutableStateOf(0f)
+    protected var contentWidthAbsPx by mutableStateOf(0f)
+    protected open var clipViewWidthWinPx by mutableStateOf(0f)
+    protected var clipViewHeightWinPx by mutableStateOf(0f)
 
     /* Callbacks */
     override fun onSizeChanged(size: IntSize) {
-        clipViewWindowWidthPx = size.width.toFloat()
-        clipViewWindowHeightPx = size.height.toFloat()
+        clipViewWidthWinPx = size.width.toFloat()
+        clipViewHeightWinPx = size.height.toFloat()
     }
 
     /* Methods */
@@ -57,8 +57,8 @@ abstract class BaseClipViewModelImpl(
         _sampleRate = audioClip.sampleRate
         _numChannels = audioClip.numChannels
 
-        contentAbsoluteWidthPx = with (density) { specs.xStepDpPerSec.toPx() } * (audioClip.durationUs / 1e6).toFloat()
-        clipViewWindowWidthPx = contentAbsoluteWidthPx
+        contentWidthAbsPx = with (density) { specs.xStepDpPerSec.toPx() } * (audioClip.durationUs / 1e6).toFloat()
+        clipViewWidthWinPx = contentWidthAbsPx
 
         coroutineScope.launch {
             snapshotFlow {
@@ -73,6 +73,6 @@ abstract class BaseClipViewModelImpl(
         }
     }
 
-    override fun toUs(absPx: Float): Long = (absPx.toDouble() / contentAbsoluteWidthPx * audioClip.durationUs).toLong()
-    override fun toAbsPx(us: Long): Float = (us.toDouble() / audioClip.durationUs * contentAbsoluteWidthPx).toFloat()
+    override fun toUs(absPx: Float): Long = (absPx.toDouble() / contentWidthAbsPx * audioClip.durationUs).toLong()
+    override fun toAbsPx(us: Long): Float = (us.toDouble() / audioClip.durationUs * contentWidthAbsPx).toFloat()
 }

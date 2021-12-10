@@ -1,11 +1,54 @@
 package viewmodels.impl.editor.panel.fragments
 
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import model.api.editor.clip.AudioClip
+import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.FragmentViewModel
 import kotlin.math.max
 import kotlin.math.min
 
+
+class FragmentSetViewModelImpl(
+    private val parentViewModel: Parent
+): FragmentSetViewModel {
+    /* Parent ViewModels */
+    interface Parent: FragmentViewModelImpl.Parent
+
+    /* Child ViewModels */
+
+    /* Simple properties */
+
+    /* Stateful properties */
+    private var _fragmentViewModels: Map<AudioClipFragment, FragmentViewModel> by mutableStateOf(emptyMap())
+    override val fragmentViewModels: Map<AudioClipFragment, FragmentViewModel> get() = _fragmentViewModels
+
+    private var selectedFragment: AudioClipFragment? by mutableStateOf(null)
+    override val selectedFragmentViewModel: FragmentViewModel? by derivedStateOf {
+        selectedFragment?.let { _fragmentViewModels[it] }
+    }
+
+    /* Callbacks */
+
+    /* Methods */
+    override fun selectFragment(fragment: AudioClipFragment) {
+        selectedFragment = fragment
+    }
+
+    override fun deselectFragment() {
+        selectedFragment = null
+    }
+
+    override fun submitFragment(fragment: AudioClipFragment) {
+        require(!_fragmentViewModels.containsKey(fragment)) {
+            "Trying to submit an already present fragment $fragment"
+        }
+        _fragmentViewModels = _fragmentViewModels + (fragment to FragmentViewModelImpl(fragment, parentViewModel))
+    }
+}
 /*class FragmentSetViewModelImpl(
     private val parentViewModel: Parent,
 ): FragmentSetViewModel, FragmentViewModelImpl.Parent {

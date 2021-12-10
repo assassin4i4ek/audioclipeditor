@@ -9,17 +9,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.cursor.CursorViewModel
 
 class CursorViewModelImpl(
     private val parentViewModel: Parent,
-    private val coroutineScope: CoroutineScope
 ): CursorViewModel {
     /* Parent ViewModels */
     interface Parent {
         fun toWinOffset(absPx: Float): Float
-        fun notifyAnimationFinish()
     }
 
     /* Child ViewModels */
@@ -27,7 +26,7 @@ class CursorViewModelImpl(
     /* Simple properties */
     private val xPositionAbsPxAnimatable = Animatable(0f)
     private var xPositionAbsPxSaved: Float = 0f
-    private var animationRoutine: Job? = null
+    private var animationJob: Job? = null
 
     /* Stateful properties */
     private var xPositionAbsPx: Float by mutableStateOf(0f)
@@ -43,11 +42,11 @@ class CursorViewModelImpl(
         this.xPositionAbsPx = xPositionAbsPx
     }
 
-    override fun animateToXPositionAbsPx(targetXAbsolutePositionPx: Float, durationUs: Long) {
-        animationRoutine = coroutineScope.launch {
+    override suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long) {
+        coroutineScope {
             xPositionAbsPxAnimatable.snapTo(xPositionAbsPx)
             xPositionAbsPxAnimatable.animateTo(
-                targetValue = targetXAbsolutePositionPx,
+                targetValue = targetXPositionAbsPx,
                 animationSpec = tween(
                     durationMillis = (durationUs.toDouble() / 1e3).toInt(),
                     easing = LinearEasing
@@ -57,21 +56,6 @@ class CursorViewModelImpl(
                     xPositionAbsPx = value
                 }
             }
-            parentViewModel.notifyAnimationFinish()
-        }
-    }
-
-    override fun interruptXPositionAbsPxAnimation() {
-        check(xPositionAbsPxAnimatable.isRunning) {
-            "Tried to interrupt not yer running xAbsolutePositionPx animation"
-        }
-        check(animationRoutine != null) {
-            "Running unstored animation routine"
-        }
-        animationRoutine!!.cancel()
-        animationRoutine = null
-        coroutineScope.launch {
-            xPositionAbsPxAnimatable.stop()
         }
     }
 

@@ -1,6 +1,7 @@
 package viewmodels.api.editor.panel.fragments
 
 import model.api.editor.clip.AudioClip
+import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.BaseViewModel
 
 interface FragmentSetViewModel: BaseViewModel {
@@ -11,11 +12,13 @@ interface FragmentSetViewModel: BaseViewModel {
     /* Simple properties */
 
     /* Stateful properties */
-    val fragmentViewModels: List<FragmentViewModel>
+    val selectedFragmentViewModel: FragmentViewModel?
+    val fragmentViewModels: Map<AudioClipFragment, FragmentViewModel>
 
     /* Callbacks */
 
     /* Methods */
-    fun setFirstBoundUs(firstBoundUs: Long)
-    fun setSecondBoundUs(secondBoundUs: Long)
+    fun selectFragment(fragment: AudioClipFragment)
+    fun submitFragment(fragment: AudioClipFragment)
+    fun deselectFragment()
 }

@@ -37,7 +37,7 @@ class EditableClipViewModelImpl(
         xAbsoluteOffsetPxRaw
             .coerceIn(
                 0f,
-                (contentAbsoluteWidthPx - toAbsSize(clipViewWindowWidthPx)).coerceAtLeast(0f),
+                (contentWidthAbsPx - toAbsSize(clipViewWidthWinPx)).coerceAtLeast(0f),
             ).apply {
                 check(isFinite()) {
                     "Invalid value of xAbsoluteOffsetPx: $this"
@@ -54,7 +54,7 @@ class EditableClipViewModelImpl(
     private val zoomAdjusted: Float by derivedStateOf {
         zoomRaw
             .coerceAtLeast(
-                (clipViewWindowWidthPx / contentAbsoluteWidthPx)//.coerceAtMost(1f)
+                (clipViewWidthWinPx / contentWidthAbsPx)//.coerceAtMost(1f)
             ).apply {
                 check(isFinite() && this > 0f) {
                     "Invalid value of zoom: $this"
@@ -64,15 +64,15 @@ class EditableClipViewModelImpl(
     override var zoom: Float
         get() = zoomAdjusted
         private set(value) {
-            val oldClipViewAbsoluteWidthPx = toAbsSize(clipViewWindowWidthPx)
+            val oldClipViewAbsoluteWidthPx = toAbsSize(clipViewWidthWinPx)
             zoomRaw = value
-            val newClipViewAbsoluteWidthPx = toAbsSize(clipViewWindowWidthPx)
+            val newClipViewAbsoluteWidthPx = toAbsSize(clipViewWidthWinPx)
             // centering offset
             xOffsetAbsPx += oldClipViewAbsoluteWidthPx / 2 - newClipViewAbsoluteWidthPx / 2
         }
 
     override val clipViewWidthAbsPx: Float by derivedStateOf {
-        toAbsSize(clipViewWindowWidthPx)
+        toAbsSize(clipViewWidthWinPx)
     }
 
     /* Callbacks */
@@ -139,8 +139,8 @@ class EditableClipViewModelImpl(
         orientation: Orientation
     ): Float {
         val canvasSizeCoef = when (orientation) {
-            Orientation.Horizontal -> 982 / clipViewWindowWidthPx
-            Orientation.Vertical -> 592 / clipViewWindowHeightPx
+            Orientation.Horizontal -> 982 / clipViewWidthWinPx
+            Orientation.Vertical -> 592 / clipViewHeightWinPx
         }
         val orientationAlignmentCoef = when (orientation) {
             Orientation.Horizontal -> 1.0f / 147.3f

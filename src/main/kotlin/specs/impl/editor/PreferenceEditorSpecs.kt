@@ -47,10 +47,17 @@ class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
     )
 
 
-    override var immutableAreaDraggableAreaFraction: Float by savableProperty(
-        0.75f, ::immutableAreaDraggableAreaFraction
+    override var immutableDraggableAreaFraction: Float by savableProperty(
+        0.75f, ::immutableDraggableAreaFraction
     )
-    override var mutableAreaDraggableAreaFraction: Float by savableProperty(
-        0.25f, ::mutableAreaDraggableAreaFraction
+    override var mutableDraggableAreaFraction: Float by savableProperty(
+        0.25f, ::mutableDraggableAreaFraction
+    )
+
+    override var minImmutableAreaWidthWinDp: Dp by savableProperty(
+        40.dp, ::minImmutableAreaWidthWinDp
+    )
+    override var minMutableAreaWidthWinDp: Dp by savableProperty(
+        80.dp, ::minImmutableAreaWidthWinDp
     )
 }

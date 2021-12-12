@@ -3,6 +3,7 @@ package viewmodels.impl.editor.panel.clip
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -17,7 +18,7 @@ abstract class BaseClipViewModelImpl(
     private val pcmPathBuilder: PcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     private val density: Density,
-    override val specs: EditorSpecs
+    protected val specs: EditorSpecs
 ): ClipViewModel {
     /* Parent ViewModels */
 
@@ -41,6 +42,8 @@ abstract class BaseClipViewModelImpl(
     protected var contentWidthAbsPx by mutableStateOf(0f)
     protected open var clipViewWidthWinPx by mutableStateOf(0f)
     protected var clipViewHeightWinPx by mutableStateOf(0f)
+
+    override val xStepDpPerSec: Dp get() = specs.xStepDpPerSec
 
     /* Callbacks */
     override fun onSizeChanged(size: IntSize) {

@@ -16,6 +16,9 @@ interface EditorSpecs {
     val transformOffsetScrollCoef: Float
     val transformZoomScrollCoef: Float
 
-    val mutableAreaDraggableAreaFraction: Float
-    val immutableAreaDraggableAreaFraction: Float
+    val mutableDraggableAreaFraction: Float
+    val immutableDraggableAreaFraction: Float
+
+    val minImmutableAreaWidthWinDp: Dp
+    val minMutableAreaWidthWinDp: Dp
 }

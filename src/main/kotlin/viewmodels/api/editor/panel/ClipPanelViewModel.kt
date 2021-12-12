@@ -3,12 +3,18 @@ package viewmodels.api.editor.panel
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.PointerInputChange
-import specs.api.immutable.editor.EditorSpecs
+import androidx.compose.ui.unit.Dp
+import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
+import specs.api.immutable.editor.InputDevice
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
-import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
+import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
+import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
+import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
+import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 
 interface ClipPanelViewModel: BaseViewModel {
@@ -20,15 +26,18 @@ interface ClipPanelViewModel: BaseViewModel {
     val editableCursorViewModel: CursorViewModel
     val globalCursorViewModel: CursorViewModel
     val globalWindowClipViewModel: GlobalWindowClipViewModel
-    val editableFragmentSetViewModel: FragmentSetViewModel<*>
-    val globalFragmentSetViewModel: FragmentSetViewModel<*>
+    val editableFragmentSetViewModel: FragmentSetViewModel<MutableAudioClipFragment, DraggableFragmentViewModel>
+    val globalFragmentSetViewModel: FragmentSetViewModel<AudioClipFragment, GlobalFragmentViewModel>
 
     /* Specs */
-    val specs: EditorSpecs
 
     /* Simple properties */
 
     /* Stateful properties */
+    val maxPanelViewHeightDp: Dp
+    val minPanelViewHeightDp: Dp
+    val inputDevice: InputDevice
+
     val isLoading: Boolean
     val canPlayClip: Boolean
     val canPauseClip: Boolean

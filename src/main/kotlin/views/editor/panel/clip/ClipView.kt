@@ -47,7 +47,7 @@ fun ClipView(
                         ClipChannelView(
                             channelPath = clipViewModel.channelPcmPaths!![iChannelPcmPath],
                             sampleRate = clipViewModel.sampleRate,
-                            xStepDpPerSec = clipViewModel.specs.xStepDpPerSec,
+                            xStepDpPerSec = clipViewModel.xStepDpPerSec,
                             zoom = clipViewModel.zoom,
                             xAbsoluteOffsetPx = clipViewModel.xOffsetAbsPx
                         )

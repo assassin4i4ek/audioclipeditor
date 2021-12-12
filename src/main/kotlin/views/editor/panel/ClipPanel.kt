@@ -22,6 +22,8 @@ import views.editor.panel.clip.ClipView
 import views.editor.panel.clip.GlobalWindowClipView
 import views.editor.panel.fragments.FragmentSetView
 import views.editor.panel.cursor.ClipCursor
+import views.editor.panel.fragments.DraggableFragmentSetView
+import views.editor.panel.fragments.FragmentSetFramesView
 
 @Composable
 fun ClipPanel(
@@ -46,8 +48,8 @@ fun ClipPanel(
                 }
             } else {
                 Column(modifier = Modifier
-                    .heightIn(max = clipPanelViewModel.specs.maxPanelViewHeightDp)
-                    .requiredHeightIn(min = clipPanelViewModel.specs.minPanelViewHeightDp)
+                    .heightIn(max = clipPanelViewModel.maxPanelViewHeightDp)
+                    .requiredHeightIn(min = clipPanelViewModel.minPanelViewHeightDp)
                 ) {
                     Box(modifier = Modifier
                         .weight(1f)
@@ -66,6 +68,7 @@ fun ClipPanel(
                         GlobalWindowClipView(clipPanelViewModel.globalWindowClipViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
                         ClipCursor(clipPanelViewModel.globalCursorViewModel)
+                        FragmentSetFramesView(clipPanelViewModel.globalFragmentSetViewModel)
                     }
                     Box(modifier = Modifier
                         .weight(2f)
@@ -91,8 +94,10 @@ fun ClipPanel(
                         )
                     ) {
                         FragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
+                        DraggableFragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
                         ClipView(clipPanelViewModel.editableClipViewModel)
                         ClipCursor(clipPanelViewModel.editableCursorViewModel)
+                        FragmentSetFramesView(clipPanelViewModel.editableFragmentSetViewModel)
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -129,7 +134,7 @@ fun ClipPanel(
                 Icon(svgResource("icons/zoom_out_black_24dp.svg"), "zoom_out")
             }
             Button(onClick = clipPanelViewModel::onSwitchInputDevice) {
-                when (clipPanelViewModel.specs.inputDevice) {
+                when (clipPanelViewModel.inputDevice) {
                     InputDevice.Touchpad -> Icon(svgResource("icons/touch_app_black_24dp.svg"), "touchpad")
                     InputDevice.Mouse -> Icon(svgResource("icons/mouse_black_24dp.svg"), "mouse")
                 }

@@ -1,6 +1,7 @@
 package viewmodels.api.editor.panel.clip
 
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import model.api.editor.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
@@ -13,7 +14,6 @@ interface ClipViewModel: BaseViewModel, ClipUnitConverter {
     /* Child ViewModels */
 
     /* Specs */
-    val specs: EditorSpecs
 
     /* Simple properties */
 
@@ -23,6 +23,7 @@ interface ClipViewModel: BaseViewModel, ClipUnitConverter {
     val channelPcmPaths: List<Path>?
     val zoom: Float
     val xOffsetAbsPx: Float
+    val xStepDpPerSec: Dp
 
     /* Callbacks */
     fun onSizeChanged(size: IntSize)

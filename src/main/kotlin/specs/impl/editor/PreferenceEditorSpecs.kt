@@ -5,9 +5,7 @@ import androidx.compose.ui.unit.dp
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import specs.impl.BasePreferenceSpecs
-import specs.impl.PreferenceSavableStatefulProperty
 import java.util.prefs.Preferences
-import kotlin.reflect.KProperty
 
 class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
@@ -46,5 +44,13 @@ class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
 
     override var transformZoomScrollCoef: Float by savableProperty(
         2f, ::transformZoomScrollCoef
+    )
+
+
+    override var immutableAreaDraggableAreaFraction: Float by savableProperty(
+        0.75f, ::immutableAreaDraggableAreaFraction
+    )
+    override var mutableAreaDraggableAreaFraction: Float by savableProperty(
+        0.25f, ::mutableAreaDraggableAreaFraction
     )
 }

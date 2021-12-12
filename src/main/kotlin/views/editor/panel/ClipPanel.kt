@@ -20,7 +20,7 @@ import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
 import views.editor.panel.clip.GlobalWindowClipView
-import views.editor.panel.clip.fragments.FragmentSetView
+import views.editor.panel.fragments.FragmentSetView
 import views.editor.panel.cursor.ClipCursor
 
 @Composable
@@ -62,8 +62,8 @@ fun ClipPanel(
                             )
                         }
                     ) {
-                        GlobalWindowClipView(clipPanelViewModel.globalWindowClipViewModel)
                         FragmentSetView(clipPanelViewModel.globalFragmentSetViewModel)
+                        GlobalWindowClipView(clipPanelViewModel.globalWindowClipViewModel)
                         ClipView(clipPanelViewModel.globalClipViewModel)
                         ClipCursor(clipPanelViewModel.globalCursorViewModel)
                     }
@@ -77,7 +77,8 @@ fun ClipPanel(
                         .pointerInput(clipPanelViewModel) {
                             detectDragGestures(
                                 onDragStart = clipPanelViewModel::onEditableClipViewDragStart,
-                                onDrag = {_,_ ->}
+                                onDrag = clipPanelViewModel::onEditableClipViewDrag,
+                                onDragEnd = clipPanelViewModel::onEditableClipViewDragEnd
                             )
                         }
                         .scrollable(
@@ -89,8 +90,8 @@ fun ClipPanel(
                             Orientation.Vertical
                         )
                     ) {
-                        ClipView(clipPanelViewModel.editableClipViewModel)
                         FragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
+                        ClipView(clipPanelViewModel.editableClipViewModel)
                         ClipCursor(clipPanelViewModel.editableCursorViewModel)
                     }
                 }

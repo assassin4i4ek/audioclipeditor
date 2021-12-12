@@ -22,8 +22,6 @@ class EditableClipViewModelImpl(
     /* Parent ViewModels */
 
     /* Child ViewModels */
-//    override val cursorViewModel: CursorViewModel = CursorViewModelImpl(this, sharedCursorState, coroutineScope)
-//    override val fragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(this)
 
     /* Simple properties */
 
@@ -110,20 +108,6 @@ class EditableClipViewModelImpl(
             }
         }
     }
-
-//    override suspend fun onPress(tap: Offset) {
-//        val tapAbsolutePositionPx = toAbsoluteOffset(tap.x)
-//        cursorViewModel.setAbsolutePositionPx(tapAbsolutePositionPx)
-//        parent.notifyNewCursorPosition()
-//
-//        val tapUs = toUs(tapAbsolutePositionPx)
-//        fragmentSetViewModel.setFirstBoundUs(tapUs)
-//    }
-//
-//    override fun onDragStart(dragStart: Offset) {
-//        val dragStartUs = toUs(toAbsoluteOffset(dragStart.x))
-//        fragmentSetViewModel.setSecondBoundUs(dragStartUs)
-//    }
 
     /* Methods */
     override fun updateZoom(newZoom: Float) {

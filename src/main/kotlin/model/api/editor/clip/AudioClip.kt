@@ -16,6 +16,7 @@ interface AudioClip: AudioPcm {
     val fragments: Set<MutableAudioClipFragment>
 
     fun readPcm(startPosition: Int, size: Int, buffer: ByteArray)
-    fun createFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): MutableAudioClipFragment
+    fun createMinDurationFragment(mutableAreaStartUs: Long): MutableAudioClipFragment
+    fun removeFragment(fragment: MutableAudioClipFragment)
     fun close()
 }

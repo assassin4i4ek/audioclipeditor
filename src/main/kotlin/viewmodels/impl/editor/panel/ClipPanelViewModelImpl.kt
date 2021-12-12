@@ -8,6 +8,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -17,19 +18,26 @@ import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
 import model.api.editor.clip.AudioClipService
+import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
+import viewmodels.api.editor.panel.clip.ClipViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
+import viewmodels.api.editor.panel.fragments.FragmentDragSegment
 import viewmodels.api.editor.panel.fragments.FragmentSetViewModel
+import viewmodels.api.editor.panel.fragments.FragmentViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.clip.EditableClipViewModelImpl
 import viewmodels.impl.editor.panel.clip.GlobalClipViewModelImpl
 import viewmodels.impl.editor.panel.cursor.CursorViewModelImpl
 import viewmodels.impl.editor.panel.fragments.FragmentSetViewModelImpl
+import viewmodels.impl.editor.panel.fragments.FragmentViewModelImpl
+import viewmodels.impl.editor.panel.fragments.MutatingFragmentViewModelImpl
 import viewmodels.impl.editor.panel.global.GlobalWindowClipViewModelImpl
 import java.io.File
 import kotlin.math.max
@@ -56,52 +64,24 @@ class ClipPanelViewModelImpl(
     override val globalClipViewModel: GlobalClipViewModel = GlobalClipViewModelImpl(
         pcmPathBuilder, coroutineScope, density, specs
     )
-    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(
-        object : CursorViewModelImpl.Parent {
-            override fun toWinOffset(absPx: Float): Float {
-                return editableClipViewModel.toWinOffset(absPx)
-            }
-        }
-    )
-    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(
-        object : CursorViewModelImpl.Parent {
-            override fun toWinOffset(absPx: Float): Float {
-                return globalClipViewModel.toWinOffset(absPx)
-            }
-        }
-    )
-    override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(
-        object : GlobalWindowClipViewModelImpl.Parent {
-            override fun toWinOffset(absPx: Float): Float {
-                return globalClipViewModel.toWinOffset(absPx)
-            }
 
-            override fun toWinSize(absPx: Float): Float {
-                return globalClipViewModel.toWinSize(absPx)
-            }
-        }
-    )
-    override val editableFragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(
-        object : FragmentSetViewModelImpl.Parent {
-            override fun toWindowOffset(absPx: Float): Float {
-                return editableClipViewModel.toWinOffset(absPx)
-            }
+    override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(editableClipViewModel)
+    override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(globalClipViewModel)
+    override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(globalClipViewModel)
 
-            override fun toAbsPx(us: Long): Float {
-                return editableClipViewModel.toAbsPx(us)
+    override val editableFragmentSetViewModel: FragmentSetViewModel<MutableAudioClipFragment> = FragmentSetViewModelImpl(
+        object : FragmentSetViewModelImpl.FragmentViewModelFactory<MutableAudioClipFragment> {
+            override fun create(fragment: MutableAudioClipFragment): FragmentViewModel {
+                return MutatingFragmentViewModelImpl(fragment, editableClipViewModel)
             }
-        }
+        }, specs
     )
-    override val globalFragmentSetViewModel: FragmentSetViewModel = FragmentSetViewModelImpl(
-        object : FragmentSetViewModelImpl.Parent {
-            override fun toWindowOffset(absPx: Float): Float {
-                return globalClipViewModel.toWinOffset(absPx)
+    override val globalFragmentSetViewModel: FragmentSetViewModel<AudioClipFragment> = FragmentSetViewModelImpl(
+        object : FragmentSetViewModelImpl.FragmentViewModelFactory<AudioClipFragment> {
+            override fun create(fragment: AudioClipFragment): FragmentViewModel {
+                return FragmentViewModelImpl(fragment, globalClipViewModel)
             }
-
-            override fun toAbsPx(us: Long): Float {
-                return globalClipViewModel.toAbsPx(us)
-            }
-        }
+        }, specs
     )
 
     /* Simple properties */
@@ -199,13 +179,32 @@ class ClipPanelViewModelImpl(
 
     override fun onEditableClipViewDragStart(dragStart: Offset) {
         val dragStartPositionUs = editableClipViewModel.toUs(editableClipViewModel.toAbsOffset(dragStart.x))
-        if (editableFragmentSetViewModel.selectedFragmentViewModel == null) {
-            val newFragment = audioClip.createFragment(
-                min(pressPositionUs, dragStartPositionUs), max(pressPositionUs, dragStartPositionUs)
-            )
-            editableFragmentSetViewModel.submitFragment(newFragment)
-            globalFragmentSetViewModel.submitFragment(newFragment)
-            println("Created fragment")
+
+        if (editableFragmentSetViewModel.selectedFragment == null) {
+            createNewFragment(dragStartPositionUs)
+        }
+        else {
+            selectExistingFragment(dragStartPositionUs)
+        }
+    }
+
+    override fun onEditableClipViewDrag(change: PointerInputChange, drag: Offset) {
+        change.consumePositionChange()
+        val dragPositionUs = editableClipViewModel.toUs(editableClipViewModel.toAbsOffset(change.position.x))
+        editableFragmentSetViewModel.selectedFragmentViewModel!!.tryDragTo(dragPositionUs)
+        globalFragmentSetViewModel.selectedFragmentViewModel!!.tryDragTo(dragPositionUs)
+    }
+
+    override fun onEditableClipViewDragEnd() {
+        if (editableFragmentSetViewModel.selectedFragmentViewModel!!.isError) {
+            val fragmentToRemove = editableFragmentSetViewModel.selectedFragment!!
+            editableFragmentSetViewModel.removeFragment(editableFragmentSetViewModel.selectedFragment!!)
+            globalFragmentSetViewModel.removeFragment(globalFragmentSetViewModel.selectedFragment!!)
+            audioClip.removeFragment(fragmentToRemove as MutableAudioClipFragment)
+        }
+        else {
+            editableFragmentSetViewModel.selectedFragmentViewModel!!.resetDraggableState()
+            globalFragmentSetViewModel.selectedFragmentViewModel!!.resetDraggableState()
         }
     }
 
@@ -216,6 +215,7 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onGlobalClipViewDrag(change: PointerInputChange, drag: Offset) {
+        change.consumePositionChange()
         val halfAreaSize = editableClipViewModel.clipViewWidthAbsPx / 2
         val absoluteOffsetPx = globalClipViewModel.toAbsOffset(change.position.x)
         editableClipViewModel.updateXOffsetAbsPx(absoluteOffsetPx - halfAreaSize)
@@ -331,6 +331,80 @@ class ClipPanelViewModelImpl(
         if (restoreStateBeforePlay) {
             editableCursorViewModel.restoreXPositionAbsPxState()
             globalCursorViewModel.restoreXPositionAbsPxState()
+        }
+    }
+
+    private fun createNewFragment(dragStartPositionUs: Long) {
+        val newFragment = audioClip.createMinDurationFragment(
+            min(pressPositionUs, dragStartPositionUs)
+        )
+        newFragment.leftImmutableAreaStartUs = newFragment.mutableAreaStartUs - 100000
+        newFragment.rightImmutableAreaEndUs = max(pressPositionUs, dragStartPositionUs) + 100000
+        newFragment.mutableAreaEndUs = max(pressPositionUs, dragStartPositionUs)
+        editableFragmentSetViewModel.submitFragment(newFragment)
+        globalFragmentSetViewModel.submitFragment(newFragment)
+        editableFragmentSetViewModel.selectFragment(newFragment)
+        globalFragmentSetViewModel.selectFragment(newFragment)
+
+        if (dragStartPositionUs < pressPositionUs) {
+            editableFragmentSetViewModel.selectedFragmentViewModel!!
+                .setDraggableState(FragmentDragSegment.MutableLeftBound, 0)
+            globalFragmentSetViewModel.selectedFragmentViewModel!!
+                .setDraggableState(FragmentDragSegment.MutableLeftBound, 0)
+        }
+        else {
+            editableFragmentSetViewModel.selectedFragmentViewModel!!
+                .setDraggableState(FragmentDragSegment.MutableRightBound, 0)
+            globalFragmentSetViewModel.selectedFragmentViewModel!!
+                .setDraggableState(FragmentDragSegment.MutableRightBound, 0)
+        }
+    }
+
+    private fun selectExistingFragment(dragStartPositionUs: Long) {
+        val selectedFragment = editableFragmentSetViewModel.selectedFragment!!
+        var dragStartRelativePositionUs = 0L
+        val dragSegment = with(selectedFragment) {
+            when {
+                pressPositionUs < (leftImmutableAreaStartUs +
+                        specs.immutableAreaDraggableAreaFraction * rawLeftImmutableAreaDurationUs) -> {
+                    FragmentDragSegment.ImmutableLeftBound
+                }
+                pressPositionUs < mutableAreaStartUs -> {
+                    null
+                }
+                pressPositionUs < (mutableAreaStartUs +
+                        specs.mutableAreaDraggableAreaFraction * mutableAreaDurationUs) -> {
+                    FragmentDragSegment.MutableLeftBound
+                }
+                pressPositionUs < (mutableAreaEndUs -
+                        specs.mutableAreaDraggableAreaFraction * mutableAreaDurationUs) -> {
+                    dragStartRelativePositionUs = dragStartPositionUs - leftImmutableAreaStartUs
+                    FragmentDragSegment.Center
+                }
+                pressPositionUs < mutableAreaEndUs -> {
+                    FragmentDragSegment.MutableRightBound
+                }
+                pressPositionUs < (rightImmutableAreaEndUs -
+                        specs.immutableAreaDraggableAreaFraction * rawRightImmutableAreaDurationUs) -> {
+                    null
+                }
+                pressPositionUs < rightImmutableAreaEndUs -> {
+                    FragmentDragSegment.ImmutableRightBound
+                }
+                else -> {
+                    null
+                }
+            }
+        }
+
+        println(dragSegment)
+        if (dragSegment != null) {
+            editableFragmentSetViewModel.selectedFragmentViewModel!!.setDraggableState(dragSegment, dragStartRelativePositionUs)
+            globalFragmentSetViewModel.selectedFragmentViewModel!!.setDraggableState(dragSegment, dragStartRelativePositionUs)
+        }
+        else {
+            editableFragmentSetViewModel.selectedFragmentViewModel!!.resetDraggableState()
+            globalFragmentSetViewModel.selectedFragmentViewModel!!.resetDraggableState()
         }
     }
 }

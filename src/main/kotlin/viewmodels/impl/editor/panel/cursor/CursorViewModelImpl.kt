@@ -12,14 +12,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import viewmodels.api.editor.panel.cursor.CursorViewModel
+import viewmodels.api.utils.ClipUnitConverter
 
 class CursorViewModelImpl(
-    private val parentViewModel: Parent,
+    private val unitConverter: ClipUnitConverter,
 ): CursorViewModel {
     /* Parent ViewModels */
-    interface Parent {
-        fun toWinOffset(absPx: Float): Float
-    }
 
     /* Child ViewModels */
 
@@ -32,7 +30,7 @@ class CursorViewModelImpl(
     private var xPositionAbsPx: Float by mutableStateOf(0f)
 
     override val xPositionWinPx: Float by derivedStateOf {
-        parentViewModel.toWinOffset(xPositionAbsPx)
+        unitConverter.toWinOffset(xPositionAbsPx)
     }
 
     /* Callbacks */

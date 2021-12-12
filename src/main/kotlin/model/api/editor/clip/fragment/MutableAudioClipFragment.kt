@@ -6,6 +6,6 @@ interface MutableAudioClipFragment: AudioClipFragment {
     override var mutableAreaEndUs: Long
     override var rightImmutableAreaEndUs: Long
 
-    override var leftBoundingFragment: AudioClipFragment?
-    override var rightBoundingFragment: AudioClipFragment?
+    override var leftBoundingFragment: MutableAudioClipFragment?
+    override var rightBoundingFragment: MutableAudioClipFragment?
 }

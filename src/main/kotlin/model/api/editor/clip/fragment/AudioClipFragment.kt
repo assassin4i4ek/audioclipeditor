@@ -11,9 +11,13 @@ interface AudioClipFragment {
 
     val maxRightBoundUs: Long
 
-    val leftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
+    val rawLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
+    val adjustedLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs.coerceAtLeast(0)
     val mutableAreaDurationUs: Long get() = mutableAreaEndUs - mutableAreaStartUs
-    val rightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
+    val rawRightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
+    val adjustedRightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - mutableAreaEndUs
+    val rawTotalDurationUs: Long get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
+    val adjustedTotalDurationUs: Long get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - leftImmutableAreaStartUs.coerceAtLeast(0)
 
     operator fun contains(us: Long): Boolean {
         return (us >= leftImmutableAreaStartUs) && (us <= rightImmutableAreaEndUs)

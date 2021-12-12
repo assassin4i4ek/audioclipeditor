@@ -17,19 +17,19 @@ class AudioClipFragmentImpl(
     override val maxRightBoundUs: Long = audioClipDurationUs
 
     private fun validateBounds() {
-        check((leftBoundingFragment?.rightImmutableAreaEndUs ?: (- leftImmutableAreaDurationUs)) <= leftImmutableAreaStartUs) {
+        check((leftBoundingFragment?.rightImmutableAreaEndUs ?: (- rawLeftImmutableAreaDurationUs)) <= leftImmutableAreaStartUs) {
             "Audio fragment's left immutable area is invalid: $this"
         }
-        check((leftImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
+        check((rawLeftImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
             "Audio fragment's mutable area start is invalid: $this"
         }
         check((mutableAreaDurationUs) >= specs.minMutableAreaDurationUs) {
             "Audio fragment's mutable area end is invalid: $this"
         }
-        check((rightImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
+        check((rawRightImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
             "Audio fragment's right immutable area end is invalid: $this"
         }
-        check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (maxRightBoundUs + rightImmutableAreaDurationUs)) >= rightImmutableAreaEndUs) {
+        check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (maxRightBoundUs + rawRightImmutableAreaDurationUs)) >= rightImmutableAreaEndUs) {
             "Audio fragment's right immutable area end is invalid: $this"
         }
     }
@@ -54,8 +54,8 @@ class AudioClipFragmentImpl(
     override var mutableAreaEndUs: Long by validatingProperty(mutableAreaEndUs)
     override var rightImmutableAreaEndUs: Long by validatingProperty(rightImmutableAreaEndUs)
 
-    override var leftBoundingFragment: AudioClipFragment? by validatingProperty(null)
-    override var rightBoundingFragment: AudioClipFragment? by validatingProperty(null)
+    override var leftBoundingFragment: MutableAudioClipFragment? by validatingProperty(null)
+    override var rightBoundingFragment: MutableAudioClipFragment? by validatingProperty(null)
 
     override fun toString(): String {
         return "Fragment(${leftBoundingFragment?.rightImmutableAreaEndUs ?: 0} ... [$leftImmutableAreaStartUs | $mutableAreaStartUs .. $mutableAreaEndUs | $rightImmutableAreaEndUs] ... ${rightBoundingFragment?.leftImmutableAreaStartUs ?: maxRightBoundUs })"

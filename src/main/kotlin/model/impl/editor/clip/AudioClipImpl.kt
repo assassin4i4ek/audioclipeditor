@@ -28,12 +28,12 @@ class AudioClipImpl(
         System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)
     }
 
-    override fun createFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): MutableAudioClipFragment {
+    override fun createMinDurationFragment(mutableAreaStartUs: Long): MutableAudioClipFragment {
         val newFragment = AudioClipFragmentImpl(
             mutableAreaStartUs - specs.minImmutableAreasDurationUs,
             mutableAreaStartUs,
-            mutableAreaEndUs,
-            mutableAreaEndUs + specs.minImmutableAreasDurationUs,
+            mutableAreaStartUs + specs.minMutableAreaDurationUs,
+            mutableAreaStartUs + specs.minMutableAreaDurationUs + specs.minImmutableAreasDurationUs,
             specs,
             durationUs
 //            SilenceTransformerImpl(sampleRate, numChannels)
@@ -57,6 +57,17 @@ class AudioClipImpl(
         _fragments.add(newFragment)
 
         return newFragment
+    }
+
+    override fun removeFragment(fragment: MutableAudioClipFragment) {
+        require(fragment in _fragments) {
+            "Trying to remove fragment $fragment which doesn't belong to current audio clip"
+        }
+
+        fragment.leftBoundingFragment?.rightBoundingFragment = fragment.rightBoundingFragment
+        fragment.rightBoundingFragment?.leftBoundingFragment = fragment.leftBoundingFragment
+
+        _fragments.remove(fragment)
     }
 
     override fun close() {

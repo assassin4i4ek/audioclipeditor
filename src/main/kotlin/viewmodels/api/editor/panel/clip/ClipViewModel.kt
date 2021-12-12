@@ -5,10 +5,10 @@ import androidx.compose.ui.unit.IntSize
 import model.api.editor.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.BaseViewModel
+import viewmodels.api.utils.ClipUnitConverter
 
-interface ClipViewModel: BaseViewModel {
+interface ClipViewModel: BaseViewModel, ClipUnitConverter {
     /* Parent ViewModels */
-
 
     /* Child ViewModels */
 
@@ -30,19 +30,16 @@ interface ClipViewModel: BaseViewModel {
     /* Methods */
     fun submitClip(audioClip: AudioClip)
 
-    fun toUs(absPx: Float): Long
-    fun toAbsPx(us: Long): Float
-
-    fun toAbsSize(winPx: Float): Float {
+    override fun toAbsSize(winPx: Float): Float {
         return winPx / zoom
     }
-    fun toAbsOffset(winPx: Float): Float {
+    override fun toAbsOffset(winPx: Float): Float {
         return toAbsSize(winPx) + xOffsetAbsPx
     }
-    fun toWinSize(absPx: Float): Float {
+    override fun toWinSize(absPx: Float): Float {
         return absPx * zoom
     }
-    fun toWinOffset(absPx: Float): Float {
+    override fun toWinOffset(absPx: Float): Float {
         return toWinSize(absPx - xOffsetAbsPx)
     }
 }

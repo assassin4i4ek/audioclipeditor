@@ -50,22 +50,26 @@ fun FragmentSetFramesView(
     Canvas(modifier = Modifier.fillMaxSize()) {
         for ((_, fragmentViewModel) in fragmentSetViewModel.fragmentViewModels) {
             /* Areas */
-            with (fragmentViewModel) {
-                /* Frame */
-                drawRect(
-                    Color.Black,
-                    Offset(leftImmutableAreaStartPositionWinPx, 1.dp.toPx()),
-                    Size(rawTotalWidthWinPx, size.height - 2.dp.toPx()),
-                    style = Stroke(1.dp.toPx())
-                )
-
-                if (this == fragmentSetViewModel.selectedFragmentViewModel) {
+            if (fragmentViewModel != fragmentSetViewModel.selectedFragmentViewModel) {
+                with(fragmentViewModel) {
+                    /* Frame */
                     drawRect(
-                        Color.Red, Offset(leftImmutableAreaStartPositionWinPx, 2.dp.toPx()),
-                        Size(rawTotalWidthWinPx, size.height - 4.dp.toPx()),
-                        style = Stroke(2.dp.toPx())
+                        Color.Black,
+                        Offset(leftImmutableAreaStartPositionWinPx, 1.dp.toPx()),
+                        Size(rawTotalWidthWinPx, size.height - 2.dp.toPx()),
+                        style = Stroke(1.dp.toPx())
                     )
                 }
+            }
+        }
+
+        if (fragmentSetViewModel.selectedFragmentViewModel != null) {
+            with(fragmentSetViewModel.selectedFragmentViewModel!!) {
+                drawRect(
+                    Color.Red, Offset(leftImmutableAreaStartPositionWinPx, 2.dp.toPx()),
+                    Size(rawTotalWidthWinPx, size.height - 4.dp.toPx()),
+                    style = Stroke(2.dp.toPx())
+                )
             }
         }
     }

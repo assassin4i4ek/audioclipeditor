@@ -8,7 +8,7 @@ import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
 
-open class BaseFragmentViewModelImpl<K: AudioClipFragment>(
+abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     protected val fragment: K,
     protected val clipUnitConverter: ClipUnitConverter,
 ): FragmentViewModel {
@@ -19,10 +19,11 @@ open class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     /* Simple properties */
 
     /* Stateful properties */
-    protected var leftImmutableAreaStartUs: Long by mutableStateOf(fragment.leftImmutableAreaStartUs)
-    protected var mutableAreaStartUs: Long by mutableStateOf(fragment.mutableAreaStartUs)
-    protected var mutableAreaEndUs: Long by mutableStateOf(fragment.mutableAreaEndUs)
-    protected var rightImmutableAreaEndUs: Long by mutableStateOf(fragment.rightImmutableAreaEndUs)
+    protected abstract var leftImmutableAreaStartUs: Long
+    protected abstract var mutableAreaStartUs: Long
+    protected abstract var mutableAreaEndUs: Long
+    protected abstract var rightImmutableAreaEndUs: Long
+
     protected var maxRightBoundUs: Long by mutableStateOf(fragment.maxRightBoundUs)
 
     val rawLeftImmutableAreaDurationUs: Long

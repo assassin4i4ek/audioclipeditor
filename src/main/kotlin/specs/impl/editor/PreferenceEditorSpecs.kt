@@ -58,6 +58,6 @@ class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
         40.dp, ::minImmutableAreaWidthWinDp
     )
     override var minMutableAreaWidthWinDp: Dp by savableProperty(
-        80.dp, ::minImmutableAreaWidthWinDp
+        32.dp, ::minImmutableAreaWidthWinDp
     )
 }

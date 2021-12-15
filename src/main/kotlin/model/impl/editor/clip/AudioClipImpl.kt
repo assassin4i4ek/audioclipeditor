@@ -1,7 +1,6 @@
 package model.impl.editor.clip
 
 import model.api.editor.clip.AudioClip
-import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.MutableAudioClipFragment
 import model.impl.editor.clip.fragment.AudioClipFragmentImpl
 import specs.api.immutable.audio.AudioServiceSpecs
@@ -28,12 +27,24 @@ class AudioClipImpl(
         System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)
     }
 
-    override fun createMinDurationFragment(mutableAreaStartUs: Long): MutableAudioClipFragment {
+    override fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment {
+        return createMinDurationFragment(
+            mutableAreaStartUs, mutableAreaStartUs + specs.minMutableAreaDurationUs
+        )
+    }
+
+    override fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment {
+        return createMinDurationFragment(
+            mutableAreaEndUs - specs.minMutableAreaDurationUs, mutableAreaEndUs
+        )
+    }
+
+    private fun createMinDurationFragment(mutableAreaStartUs: Long, mutableAreaEndUs: Long): MutableAudioClipFragment {
         val newFragment = AudioClipFragmentImpl(
-            mutableAreaStartUs - specs.minImmutableAreasDurationUs,
+            mutableAreaStartUs - specs.minImmutableAreaDurationUs,
             mutableAreaStartUs,
-            mutableAreaStartUs + specs.minMutableAreaDurationUs,
-            mutableAreaStartUs + specs.minMutableAreaDurationUs + specs.minImmutableAreasDurationUs,
+            mutableAreaEndUs,
+            mutableAreaStartUs + specs.minMutableAreaDurationUs + specs.minImmutableAreaDurationUs,
             specs,
             durationUs
 //            SilenceTransformerImpl(sampleRate, numChannels)

@@ -20,24 +20,33 @@ fun FragmentSetView(
         for ((_, fragmentViewModel) in fragmentSetViewModel.fragmentViewModels) {
             /* Areas */
             with (fragmentViewModel) {
-                drawRect(
-                    Color.Green,
-                    Offset(leftImmutableAreaStartPositionWinPx, 0f),
-                    Size(rawLeftImmutableAreaWidthWinPx, size.height),
-                    0.5f
-                )
-                drawRect(
-                    Color.Magenta,
-                    Offset(mutableAreaStartPositionWinPx, 0f),
-                    Size(mutableAreaWidthWinPx, size.height),
-                    0.5f
-                )
-                drawRect(
-                    Color.Green,
-                    Offset(mutableAreaEndPositionWinPx, 0f),
-                    Size(rawRightImmutableAreaWidthWinPx, size.height),
-                    0.5f
-                )
+                if (isError) {
+                    drawRect(
+                        Color.Red,
+                        Offset(leftImmutableAreaStartPositionWinPx, 0f),
+                        Size(rawTotalWidthWinPx, size.height),
+                        0.5f
+                    )
+                } else {
+                    drawRect(
+                        Color.Green,
+                        Offset(leftImmutableAreaStartPositionWinPx, 0f),
+                        Size(rawLeftImmutableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                    drawRect(
+                        Color.Magenta,
+                        Offset(mutableAreaStartPositionWinPx, 0f),
+                        Size(mutableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                    drawRect(
+                        Color.Green,
+                        Offset(mutableAreaEndPositionWinPx, 0f),
+                        Size(rawRightImmutableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                }
             }
         }
     }
@@ -66,8 +75,8 @@ fun FragmentSetFramesView(
         if (fragmentSetViewModel.selectedFragmentViewModel != null) {
             with(fragmentSetViewModel.selectedFragmentViewModel!!) {
                 drawRect(
-                    Color.Red, Offset(leftImmutableAreaStartPositionWinPx, 2.dp.toPx()),
-                    Size(rawTotalWidthWinPx, size.height - 4.dp.toPx()),
+                    Color.Red, Offset(leftImmutableAreaStartPositionWinPx, 1.dp.toPx()),
+                    Size(rawTotalWidthWinPx, size.height - 2.dp.toPx()),
                     style = Stroke(2.dp.toPx())
                 )
             }
@@ -82,31 +91,33 @@ fun DraggableFragmentSetView(
     Canvas(modifier = Modifier.fillMaxSize()) {
         for ((_, fragmentViewModel) in draggableFragmentSetViewModel.fragmentViewModels) {
             with(fragmentViewModel) {
-                /*Draggable areas*/
-                drawRect(
-                    Color.Green,
-                    Offset(leftImmutableAreaStartPositionWinPx, 0f),
-                    Size(leftImmutableDraggableAreaWidthWinPx, size.height),
-                    0.5f
-                )
-                drawRect(
-                    Color.Magenta,
-                    Offset(mutableAreaStartPositionWinPx, 0f),
-                    Size(mutableDraggableAreaWidthWinPx, size.height),
-                    0.5f
-                )
-                drawRect(
-                    Color.Magenta,
-                    Offset(mutableAreaEndPositionWinPx - mutableDraggableAreaWidthWinPx, 0f),
-                    Size(mutableDraggableAreaWidthWinPx, size.height),
-                    0.5f
-                )
-                drawRect(
-                    Color.Green,
-                    Offset(rightImmutableAreaEndPositionWinPx - rightImmutableDraggableAreaWidthWinPx, 0f),
-                    Size(rightImmutableDraggableAreaWidthWinPx, size.height),
-                    0.5f
-                )
+                if (!isError) {
+                    /*Draggable areas*/
+                    drawRect(
+                        Color.Green,
+                        Offset(leftImmutableAreaStartPositionWinPx, 0f),
+                        Size(leftImmutableDraggableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                    drawRect(
+                        Color.Magenta,
+                        Offset(mutableAreaStartPositionWinPx, 0f),
+                        Size(mutableDraggableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                    drawRect(
+                        Color.Magenta,
+                        Offset(mutableAreaEndPositionWinPx - mutableDraggableAreaWidthWinPx, 0f),
+                        Size(mutableDraggableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                    drawRect(
+                        Color.Green,
+                        Offset(rightImmutableAreaEndPositionWinPx - rightImmutableDraggableAreaWidthWinPx, 0f),
+                        Size(rightImmutableDraggableAreaWidthWinPx, size.height),
+                        0.5f
+                    )
+                }
             }
         }
     }

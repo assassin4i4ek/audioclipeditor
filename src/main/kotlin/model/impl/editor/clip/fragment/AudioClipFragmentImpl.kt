@@ -1,6 +1,5 @@
 package model.impl.editor.clip.fragment
 
-import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.audio.AudioServiceSpecs
 import kotlin.properties.ReadWriteProperty
@@ -15,18 +14,20 @@ class AudioClipFragmentImpl(
     audioClipDurationUs: Long,
 ): MutableAudioClipFragment {
     override val maxRightBoundUs: Long = audioClipDurationUs
+    override val minImmutableAreaDurationUs: Long get() = specs.minImmutableAreaDurationUs
+    override val minMutableAreaDurationUs: Long get() = specs.minMutableAreaDurationUs
 
     private fun validateBounds() {
         check((leftBoundingFragment?.rightImmutableAreaEndUs ?: (- rawLeftImmutableAreaDurationUs)) <= leftImmutableAreaStartUs) {
             "Audio fragment's left immutable area is invalid: $this"
         }
-        check((rawLeftImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
+        check((rawLeftImmutableAreaDurationUs) >= minImmutableAreaDurationUs) {
             "Audio fragment's mutable area start is invalid: $this"
         }
-        check((mutableAreaDurationUs) >= specs.minMutableAreaDurationUs) {
+        check((mutableAreaDurationUs) >= minMutableAreaDurationUs) {
             "Audio fragment's mutable area end is invalid: $this"
         }
-        check((rawRightImmutableAreaDurationUs) >= specs.minImmutableAreasDurationUs) {
+        check((rawRightImmutableAreaDurationUs) >= minImmutableAreaDurationUs) {
             "Audio fragment's right immutable area end is invalid: $this"
         }
         check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (maxRightBoundUs + rawRightImmutableAreaDurationUs)) >= rightImmutableAreaEndUs) {

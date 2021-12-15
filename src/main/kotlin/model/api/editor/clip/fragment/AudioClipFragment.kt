@@ -10,6 +10,9 @@ interface AudioClipFragment {
     val rightBoundingFragment: AudioClipFragment?
 
     val maxRightBoundUs: Long
+    val minImmutableAreaDurationUs: Long
+    val minMutableAreaDurationUs: Long
+
 
     val rawLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
     val adjustedLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs.coerceAtLeast(0)

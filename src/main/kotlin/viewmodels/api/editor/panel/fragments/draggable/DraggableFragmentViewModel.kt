@@ -24,5 +24,5 @@ interface DraggableFragmentViewModel: FragmentViewModel {
     fun setDraggableState(dragSegment: FragmentDragSegment, dragStartRelativePositionUs: Long)
     fun resetDraggableState()
     fun setDraggableStateError()
-    fun handleDrag(dragPositionUs: Long)
+    fun tryDragAt(dragPositionUs: Long)
 }

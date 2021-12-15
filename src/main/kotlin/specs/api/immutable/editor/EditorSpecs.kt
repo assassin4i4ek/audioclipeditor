@@ -21,4 +21,5 @@ interface EditorSpecs {
 
     val minImmutableAreaWidthWinDp: Dp
     val minMutableAreaWidthWinDp: Dp
+    val preferredImmutableAreaWidthWinDp: Dp
 }

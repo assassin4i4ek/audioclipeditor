@@ -13,7 +13,9 @@ import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
+import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
+import viewmodels.api.editor.panel.fragments.global.GlobalFragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 
@@ -26,8 +28,8 @@ interface ClipPanelViewModel: BaseViewModel {
     val editableCursorViewModel: CursorViewModel
     val globalCursorViewModel: CursorViewModel
     val globalWindowClipViewModel: GlobalWindowClipViewModel
-    val editableFragmentSetViewModel: FragmentSetViewModel<MutableAudioClipFragment, DraggableFragmentViewModel>
-    val globalFragmentSetViewModel: FragmentSetViewModel<AudioClipFragment, GlobalFragmentViewModel>
+    val editableFragmentSetViewModel: DraggableFragmentSetViewModel
+    val globalFragmentSetViewModel: GlobalFragmentSetViewModel
 
     /* Specs */
 

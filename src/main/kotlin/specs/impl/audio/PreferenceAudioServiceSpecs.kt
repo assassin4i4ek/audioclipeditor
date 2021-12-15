@@ -11,8 +11,8 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecs(), MutableAudioServiceSpe
         0.8f, ::dataLineMaxBufferDesolation
     )
 
-    override var minImmutableAreasDurationUs: Long by savableProperty(
-        1000, ::minImmutableAreasDurationUs
+    override var minImmutableAreaDurationUs: Long by savableProperty(
+        1000, ::minImmutableAreaDurationUs
     )
 
     override var minMutableAreaDurationUs: Long by savableProperty(

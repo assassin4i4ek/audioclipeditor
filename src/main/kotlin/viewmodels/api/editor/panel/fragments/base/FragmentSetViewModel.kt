@@ -2,6 +2,7 @@ package viewmodels.api.editor.panel.fragments.base
 
 import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.BaseViewModel
+import java.util.*
 
 interface FragmentSetViewModel<K: AudioClipFragment, V: FragmentViewModel>: BaseViewModel {
     /* Parent ViewModels */
@@ -15,7 +16,7 @@ interface FragmentSetViewModel<K: AudioClipFragment, V: FragmentViewModel>: Base
     /* Stateful properties */
     val selectedFragment: K?
     val selectedFragmentViewModel: V?
-    val fragmentViewModels: Map<K, V>
+    val fragmentViewModels: SortedMap<K, V>
 
     /* Callbacks */
 

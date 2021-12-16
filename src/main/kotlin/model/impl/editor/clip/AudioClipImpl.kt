@@ -17,11 +17,9 @@ class AudioClipImpl(
     private val originalPcmByteArray: ByteArray,
     private val specs: AudioServiceSpecs
 ) : AudioClip {
-    private val _fragments: TreeSet<MutableAudioClipFragment> = sortedSetOf(Comparator { a, b ->
-        (a.leftImmutableAreaStartUs - b.leftImmutableAreaStartUs).toInt()
-    })
+    private val _fragments: TreeSet<MutableAudioClipFragment> = sortedSetOf()
 
-    override val fragments: Set<MutableAudioClipFragment> get() = _fragments
+    override val fragments: SortedSet<MutableAudioClipFragment> get() = _fragments
 
     override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray) {
         System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)

@@ -18,8 +18,11 @@ class AudioClipFragmentImpl(
     override val minMutableAreaDurationUs: Long get() = specs.minMutableAreaDurationUs
 
     private fun validateBounds() {
-        check((leftBoundingFragment?.rightImmutableAreaEndUs ?: (- rawLeftImmutableAreaDurationUs)) <= leftImmutableAreaStartUs) {
+        check((leftBoundingFragment?.mutableAreaEndUs ?: (- rawLeftImmutableAreaDurationUs)) <= leftImmutableAreaStartUs) {
             "Audio fragment's left immutable area is invalid: $this"
+        }
+        check((leftBoundingFragment?.rightImmutableAreaEndUs ?: (- rawLeftImmutableAreaDurationUs)) <= mutableAreaStartUs) {
+            "Audio fragment's mutable area start is invalid: $this"
         }
         check((rawLeftImmutableAreaDurationUs) >= minImmutableAreaDurationUs) {
             "Audio fragment's mutable area start is invalid: $this"
@@ -30,7 +33,10 @@ class AudioClipFragmentImpl(
         check((rawRightImmutableAreaDurationUs) >= minImmutableAreaDurationUs) {
             "Audio fragment's right immutable area end is invalid: $this"
         }
-        check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (maxRightBoundUs + rawRightImmutableAreaDurationUs)) >= rightImmutableAreaEndUs) {
+        check((rightBoundingFragment?.leftImmutableAreaStartUs ?: (maxRightBoundUs + rawRightImmutableAreaDurationUs)) >= mutableAreaEndUs) {
+            "Audio fragment's mutable area end is invalid: $this"
+        }
+        check((rightBoundingFragment?.mutableAreaStartUs ?: (maxRightBoundUs + rawRightImmutableAreaDurationUs)) >= rightImmutableAreaEndUs) {
             "Audio fragment's right immutable area end is invalid: $this"
         }
     }

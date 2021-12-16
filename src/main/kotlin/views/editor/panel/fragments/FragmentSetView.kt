@@ -25,14 +25,14 @@ fun FragmentSetView(
                         Color.Red,
                         Offset(leftImmutableAreaStartPositionWinPx, 0f),
                         Size(rawTotalWidthWinPx, size.height),
-                        0.5f
+                        0.25f
                     )
                 } else {
                     drawRect(
                         Color.Green,
                         Offset(leftImmutableAreaStartPositionWinPx, 0f),
                         Size(rawLeftImmutableAreaWidthWinPx, size.height),
-                        0.5f
+                        0.25f
                     )
                     drawRect(
                         Color.Magenta,
@@ -44,7 +44,7 @@ fun FragmentSetView(
                         Color.Green,
                         Offset(mutableAreaEndPositionWinPx, 0f),
                         Size(rawRightImmutableAreaWidthWinPx, size.height),
-                        0.5f
+                        0.25f
                     )
                 }
             }
@@ -97,7 +97,7 @@ fun DraggableFragmentSetView(
                         Color.Green,
                         Offset(leftImmutableAreaStartPositionWinPx, 0f),
                         Size(leftImmutableDraggableAreaWidthWinPx, size.height),
-                        0.5f
+                        0.25f
                     )
                     drawRect(
                         Color.Magenta,
@@ -115,7 +115,7 @@ fun DraggableFragmentSetView(
                         Color.Green,
                         Offset(rightImmutableAreaEndPositionWinPx - rightImmutableDraggableAreaWidthWinPx, 0f),
                         Size(rightImmutableDraggableAreaWidthWinPx, size.height),
-                        0.5f
+                        0.25f
                     )
                 }
             }

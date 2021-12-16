@@ -1,6 +1,6 @@
 package model.api.editor.clip.fragment
 
-interface AudioClipFragment {
+interface AudioClipFragment: Comparable<AudioClipFragment> {
     val leftImmutableAreaStartUs: Long
     val mutableAreaStartUs: Long
     val mutableAreaEndUs: Long
@@ -24,5 +24,9 @@ interface AudioClipFragment {
 
     operator fun contains(us: Long): Boolean {
         return (us >= leftImmutableAreaStartUs) && (us <= rightImmutableAreaEndUs)
+    }
+
+    override fun compareTo(other: AudioClipFragment): Int {
+        return (this.leftImmutableAreaStartUs - other.leftImmutableAreaStartUs).toInt()
     }
 }

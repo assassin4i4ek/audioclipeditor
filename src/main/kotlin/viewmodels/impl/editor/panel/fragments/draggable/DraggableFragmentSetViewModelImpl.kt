@@ -114,7 +114,6 @@ class DraggableFragmentSetViewModelImpl(
     }
 
     private fun prepareToDragFragment(fragment: MutableAudioClipFragment, selectPositionUs: Long, dragStartPositionUs: Long) {
-        var dragStartRelativePositionUs = 0L
         val dragSegment = with(fragment) {
             when {
                 selectPositionUs < (leftImmutableAreaStartUs +
@@ -130,7 +129,6 @@ class DraggableFragmentSetViewModelImpl(
                 }
                 selectPositionUs < (mutableAreaEndUs -
                         specs.mutableDraggableAreaFraction * mutableAreaDurationUs) -> {
-                    dragStartRelativePositionUs = dragStartPositionUs - leftImmutableAreaStartUs
                     DraggableFragmentViewModel.FragmentDragSegment.Center
                 }
                 selectPositionUs < mutableAreaEndUs -> {
@@ -150,7 +148,7 @@ class DraggableFragmentSetViewModelImpl(
         }
 
         if (dragSegment != null) {
-            fragmentViewModels[fragment]!!.setDraggableState(dragSegment, dragStartRelativePositionUs)
+            fragmentViewModels[fragment]!!.setDraggableState(dragSegment, dragStartPositionUs)
         }
         else {
             fragmentViewModels[fragment]!!.resetDraggableState()

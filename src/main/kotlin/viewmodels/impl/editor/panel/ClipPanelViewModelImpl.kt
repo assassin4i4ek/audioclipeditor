@@ -158,6 +158,8 @@ class ClipPanelViewModelImpl(
         println(pressPositionUs)
         editableFragmentSetViewModel.trySelectFragmentAt(pressPositionUs)
         globalFragmentSetViewModel.trySelectFragmentAt(pressPositionUs)
+
+        println(audioClip.fragments)
    }
 
     override fun onEditableClipViewDragStart(dragStart: Offset) {

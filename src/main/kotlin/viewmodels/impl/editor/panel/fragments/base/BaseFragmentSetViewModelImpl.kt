@@ -7,7 +7,9 @@ import androidx.compose.runtime.setValue
 import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
-import viewmodels.impl.editor.panel.fragments.global.GlobalFragmentViewModelImpl
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 
 open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewModel>: FragmentSetViewModel<K, V> {
@@ -18,8 +20,8 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
     /* Simple properties */
 
     /* Stateful properties */
-    protected var fragmentViewModelsMap: Map<K, V> by mutableStateOf(HashMap())
-    override val fragmentViewModels: Map<K, V> get() = fragmentViewModelsMap
+    protected var fragmentViewModelsMap: SortedMap<K, V> by mutableStateOf(TreeMap())
+    override val fragmentViewModels: SortedMap<K, V> get() = fragmentViewModelsMap
 
     private var _selectedFragment: K? by mutableStateOf(null)
     override val selectedFragment: K? get() = _selectedFragment
@@ -31,7 +33,9 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
 
     /* Methods */
     override fun trySelectFragmentAt(positionUs: Long) {
-        _selectedFragment = fragmentViewModels.keys.find { positionUs in it }
+        val fragmentsDescending = fragmentViewModels.keys.sortedDescending()
+        _selectedFragment = fragmentsDescending.find { positionUs in it && it != _selectedFragment }
+            ?: fragmentsDescending.find { positionUs in it }
     }
 
     protected fun submitFragment(fragment: K, fragmentViewModel: V) {
@@ -39,7 +43,7 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
             "Trying to submit an already present fragment $fragment"
         }
 
-        fragmentViewModelsMap = HashMap(fragmentViewModels).apply {
+        fragmentViewModelsMap = TreeMap(fragmentViewModels).apply {
             set(fragment, fragmentViewModel)
         }
     }
@@ -51,7 +55,7 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
         if (fragment == selectedFragment) {
             _selectedFragment = null
         }
-        fragmentViewModelsMap = HashMap(fragmentViewModels).apply {
+        fragmentViewModelsMap = TreeMap(fragmentViewModels).apply {
             remove(fragment)
         }
     }

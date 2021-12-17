@@ -29,9 +29,9 @@ class DraggableFragmentSetViewModelImpl(
     private var selectPositionUs: Long = 0
 
     private class ErrorAudioClipFragment(
-        override var mutableAreaStartUs: Long
+        override var mutableAreaStartUs: Long,
+        override val maxRightBoundUs: Long,
     ): MutableAudioClipFragment {
-        override val maxRightBoundUs: Long = Long.MAX_VALUE
         override var leftImmutableAreaStartUs: Long = mutableAreaStartUs
         override var mutableAreaEndUs: Long = mutableAreaStartUs
         override var rightImmutableAreaEndUs: Long = mutableAreaStartUs
@@ -82,7 +82,7 @@ class DraggableFragmentSetViewModelImpl(
         }.getOrElse {
             println("Tier 1 error: ${it.message}")
             isError = true
-            ErrorAudioClipFragment(selectPositionUs)
+            ErrorAudioClipFragment(selectPositionUs, audioClip.durationUs)
         }
 
         println("1 ${newFragment.mutableAreaStartUs} ... ${newFragment.mutableAreaEndUs}")
@@ -160,9 +160,13 @@ class DraggableFragmentSetViewModelImpl(
     }
 
     override fun stopDragFragment() {
-        val draggedFragmentViewModel = fragmentViewModels[draggedFragment!!]!!
+        val draggedFragment = _draggedFragment!!
+        val draggedFragmentViewModel = fragmentViewModels[draggedFragment]!!
         if (draggedFragmentViewModel.isError) {
-            removeFragment(_draggedFragment!!)
+            removeFragment(draggedFragment)
+            if (draggedFragment !is ErrorAudioClipFragment) {
+                audioClip.removeFragment(draggedFragment)
+            }
         }
 
         selectPositionUs = 0

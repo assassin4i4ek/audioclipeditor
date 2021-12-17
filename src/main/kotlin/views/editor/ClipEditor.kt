@@ -36,7 +36,7 @@ fun ClipEditor(
         densityField.isAccessible = true
 
         val currentDensity = densityField.get(this) as Density
-        val newDensity = Density(currentDensity.density / 10, currentDensity.fontScale)
+        val newDensity = Density(currentDensity.density / 5, currentDensity.fontScale)
         densityField.set(this, newDensity)
 
         densityField.isAccessible = isDensityFieldAccessible

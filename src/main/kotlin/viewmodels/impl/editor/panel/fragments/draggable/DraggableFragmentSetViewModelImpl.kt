@@ -85,30 +85,23 @@ class DraggableFragmentSetViewModelImpl(
             ErrorAudioClipFragment(selectPositionUs, audioClip.durationUs)
         }
 
-        println("1 ${newFragment.mutableAreaStartUs} ... ${newFragment.mutableAreaEndUs}")
+        DraggableFragmentViewModelImpl(newFragment, clipUnitConverter, density, specs).apply {
+            if (dragStartPositionUs < selectPositionUs) {
+                setDraggableState(DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound, 0)
+            }
+            else {
+                setDraggableState(DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound, 0)
+            }
 
-        val newFragmentViewModel = DraggableFragmentViewModelImpl(newFragment, clipUnitConverter, density, specs)
+            super.submitFragment(newFragment, this)
 
-        println("2 ${newFragment.mutableAreaStartUs} ... ${newFragment.mutableAreaEndUs}")
-
-        if (dragStartPositionUs < selectPositionUs) {
-            newFragmentViewModel.setDraggableState(
-                DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound, 0
-            )
+            if (isError) {
+                setDraggableStateError()
+            }
+            else {
+                selectedFragment = newFragment
+            }
         }
-        else {
-            newFragmentViewModel.setDraggableState(
-                DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound, 0
-            )
-        }
-
-        if (isError) {
-            newFragmentViewModel.setDraggableStateError()
-        }
-
-        super.submitFragment(newFragment, newFragmentViewModel)
-
-        println("3 ${newFragment.mutableAreaStartUs} ... ${newFragment.mutableAreaEndUs}")
 
         return newFragment
     }
@@ -162,13 +155,18 @@ class DraggableFragmentSetViewModelImpl(
     override fun stopDragFragment() {
         val draggedFragment = _draggedFragment!!
         val draggedFragmentViewModel = fragmentViewModels[draggedFragment]!!
+
         if (draggedFragmentViewModel.isError) {
             removeFragment(draggedFragment)
-            if (draggedFragment !is ErrorAudioClipFragment) {
-                audioClip.removeFragment(draggedFragment)
-            }
         }
 
         selectPositionUs = 0
+    }
+
+    override fun removeFragment(fragment: MutableAudioClipFragment) {
+        super.removeFragment(fragment)
+        if (draggedFragment !is ErrorAudioClipFragment) {
+            audioClip.removeFragment(fragment)
+        }
     }
 }

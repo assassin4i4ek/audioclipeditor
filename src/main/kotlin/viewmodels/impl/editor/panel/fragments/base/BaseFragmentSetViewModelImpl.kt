@@ -20,11 +20,15 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
     /* Simple properties */
 
     /* Stateful properties */
-    protected var fragmentViewModelsMap: SortedMap<K, V> by mutableStateOf(TreeMap())
+    private var fragmentViewModelsMap: SortedMap<K, V> by mutableStateOf(TreeMap())
     override val fragmentViewModels: SortedMap<K, V> get() = fragmentViewModelsMap
 
     private var _selectedFragment: K? by mutableStateOf(null)
-    override val selectedFragment: K? get() = _selectedFragment
+    override var selectedFragment: K?
+        get() = _selectedFragment
+        protected set(value) {
+            _selectedFragment = value
+        }
     override val selectedFragmentViewModel: V? by derivedStateOf {
         _selectedFragment?.let { fragmentViewModelsMap[it] }
     }

@@ -259,22 +259,19 @@ class ClipPanelViewModelImpl(
                         false
                     }
                 }
+                */
                 Key.Delete -> {
-                    if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
-                        val fragmentToRemove = selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState!!.run {
-                            if (isFragmentPlaying) {
-                                stopPlayFragment()
-                            }
-                            fragment
-                        }
-                        selectedAudioClipState.fragmentSetState.remove(fragmentToRemove)
-                        selectedAudioClipState.audioClip.removeFragment(fragmentToRemove)
+                    editableFragmentSetViewModel.selectedFragment?.let { fragmentToRemove ->
+                        editableFragmentSetViewModel.removeFragment(fragmentToRemove)
+                        globalFragmentSetViewModel.removeFragment(fragmentToRemove)
+
+//                        if (isFragmentPlaying) {
+//                            stopPlayFragment()
+//                        }
+
                         true
-                    }
-                    else {
-                        false
-                    }
-                }*/
+                    } ?: false
+                }
                 else -> false
             }
         }

@@ -65,6 +65,8 @@ class AudioClipFragmentImpl(
     override var rightBoundingFragment: MutableAudioClipFragment? by validatingProperty(null)
 
     override fun toString(): String {
-        return "Fragment(${leftBoundingFragment?.rightImmutableAreaEndUs ?: 0} ... [$leftImmutableAreaStartUs | $mutableAreaStartUs .. $mutableAreaEndUs | $rightImmutableAreaEndUs] ... ${rightBoundingFragment?.leftImmutableAreaStartUs ?: maxRightBoundUs })"
+        return "Fragment(... ${leftBoundingFragment?.mutableAreaEndUs ?: 0} | ${leftBoundingFragment?.rightImmutableAreaEndUs ?: 0}] ... " +
+                "[$leftImmutableAreaStartUs | $mutableAreaStartUs .. $mutableAreaEndUs | $rightImmutableAreaEndUs]" +
+                " ... [${rightBoundingFragment?.leftImmutableAreaStartUs ?: maxRightBoundUs } | ${rightBoundingFragment?.mutableAreaStartUs ?: maxRightBoundUs } ...)"
     }
 }

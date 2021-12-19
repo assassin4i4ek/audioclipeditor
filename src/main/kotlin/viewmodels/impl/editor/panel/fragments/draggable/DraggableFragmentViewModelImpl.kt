@@ -140,6 +140,7 @@ class DraggableFragmentViewModelImpl(
         }.onFailure {
             println(it)
             setDraggableStateError()
+            throw it
         }
     }
 
@@ -297,11 +298,6 @@ class DraggableFragmentViewModelImpl(
             leftImmutableAreaStartUpperConstraintUs
         )
 
-        // mutable bounds flip over threshold
-        val mutableRightBoundFlipOverThresholdUpperConstraintUs = fragment.rightBoundingFragment
-            ?.leftImmutableAreaStartUs ?: fragment.maxRightBoundUs
-        val mutableRightBoundFlipOverThresholdLowerConstraintUs = mutableAreaEndUs + minMutableAreaDurationUs
-
         if (adjustedPositionUs < mutableAreaStartUs) {
             // dragging in the left direction = increasing mutable area
             leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
@@ -312,15 +308,35 @@ class DraggableFragmentViewModelImpl(
             mutableAreaStartUs = newMutableAreaStartUs
             leftImmutableAreaStartUs = newLeftImmutableAreaStartUs
         }
-        else if (adjustedPositionUs in
-            mutableRightBoundFlipOverThresholdLowerConstraintUs..mutableRightBoundFlipOverThresholdUpperConstraintUs
-        ) {
-            // flip over
-            val oldMutableAreaEndUs = mutableAreaEndUs
-            mutableAreaEndUs = oldMutableAreaEndUs + minMutableAreaDurationUs
-            mutableAreaStartUs = oldMutableAreaEndUs
-            dragSegment = DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound
-            dragMutableRightBound(dragPositionUs)
+        else  {
+            // flip over mutable area constraints
+            val mutableAreaEndFlipOverUpperConstraintUs = fragment.rightBoundingFragment?.leftImmutableAreaStartUs
+                ?.minus(1) ?: fragment.maxRightBoundUs
+            val mutableAreaEndFlipOverLowerConstraintUs = mutableAreaEndUs + minMutableAreaDurationUs
+
+            // flip over right immutable area constraints
+            val rightImmutableAreaEndFlipOverUpperConstraintUs = fragment.rightBoundingFragment?.mutableAreaStartUs
+                ?.minus(1) ?: (fragment.maxRightBoundUs + rawRightImmutableAreaDurationUs)
+
+            val shouldFlipOver = mutableAreaEndFlipOverLowerConstraintUs <= mutableAreaEndFlipOverUpperConstraintUs
+                    && adjustedPositionUs > mutableAreaEndFlipOverLowerConstraintUs
+
+            if (shouldFlipOver) {
+                val flippedMutableAreaStartUs = mutableAreaEndUs
+                val flippedMutableAreaEndUs = mutableAreaEndUs + minMutableAreaDurationUs
+                val flippedLeftImmutableAreaStartUs = flippedMutableAreaStartUs - rawLeftImmutableAreaDurationUs
+                val flippedRightImmutableAreaEndUs = (flippedMutableAreaEndUs + rawRightImmutableAreaDurationUs).coerceAtMost(
+                    rightImmutableAreaEndFlipOverUpperConstraintUs
+                )
+
+                rightImmutableAreaEndUs = flippedRightImmutableAreaEndUs
+                mutableAreaEndUs = flippedMutableAreaEndUs
+                mutableAreaStartUs = flippedMutableAreaStartUs
+                leftImmutableAreaStartUs = flippedLeftImmutableAreaStartUs
+
+                dragSegment = DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound
+                dragMutableRightBound(dragPositionUs)
+            }
         }
     }
 
@@ -337,24 +353,24 @@ class DraggableFragmentViewModelImpl(
         }.coerceAtLeast(fragment.minMutableAreaDurationUs)
 
         // mutable area constraints
-        val mutableAreaStartLowerConstraintUs = mutableAreaStartUs + minMutableAreaDurationUs
-        val mutableAreaStartUpperConstraintUs = fragment.rightBoundingFragment?.leftImmutableAreaStartUs
+        val mutableAreaEndLowerConstraintUs = mutableAreaStartUs + minMutableAreaDurationUs
+        val mutableAreaEndUpperConstraintUs = fragment.rightBoundingFragment?.leftImmutableAreaStartUs
             ?.minus(1) ?: fragment.maxRightBoundUs
-        check(mutableAreaStartLowerConstraintUs <= mutableAreaStartUpperConstraintUs) {
+        check(mutableAreaEndLowerConstraintUs <= mutableAreaEndUpperConstraintUs) {
             "dragMutableRightBound: mutableAreaStartLowerConstraintUs is greater than mutableAreaStartUpperConstraintUs"
         }
         val newMutableAreaEndUs = adjustedPositionUs.coerceIn(
-            mutableAreaStartLowerConstraintUs,
-            mutableAreaStartUpperConstraintUs
+            mutableAreaEndLowerConstraintUs,
+            mutableAreaEndUpperConstraintUs
         )
 
         // right immutable area constraints
-        val rightImmutableAreaStartUpperConstraintUs = fragment.rightBoundingFragment?.mutableAreaStartUs
+        val rightImmutableAreaEndUpperConstraintUs = fragment.rightBoundingFragment?.mutableAreaStartUs
             ?.minus(1) ?: (fragment.maxRightBoundUs + rawRightImmutableAreaDurationUs)
-        val rightImmutableAreaStartLowerConstraintUs = (newMutableAreaEndUs + minRightImmutableAreaDurationUs).coerceAtMost(
-            rightImmutableAreaStartUpperConstraintUs
+        val rightImmutableAreaEndLowerConstraintUs = (newMutableAreaEndUs + minRightImmutableAreaDurationUs).coerceAtMost(
+            rightImmutableAreaEndUpperConstraintUs
         )
-        val newRightImmutableAreaEndUs = if (rightImmutableAreaEndUs >= rightImmutableAreaStartUpperConstraintUs) {
+        val newRightImmutableAreaEndUs = if (rightImmutableAreaEndUs >= rightImmutableAreaEndUpperConstraintUs) {
             // right immutable area accurately matches right bounding fragment
             // stay stick to the right bound until preferred width
             newMutableAreaEndUs + preferredRightImmutableAreaDurationUs.coerceAtLeast(rawRightImmutableAreaDurationUs)
@@ -364,14 +380,9 @@ class DraggableFragmentViewModelImpl(
             // simply remain current width
             newMutableAreaEndUs + rawRightImmutableAreaDurationUs
         }.coerceIn(
-            rightImmutableAreaStartLowerConstraintUs,
-            rightImmutableAreaStartUpperConstraintUs
+            rightImmutableAreaEndLowerConstraintUs,
+            rightImmutableAreaEndUpperConstraintUs
         )
-
-        // mutable bounds flip over threshold
-        val mutableLeftBoundFlipOverThresholdLowerConstraintUs = fragment.leftBoundingFragment?.rightImmutableAreaEndUs
-            ?: 0
-        val mutableLeftBoundFlipOverThresholdUpperConstraintUs = mutableAreaStartUs - minMutableAreaDurationUs
 
         if (adjustedPositionUs > mutableAreaEndUs) {
             // dragging in the right direction = increasing mutable area
@@ -383,15 +394,35 @@ class DraggableFragmentViewModelImpl(
             mutableAreaEndUs = newMutableAreaEndUs
             rightImmutableAreaEndUs = newRightImmutableAreaEndUs
         }
-        else if (adjustedPositionUs in
-            mutableLeftBoundFlipOverThresholdLowerConstraintUs..mutableLeftBoundFlipOverThresholdUpperConstraintUs
-        ) {
-            // flip over
-            val oldMutableAreaStartUs = mutableAreaStartUs
-            mutableAreaStartUs = oldMutableAreaStartUs - minMutableAreaDurationUs
-            mutableAreaEndUs = oldMutableAreaStartUs
-            dragSegment = DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound
-            dragMutableLeftBound(dragPositionUs)
+        else {
+            // flip over mutable area constraints
+            val mutableAreaStartFlipOverLowerConstraintUs = fragment.leftBoundingFragment?.rightImmutableAreaEndUs
+                ?.plus(1) ?: 0
+            val mutableAreaStartFlipOverUpperConstraintUs = mutableAreaStartUs - minMutableAreaDurationUs
+
+            // flip over left immutable area constraints
+            val leftImmutableAreaStartFlipOverLowerConstraintUs = fragment.leftBoundingFragment?.mutableAreaEndUs
+                ?.plus(1) ?: - rawLeftImmutableAreaDurationUs
+
+            val shouldFlipOver = mutableAreaStartFlipOverLowerConstraintUs <= mutableAreaStartFlipOverUpperConstraintUs
+                    && adjustedPositionUs < mutableAreaStartFlipOverUpperConstraintUs
+
+            if (shouldFlipOver) {
+                val flippedMutableAreaEndUs = mutableAreaStartUs
+                val flippedMutableAreaStartUs = mutableAreaStartUs - minMutableAreaDurationUs
+                val flippedLeftImmutableAreaStartUs = (flippedMutableAreaStartUs - rawLeftImmutableAreaDurationUs).coerceAtLeast(
+                    leftImmutableAreaStartFlipOverLowerConstraintUs
+                )
+                val flippedRightImmutableAreaEndUs = flippedMutableAreaEndUs + rawRightImmutableAreaDurationUs
+
+                leftImmutableAreaStartUs = flippedLeftImmutableAreaStartUs
+                mutableAreaStartUs = flippedMutableAreaStartUs
+                mutableAreaEndUs = flippedMutableAreaEndUs
+                rightImmutableAreaEndUs = flippedRightImmutableAreaEndUs
+
+                dragSegment = DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound
+                dragMutableLeftBound(dragPositionUs)
+            }
         }
     }
 

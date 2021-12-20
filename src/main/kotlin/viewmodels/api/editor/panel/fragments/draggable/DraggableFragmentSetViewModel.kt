@@ -2,10 +2,9 @@ package viewmodels.api.editor.panel.fragments.draggable
 
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.MutableAudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 
-interface DraggableFragmentSetViewModel: FragmentSetViewModel<MutableAudioClipFragment, DraggableFragmentViewModel> {
+interface DraggableFragmentSetViewModel: FragmentSetViewModel<DraggableFragmentViewModel> {
     /* Parent ViewModels */
 
     /* Child ViewModels */

@@ -10,9 +10,15 @@ import viewmodels.api.utils.ClipUnitConverter
 
 abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     protected val fragment: K,
+    private val parentViewModel: Parent,
     protected val clipUnitConverter: ClipUnitConverter,
 ): FragmentViewModel {
     /* Parent ViewModels */
+    interface Parent {
+        fun startPlayFragment(fragment: AudioClipFragment)
+        fun stopPlayFragment(fragment: AudioClipFragment)
+        fun removeFragment(fragment: AudioClipFragment)
+    }
 
     /* Child ViewModels */
 
@@ -24,8 +30,6 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     protected abstract var mutableAreaEndUs: Long
     protected abstract var rightImmutableAreaEndUs: Long
 
-    protected var maxRightBoundUs: Long by mutableStateOf(fragment.maxRightBoundUs)
-
     val rawLeftImmutableAreaDurationUs: Long
         get() = mutableAreaStartUs - leftImmutableAreaStartUs
     val adjustedLeftImmutableAreaDurationUs: Long
@@ -35,11 +39,11 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     val rawRightImmutableAreaDurationUs: Long
         get() = rightImmutableAreaEndUs - mutableAreaEndUs
     val adjustedRightImmutableAreaDurationUs: Long
-        get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - mutableAreaEndUs
+        get() = rightImmutableAreaEndUs.coerceAtMost(fragment.maxRightBoundUs) - mutableAreaEndUs
     val rawTotalDurationUs: Long
         get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
     val adjustedTotalDurationUs: Long
-        get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - leftImmutableAreaStartUs.coerceAtLeast(0)
+        get() = rightImmutableAreaEndUs.coerceAtMost(fragment.maxRightBoundUs) - leftImmutableAreaStartUs.coerceAtLeast(0)
 
     override val leftImmutableAreaStartPositionWinPx: Float by derivedStateOf {
         with (clipUnitConverter) {
@@ -61,16 +65,47 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
             toWinOffset(toAbsPx(rightImmutableAreaEndUs))
         }
     }
-    override val maxRightBoundWinPx: Float by derivedStateOf {
-        with (clipUnitConverter) {
-            toWinOffset(toAbsPx(maxRightBoundUs))
+//    override val maxRightBoundWinPx: Float by derivedStateOf {
+//        with (clipUnitConverter) {
+//            toWinOffset(toAbsPx(fragment.maxRightBoundUs))
+//        }
+//    }
+
+    override var isError: Boolean by mutableStateOf(false)
+        protected set
+
+    private var controlPanelWidthWinPx: Float by mutableStateOf(0f)
+
+    override val computeControlPanelXPositionWinPx: Float by derivedStateOf {
+        val fragmentCenterX = (mutableAreaStartPositionWinPx + mutableAreaEndPositionWinPx) / 2
+
+        with(clipUnitConverter) {
+            (fragmentCenterX - controlPanelWidthWinPx / 2).coerceIn(
+                toWinOffset(toAbsPx(0L)), toWinOffset(toAbsPx(fragment.maxRightBoundUs)) - controlPanelWidthWinPx
+            )
         }
     }
 
-    protected var _isError: Boolean by mutableStateOf(false)
-    override val isError: Boolean get() = _isError
+    private val isFragmentPlaying by mutableStateOf(false)
+    override val canPlayFragment: Boolean get() = !isError && !isFragmentPlaying
+    override val canStopFragment: Boolean get() = !isError && isFragmentPlaying
 
     /* Callbacks */
+    override fun onControlPanelPlaced(controlPanelWidthWinPx: Float) {
+        this.controlPanelWidthWinPx = controlPanelWidthWinPx
+    }
+
+    override fun onPlayClicked() {
+        parentViewModel.startPlayFragment(fragment)
+    }
+
+    override fun onStopClicked() {
+        parentViewModel.stopPlayFragment(fragment)
+    }
+
+    override fun onRemoveClicked() {
+        parentViewModel.removeFragment(fragment)
+    }
 
     /* Methods */
 }

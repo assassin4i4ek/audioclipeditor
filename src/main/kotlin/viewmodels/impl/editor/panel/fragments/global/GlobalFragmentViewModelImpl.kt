@@ -10,9 +10,11 @@ import viewmodels.impl.editor.panel.fragments.base.BaseFragmentViewModelImpl
 
 class GlobalFragmentViewModelImpl(
     fragment: AudioClipFragment,
+    parentViewModel: Parent,
     clipUnitConverter: ClipUnitConverter
-): BaseFragmentViewModelImpl<AudioClipFragment>(fragment, clipUnitConverter), GlobalFragmentViewModel {
+): BaseFragmentViewModelImpl<AudioClipFragment>(fragment, parentViewModel, clipUnitConverter), GlobalFragmentViewModel {
     /* Parent ViewModels */
+    interface Parent: BaseFragmentViewModelImpl.Parent
 
     /* Child ViewModels */
 

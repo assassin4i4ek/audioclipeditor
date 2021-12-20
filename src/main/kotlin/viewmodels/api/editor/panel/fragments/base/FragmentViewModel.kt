@@ -15,7 +15,7 @@ interface FragmentViewModel: BaseViewModel {
     val mutableAreaEndPositionWinPx: Float
     val rightImmutableAreaEndPositionWinPx: Float
 
-    val maxRightBoundWinPx: Float
+//    val maxRightBoundWinPx: Float
 
     val rawLeftImmutableAreaWidthWinPx: Float
         get() = mutableAreaStartPositionWinPx - leftImmutableAreaStartPositionWinPx
@@ -37,7 +37,16 @@ interface FragmentViewModel: BaseViewModel {
     /* General stateful properties */
     val isError: Boolean
 
+    val computeControlPanelXPositionWinPx: Float
+
+    val canPlayFragment: Boolean
+    val canStopFragment: Boolean
+
     /* Callbacks */
+    fun onControlPanelPlaced(controlPanelWidthWinPx: Float)
+    fun onPlayClicked()
+    fun onStopClicked()
+    fun onRemoveClicked()
 
     /* Methods */
 }

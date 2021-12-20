@@ -20,4 +20,5 @@ interface OpenedClipsTabViewModel: BaseViewModel {
 
     /* Methods */
     fun submitClips(clipNames: Map<String, String>) // clipId -> clipName
+    fun removeClip(clipId: String)
 }

@@ -14,7 +14,7 @@ import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewMode
 
 @Composable
 fun FragmentSetView(
-    fragmentSetViewModel: FragmentSetViewModel<*, *>
+    fragmentSetViewModel: FragmentSetViewModel<*>
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         for ((_, fragmentViewModel) in fragmentSetViewModel.fragmentViewModels) {
@@ -54,7 +54,7 @@ fun FragmentSetView(
 
 @Composable
 fun FragmentSetFramesView(
-    fragmentSetViewModel: FragmentSetViewModel<*, *>
+    fragmentSetViewModel: FragmentSetViewModel<*>
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         for ((_, fragmentViewModel) in fragmentSetViewModel.fragmentViewModels) {
@@ -86,7 +86,7 @@ fun FragmentSetFramesView(
 
 @Composable
 fun DraggableFragmentSetView(
-    draggableFragmentSetViewModel: FragmentSetViewModel<*, DraggableFragmentViewModel>
+    draggableFragmentSetViewModel: FragmentSetViewModel<DraggableFragmentViewModel>
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         for ((_, fragmentViewModel) in draggableFragmentSetViewModel.fragmentViewModels) {

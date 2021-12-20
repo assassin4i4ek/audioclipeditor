@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
 import model.api.editor.clip.AudioClipService
+import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
@@ -45,7 +47,7 @@ class ClipPanelViewModelImpl(
     private val coroutineScope: CoroutineScope,
     density: Density,
     private val specs: MutableEditorSpecs
-): ClipPanelViewModel {
+): ClipPanelViewModel, DraggableFragmentSetViewModelImpl.Parent, GlobalFragmentSetViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
         fun openClips()
@@ -63,10 +65,10 @@ class ClipPanelViewModelImpl(
     override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(globalClipViewModel)
     override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(globalClipViewModel)
     override val editableFragmentSetViewModel: DraggableFragmentSetViewModel = DraggableFragmentSetViewModelImpl(
-        editableClipViewModel, density, specs
+        this, editableClipViewModel, density, specs
     )
     override val globalFragmentSetViewModel: GlobalFragmentSetViewModel = GlobalFragmentSetViewModelImpl(
-        globalClipViewModel
+        this, globalClipViewModel
     )
 
     /* Simple properties */
@@ -89,32 +91,6 @@ class ClipPanelViewModelImpl(
     override val canStopClip: Boolean get() = !_isLoading && isClipPlaying
 
     /* Callbacks */
-    init {
-        coroutineScope.launch {
-            audioClip = audioClipService.openAudioClip(clipFile)
-            player = audioClipService.createPlayer(audioClip)
-            editableClipViewModel.submitClip(audioClip)
-            globalClipViewModel.submitClip(audioClip)
-            editableFragmentSetViewModel.submitClip(audioClip)
-
-            _isLoading = false
-        }
-        coroutineScope.launch {
-            snapshotFlow {
-                editableClipViewModel.clipViewWidthAbsPx
-            }.collect { editableClipViewWidthAbsPx ->
-                globalWindowClipViewModel.updateWidthAbsPx(editableClipViewWidthAbsPx)
-            }
-        }
-        coroutineScope.launch {
-            snapshotFlow {
-                editableClipViewModel.xOffsetAbsPx
-            }.collect { editableXOffsetAbsPx ->
-                globalWindowClipViewModel.updateXOffsetAbsPx(editableXOffsetAbsPx)
-            }
-        }
-    }
-
     override fun onOpenClips() {
         parentViewModel.openClips()
     }
@@ -155,11 +131,8 @@ class ClipPanelViewModelImpl(
         }
         // handle fragments manipulation
         val pressPositionUs = editableClipViewModel.toUs(pressPositionAbsPx)
-        println(pressPositionUs)
         editableFragmentSetViewModel.trySelectFragmentAt(pressPositionUs)
         globalFragmentSetViewModel.trySelectFragmentAt(pressPositionUs)
-
-        println(audioClip.fragments)
    }
 
     override fun onEditableClipViewDragStart(dragStart: Offset) {
@@ -208,17 +181,14 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onPlayClicked() {
-        isClipPlaying = true
         startPlayClip()
     }
 
     override fun onPauseClicked() {
-        isClipPlaying = false
         stopPlayClip(false)
     }
 
     override fun onStopClicked() {
-        isClipPlaying = false
         stopPlayClip(true)
     }
 
@@ -229,10 +199,10 @@ class ClipPanelViewModelImpl(
                 Key.Spacebar -> {
                     if (canPauseClip || canStopClip) {
                         if (event.isShiftPressed) {
-                            onStopClicked()
+                            stopPlayClip(true)
                             true
                         } else {
-                            onPauseClicked()
+                            stopPlayClip(false)
                             true
                         }
                     }
@@ -240,35 +210,31 @@ class ClipPanelViewModelImpl(
 //                        selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState?.stopPlayFragment()
 //                        true
 //                    }
-                    else if (canPlayClip) {
-//                        selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState
-//                            ?.startPlayFragment() ?: selectedAudioClipState.startPlayClip()
-                        onPlayClicked()
+                    else if (editableFragmentSetViewModel.selectedFragmentViewModel?.canStopFragment == true) {
+//                        stopPlayFragment()
                         true
-                    } else {
-                        false
                     }
-                }
-                /*
-                Key.Escape -> {
-                    if (selectedAudioClipState.fragmentSetState.fragmentSelectState.selectedFragmentState != null) {
-                        selectedAudioClipState.fragmentSetState.fragmentSelectState.reset()
+                    else if (editableFragmentSetViewModel.selectedFragmentViewModel?.canPlayFragment == true) {
+//                        startPlayFragment()
+                        true
+                    }
+                    else if (canPlayClip) {
+                        startPlayClip()
                         true
                     }
                     else {
                         false
                     }
                 }
-                */
+                Key.Escape -> {
+                    editableFragmentSetViewModel.selectedFragment?.let {
+                        editableFragmentSetViewModel.deselectFragment()
+                        true
+                    } ?: false
+                }
                 Key.Delete -> {
-                    editableFragmentSetViewModel.selectedFragment?.let { fragmentToRemove ->
-                        editableFragmentSetViewModel.removeFragment(fragmentToRemove)
-                        globalFragmentSetViewModel.removeFragment(fragmentToRemove)
-
-//                        if (isFragmentPlaying) {
-//                            stopPlayFragment()
-//                        }
-
+                    editableFragmentSetViewModel.selectedFragment?.let {
+                        removeFragment(it)
                         true
                     } ?: false
                 }
@@ -279,11 +245,39 @@ class ClipPanelViewModelImpl(
     }
 
     /* Methods */
+    init {
+        coroutineScope.launch {
+            audioClip = audioClipService.openAudioClip(clipFile)
+            player = audioClipService.createPlayer(audioClip)
+            editableClipViewModel.submitClip(audioClip)
+            globalClipViewModel.submitClip(audioClip)
+            editableFragmentSetViewModel.submitClip(audioClip)
+
+            _isLoading = false
+        }
+        coroutineScope.launch {
+            snapshotFlow {
+                editableClipViewModel.clipViewWidthAbsPx
+            }.collect { editableClipViewWidthAbsPx ->
+                globalWindowClipViewModel.updateWidthAbsPx(editableClipViewWidthAbsPx)
+            }
+        }
+        coroutineScope.launch {
+            snapshotFlow {
+                editableClipViewModel.xOffsetAbsPx
+            }.collect { editableXOffsetAbsPx ->
+                globalWindowClipViewModel.updateXOffsetAbsPx(editableXOffsetAbsPx)
+            }
+        }
+    }
+
     override fun close() {
         audioClipService.closeAudioClip(audioClip, player)
     }
 
     private fun startPlayClip() {
+        isClipPlaying = true
+
         with(editableClipViewModel) {
             val cursorPositionUs = toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
             val playDuration = audioClip.durationUs - toUs(toAbsOffset(editableCursorViewModel.xPositionWinPx))
@@ -308,6 +302,7 @@ class ClipPanelViewModelImpl(
     }
 
     private fun stopPlayClip(restoreStateBeforePlay: Boolean) {
+        isClipPlaying = false
         clipPlayJob!!.cancel()
         clipPlayJob = null
         player.stop()
@@ -315,5 +310,27 @@ class ClipPanelViewModelImpl(
             editableCursorViewModel.restoreXPositionAbsPxState()
             globalCursorViewModel.restoreXPositionAbsPxState()
         }
+    }
+
+    override fun startPlayFragment(fragment: AudioClipFragment) {
+        TODO("Not yet implemented")
+    }
+
+    override fun stopPlayFragment(fragment: AudioClipFragment) {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeFragment(fragment: AudioClipFragment) {
+        editableFragmentSetViewModel.fragmentViewModels[fragment]!!.apply {
+            if (canStopFragment) {
+                stopPlayFragment(fragment)
+            }
+        }
+//        if (isFragmentPlaying) {
+//            stopPlayFragment()
+//        }
+
+        editableFragmentSetViewModel.removeFragment(fragment)
+        globalFragmentSetViewModel.removeFragment(fragment)
     }
 }

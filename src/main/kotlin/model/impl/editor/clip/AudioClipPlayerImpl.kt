@@ -3,8 +3,10 @@ package model.impl.editor.clip
 import kotlinx.coroutines.*
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
+import model.api.editor.clip.fragment.AudioClipFragment
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.SourceDataLine
+import kotlin.math.max
 
 class AudioClipPlayerImpl(
     private val audioClip: AudioClip,
@@ -44,6 +46,71 @@ class AudioClipPlayerImpl(
         }
 
         return audioClip.durationUs - startUs
+    }
+
+    override suspend fun play(fragment: AudioClipFragment): Long {
+        stop()
+        require(fragment in audioClip.fragments) {
+            "Trying to play fragment $fragment which does NOT belong to correspondent audioClip $audioClip"
+        }
+
+        val inMutableAreaPcmBytes = ByteArray(
+            audioClip.toPcmBytePosition(fragment.mutableAreaEndUs - fragment.mutableAreaStartUs).toInt()
+        ).also {
+            audioClip.readPcm(audioClip.toPcmBytePosition(fragment.mutableAreaStartUs).toInt(), it.size, it)
+        }
+        val outMutableAreaPcmBytes = fragment.transformer.transform(inMutableAreaPcmBytes)
+
+        val leftImmutableAreaStartPosition = audioClip.toPcmBytePosition(fragment.adjustedLeftImmutableAreaStartUs)
+        val mutableAreaStartPosition = audioClip.toPcmBytePosition(fragment.mutableAreaStartUs)
+        val mutableAreaEndPosition = mutableAreaStartPosition + outMutableAreaPcmBytes.size.toLong()
+        val rightImmutableAreaEndPosition = mutableAreaEndPosition + audioClip.toPcmBytePosition(
+            fragment.adjustedRightImmutableAreaEndUs - fragment.mutableAreaEndUs
+        )
+
+        coroutineScope {
+            playJob = launch {
+                var currentPosition = leftImmutableAreaStartPosition
+                dataLine.start()
+
+                withContext(Dispatchers.Default) {
+                    while (currentPosition < rightImmutableAreaEndPosition) {
+                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
+                        when {
+                            currentPosition < mutableAreaStartPosition -> {
+                                val readSize = (currentPosition + dataLine.available())
+                                    .coerceAtMost(mutableAreaStartPosition) - currentPosition
+                                audioClip.readPcm(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
+                                currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
+                            }
+                            currentPosition < mutableAreaEndPosition -> {
+                                val readSize = (currentPosition + dataLine.available())
+                                    .coerceAtMost(mutableAreaEndPosition) - currentPosition
+                                currentPosition += dataLine.write(
+                                    outMutableAreaPcmBytes,
+                                    (currentPosition - mutableAreaStartPosition).toInt(),
+                                    readSize.toInt()
+                                )
+                            }
+                            currentPosition < rightImmutableAreaEndPosition -> {
+                                val readSize = (currentPosition + dataLine.available())
+                                    .coerceAtMost(rightImmutableAreaEndPosition) - currentPosition
+                                audioClip.readPcm(
+                                    currentPosition.toInt() - outMutableAreaPcmBytes.size
+                                            + inMutableAreaPcmBytes.size, readSize.toInt(), pcmBuffer)
+                                currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
+                            }
+                        }
+
+                        if (dataLine.available() == 0) {
+                            delay(bufferRefreshPeriodMs)
+                        }
+                    }
+                }
+            }
+        }
+
+        return audioClip.toUs(rightImmutableAreaEndPosition - leftImmutableAreaStartPosition)
     }
 
     override fun stop() {

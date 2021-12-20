@@ -1,6 +1,7 @@
 package model.impl.editor.clip.fragment
 
 import model.api.editor.clip.fragment.MutableAudioClipFragment
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.audio.AudioServiceSpecs
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -10,8 +11,9 @@ class AudioClipFragmentImpl(
     mutableAreaStartUs: Long,
     mutableAreaEndUs: Long,
     rightImmutableAreaEndUs: Long,
-    private val specs: AudioServiceSpecs,
     audioClipDurationUs: Long,
+    private val specs: AudioServiceSpecs,
+    override var transformer: FragmentTransformer
 ): MutableAudioClipFragment {
     override val maxRightBoundUs: Long = audioClipDurationUs
     override val minImmutableAreaDurationUs: Long get() = specs.minImmutableAreaDurationUs

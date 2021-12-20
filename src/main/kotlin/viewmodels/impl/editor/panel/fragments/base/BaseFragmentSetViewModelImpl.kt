@@ -4,6 +4,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
@@ -12,7 +13,7 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 
 
-open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewModel>: FragmentSetViewModel<K, V> {
+open class BaseFragmentSetViewModelImpl<V: FragmentViewModel>: FragmentSetViewModel<V> {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -20,11 +21,11 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
     /* Simple properties */
 
     /* Stateful properties */
-    private var fragmentViewModelsMap: SortedMap<K, V> by mutableStateOf(TreeMap())
-    override val fragmentViewModels: SortedMap<K, V> get() = fragmentViewModelsMap
+    private var fragmentViewModelsMap: SortedMap<AudioClipFragment, V> by mutableStateOf(TreeMap())
+    override val fragmentViewModels: SortedMap<AudioClipFragment, V> get() = fragmentViewModelsMap
 
-    private var _selectedFragment: K? by mutableStateOf(null)
-    override var selectedFragment: K?
+    private var _selectedFragment: AudioClipFragment? by mutableStateOf(null)
+    override var selectedFragment: AudioClipFragment?
         get() = _selectedFragment
         protected set(value) {
             _selectedFragment = value
@@ -42,7 +43,11 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
             ?: fragmentsDescending.find { positionUs in it }
     }
 
-    protected fun submitFragment(fragment: K, fragmentViewModel: V) {
+    override fun deselectFragment() {
+        _selectedFragment = null
+    }
+
+    protected fun submitFragment(fragment: AudioClipFragment, fragmentViewModel: V) {
         require(!fragmentViewModels.containsKey(fragment)) {
             "Trying to submit an already present fragment $fragment"
         }
@@ -52,7 +57,7 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
         }
     }
 
-    override fun removeFragment(fragment: K) {
+    override fun removeFragment(fragment: AudioClipFragment) {
         require(fragmentViewModels.containsKey(fragment)) {
             "Trying to remove an absent fragment $fragment"
         }
@@ -63,34 +68,4 @@ open class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewMod
             remove(fragment)
         }
     }
-    /*
-    override fun selectFragment(fragment: K) {
-        _selectedFragment = fragment
-    }
-
-    override fun deselectFragment() {
-        _selectedFragment = null
-    }
-
-    override fun submitFragment(fragment: K) {
-        require(!_fragmentViewModels.containsKey(fragment)) {
-            "Trying to submit an already present fragment $fragment"
-        }
-
-        _fragmentViewModels = HashMap(_fragmentViewModels).apply {
-            set(fragment, fragmentViewModelFactory.create(fragment))
-        }
-    }
-
-    override fun removeFragment(fragment: K) {
-        require(_fragmentViewModels.containsKey(fragment)) {
-            "Trying to remove an absent fragment $fragment"
-        }
-        if (fragment == selectedFragment) {
-            deselectFragment()
-        }
-        _fragmentViewModels = HashMap(_fragmentViewModels).apply {
-            remove(fragment)
-        }
-    }*/
 }

@@ -23,6 +23,7 @@ import views.editor.panel.clip.GlobalWindowClipView
 import views.editor.panel.fragments.FragmentSetView
 import views.editor.panel.cursor.ClipCursor
 import views.editor.panel.fragments.DraggableFragmentSetView
+import views.editor.panel.fragments.DraggableFragmentSetPanel
 import views.editor.panel.fragments.FragmentSetFramesView
 
 @Composable
@@ -99,6 +100,7 @@ fun ClipPanel(
                         ClipCursor(clipPanelViewModel.editableCursorViewModel)
                         FragmentSetFramesView(clipPanelViewModel.editableFragmentSetViewModel)
                     }
+                    DraggableFragmentSetPanel(clipPanelViewModel.editableFragmentSetViewModel)
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }

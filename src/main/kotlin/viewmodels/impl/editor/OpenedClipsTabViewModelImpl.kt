@@ -39,27 +39,6 @@ class OpenedClipsTabViewModelImpl(
     }
 
     override fun onRemoveClip(clipId: String) {
-        require(openedClips.containsKey(clipId)) {
-            "Trying to remove clip with id $clipId which is absent in $openedClips"
-        }
-
-        val indexToRemove = openedClips.keys.indexOf(clipId)
-        _openedClips = LinkedHashMap(openedClips)
-            .apply { remove(clipId) }
-            .also { newOpenedClips ->
-                if (newOpenedClips.isNotEmpty()) {
-                    // last element has NOT been removed
-                    if (indexToRemove <= selectedClipIndex) {
-                        _selectedClipId = newOpenedClips.keys.elementAt(
-                            (selectedClipIndex - 1).coerceAtLeast(0)
-                        )
-                    }
-                }
-                else {
-                    _selectedClipId = null
-                }
-        }
-
         parentViewModel.removeClip(clipId)
     }
 
@@ -79,5 +58,28 @@ class OpenedClipsTabViewModelImpl(
         if (selectedClipId == null && openedClips.isNotEmpty()) {
             _selectedClipId = openedClips.keys.first()
         }
+    }
+
+    override fun removeClip(clipId: String) {
+        require(openedClips.containsKey(clipId)) {
+            "Trying to remove clip with id $clipId which is absent in $openedClips"
+        }
+
+        val indexToRemove = openedClips.keys.indexOf(clipId)
+        _openedClips = LinkedHashMap(openedClips)
+            .apply { remove(clipId) }
+            .also { newOpenedClips ->
+                if (newOpenedClips.isNotEmpty()) {
+                    // last element has NOT been removed
+                    if (indexToRemove <= selectedClipIndex) {
+                        _selectedClipId = newOpenedClips.keys.elementAt(
+                            (selectedClipIndex - 1).coerceAtLeast(0)
+                        )
+                    }
+                }
+                else {
+                    _selectedClipId = null
+                }
+            }
     }
 }

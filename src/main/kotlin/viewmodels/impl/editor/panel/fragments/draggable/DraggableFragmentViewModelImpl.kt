@@ -13,13 +13,14 @@ import viewmodels.impl.editor.panel.fragments.base.BaseFragmentViewModelImpl
 
 class DraggableFragmentViewModelImpl(
     fragment: MutableAudioClipFragment,
+    parentViewModel: Parent,
     clipUnitConverter: ClipUnitConverter,
     private val density: Density,
     private val specs: EditorSpecs
-): BaseFragmentViewModelImpl<MutableAudioClipFragment>(fragment, clipUnitConverter),
+): BaseFragmentViewModelImpl<MutableAudioClipFragment>(fragment, parentViewModel, clipUnitConverter),
     DraggableFragmentViewModel {
-
     /* Parent ViewModels */
+    interface Parent: BaseFragmentViewModelImpl.Parent
 
     /* Child ViewModels */
 
@@ -94,7 +95,7 @@ class DraggableFragmentViewModelImpl(
     }
 
     override fun setDraggableStateError() {
-        _isError = true
+        isError = true
         leftImmutableAreaStartUs = mutableAreaStartUs
         rightImmutableAreaEndUs = mutableAreaEndUs
     }
@@ -115,7 +116,7 @@ class DraggableFragmentViewModelImpl(
     override fun resetDraggableState() {
         dragSegment = null
         dragStartRelativePositionUs = 0
-        _isError = false
+        isError = false
     }
 
     override fun tryDragAt(dragPositionUs: Long) {

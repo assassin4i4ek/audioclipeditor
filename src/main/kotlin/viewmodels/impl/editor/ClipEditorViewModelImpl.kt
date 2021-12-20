@@ -75,6 +75,7 @@ class ClipEditorViewModelImpl(
         _panelViewModels = HashMap(_panelViewModels).apply {
             remove(clipId)!!.close()
         }
+        openedClipsTabViewModel.removeClip(clipId)
     }
 
     override fun openClips() {

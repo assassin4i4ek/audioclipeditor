@@ -1,5 +1,7 @@
 package model.api.editor.clip.fragment
 
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
+
 interface AudioClipFragment: Comparable<AudioClipFragment> {
     val leftImmutableAreaStartUs: Long
     val mutableAreaStartUs: Long
@@ -13,14 +15,18 @@ interface AudioClipFragment: Comparable<AudioClipFragment> {
     val minImmutableAreaDurationUs: Long
     val minMutableAreaDurationUs: Long
 
+    val adjustedLeftImmutableAreaStartUs: Long get() = leftImmutableAreaStartUs.coerceAtLeast(0)
+    val adjustedRightImmutableAreaEndUs: Long get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs)
 
     val rawLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs
-    val adjustedLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - leftImmutableAreaStartUs.coerceAtLeast(0)
+    val adjustedLeftImmutableAreaDurationUs: Long get() = mutableAreaStartUs - adjustedLeftImmutableAreaStartUs
     val mutableAreaDurationUs: Long get() = mutableAreaEndUs - mutableAreaStartUs
     val rawRightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs - mutableAreaEndUs
-    val adjustedRightImmutableAreaDurationUs: Long get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - mutableAreaEndUs
+    val adjustedRightImmutableAreaDurationUs: Long get() = adjustedRightImmutableAreaEndUs - mutableAreaEndUs
     val rawTotalDurationUs: Long get() = rightImmutableAreaEndUs - leftImmutableAreaStartUs
-    val adjustedTotalDurationUs: Long get() = rightImmutableAreaEndUs.coerceAtMost(maxRightBoundUs) - leftImmutableAreaStartUs.coerceAtLeast(0)
+    val adjustedTotalDurationUs: Long get() = adjustedRightImmutableAreaEndUs - adjustedLeftImmutableAreaStartUs
+
+    var transformer: FragmentTransformer
 
     operator fun contains(us: Long): Boolean {
         return (us >= leftImmutableAreaStartUs) && (us <= rightImmutableAreaEndUs)

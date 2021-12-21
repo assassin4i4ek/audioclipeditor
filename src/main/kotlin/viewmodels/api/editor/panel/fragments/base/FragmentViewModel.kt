@@ -47,6 +47,8 @@ interface FragmentViewModel: BaseViewModel {
     fun onPlayClicked()
     fun onStopClicked()
     fun onRemoveClicked()
+    fun setPlaying(isFragmentPlaying: Boolean)
 
     /* Methods */
+    fun updateToMatchFragment()
 }

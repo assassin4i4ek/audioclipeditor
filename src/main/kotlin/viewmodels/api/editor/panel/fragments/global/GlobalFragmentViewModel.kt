@@ -14,5 +14,4 @@ interface GlobalFragmentViewModel: FragmentViewModel {
     /* Callbacks */
 
     /* Methods */
-    fun updateToMatchFragment()
 }

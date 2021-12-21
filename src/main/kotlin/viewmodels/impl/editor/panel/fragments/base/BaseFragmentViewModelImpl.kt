@@ -86,7 +86,7 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         }
     }
 
-    private val isFragmentPlaying by mutableStateOf(false)
+    private var isFragmentPlaying by mutableStateOf(false)
     override val canPlayFragment: Boolean get() = !isError && !isFragmentPlaying
     override val canStopFragment: Boolean get() = !isError && isFragmentPlaying
 
@@ -108,4 +108,15 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     }
 
     /* Methods */
+    override fun updateToMatchFragment() {
+        leftImmutableAreaStartUs = fragment.leftImmutableAreaStartUs
+        mutableAreaStartUs = fragment.mutableAreaStartUs
+        mutableAreaEndUs = fragment.mutableAreaEndUs
+        rightImmutableAreaEndUs = fragment.rightImmutableAreaEndUs
+        //TODO Transformer
+    }
+
+    override fun setPlaying(isFragmentPlaying: Boolean) {
+        this.isFragmentPlaying = isFragmentPlaying
+    }
 }

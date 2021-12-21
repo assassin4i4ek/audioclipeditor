@@ -28,8 +28,9 @@ class AudioClipPlayerImpl(
         val startPosition = audioClip.toPcmBytePosition(startUs)
         val endPosition = audioClip.toPcmBytePosition(audioClip.durationUs)
 
+
         coroutineScope {
-            playJob = launch {
+            playJob = launch(Job()) {
                 var currentPosition = startPosition
                 dataLine.start()
 
@@ -69,7 +70,7 @@ class AudioClipPlayerImpl(
         )
 
         coroutineScope {
-            playJob = launch {
+            playJob = launch(Job()) {
                 var currentPosition = leftImmutableAreaStartPosition
                 dataLine.start()
 

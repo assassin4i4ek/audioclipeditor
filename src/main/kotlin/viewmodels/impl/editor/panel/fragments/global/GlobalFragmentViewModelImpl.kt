@@ -29,10 +29,4 @@ class GlobalFragmentViewModelImpl(
     /* Callbacks */
 
     /* Methods */
-    override fun updateToMatchFragment() {
-        leftImmutableAreaStartUs = fragment.leftImmutableAreaStartUs
-        mutableAreaStartUs = fragment.mutableAreaStartUs
-        mutableAreaEndUs = fragment.mutableAreaEndUs
-        rightImmutableAreaEndUs = fragment.rightImmutableAreaEndUs
-    }
 }

@@ -1,5 +1,7 @@
 package viewmodels.api.editor.panel.cursor
 
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
 import viewmodels.api.BaseViewModel
 
 interface CursorViewModel: BaseViewModel {
@@ -16,7 +18,7 @@ interface CursorViewModel: BaseViewModel {
 
     /* Methods */
     fun updatePositionAbsPx(xPositionAbsPx: Float)
-    suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long)
+    suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long, easing: Easing = LinearEasing)
     fun saveXPositionAbsPxState()
     fun restoreXPositionAbsPxState()
 }

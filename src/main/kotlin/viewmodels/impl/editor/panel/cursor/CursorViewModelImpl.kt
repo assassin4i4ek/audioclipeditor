@@ -1,6 +1,7 @@
 package viewmodels.impl.editor.panel.cursor
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.derivedStateOf
@@ -24,7 +25,6 @@ class CursorViewModelImpl(
     /* Simple properties */
     private val xPositionAbsPxAnimatable = Animatable(0f)
     private var xPositionAbsPxSaved: Float = 0f
-    private var animationJob: Job? = null
 
     /* Stateful properties */
     private var xPositionAbsPx: Float by mutableStateOf(0f)
@@ -40,14 +40,14 @@ class CursorViewModelImpl(
         this.xPositionAbsPx = xPositionAbsPx
     }
 
-    override suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long) {
+    override suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long, easing: Easing) {
         coroutineScope {
             xPositionAbsPxAnimatable.snapTo(xPositionAbsPx)
             xPositionAbsPxAnimatable.animateTo(
                 targetValue = targetXPositionAbsPx,
                 animationSpec = tween(
                     durationMillis = (durationUs.toDouble() / 1e3).toInt(),
-                    easing = LinearEasing
+                    easing = easing
                 )
             ) {
                 launch {

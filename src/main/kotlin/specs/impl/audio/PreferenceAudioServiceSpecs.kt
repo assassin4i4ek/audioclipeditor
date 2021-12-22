@@ -1,5 +1,7 @@
 package specs.impl.audio
 
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.audio.MutableAudioServiceSpecs
 import specs.impl.BasePreferenceSpecs
 import java.util.prefs.Preferences
@@ -17,5 +19,13 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecs(), MutableAudioServiceSpe
 
     override var minMutableAreaDurationUs: Long by savableProperty(
         2000, ::minMutableAreaDurationUs
+    )
+
+    override var defaultFragmentTransformerType: FragmentTransformer.Type by savableProperty(
+        FragmentTransformer.Type.SILENCE, ::defaultFragmentTransformerType, { it.name }, { FragmentTransformer.Type.valueOf(it) }
+    )
+
+    override var defaultSilenceTransformerSilenceDurationUs: Long by savableProperty(
+        250e3.toLong(), ::defaultSilenceTransformerSilenceDurationUs
     )
 }

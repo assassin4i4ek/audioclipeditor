@@ -1,20 +1,22 @@
 package views.editor.panel.fragments
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.res.svgResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.loadSvgPainter
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
+import model.api.editor.clip.fragment.transformer.IdleTransformer
+import model.api.editor.clip.fragment.transformer.SilenceTransformer
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
-import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentSetViewModel
+import views.utils.OutlinedExposedDropDownMenu
 
 @Composable
 fun DraggableFragmentSetPanel(
@@ -50,13 +52,26 @@ fun DraggableFragmentSetPanel(
 
 @Composable
 private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel) {
+    val density = LocalDensity.current
+
     Row {
         Button(
             enabled = fragmentViewModel.canPlayFragment,
             onClick = fragmentViewModel::onPlayClicked
         ) {
-            Icon(svgResource("icons/play_arrow_black_24dp.svg"), "play")
+//            Icon(useResource("icons/play_arrow_black_24dp.svg") {
+//                loadSvgPainter(it, density)
+//            }, "play")
+            Icon(Icons.Filled.PlayArrow, "play")
         }
+
+        OutlinedExposedDropDownMenu(
+            values = fragmentViewModel.transformerOptions,//FragmentTransformerType.values().map(FragmentTransformerType::name),
+            selectedIndex = fragmentViewModel.selectedTransformerOptionIndex,//fragmentViewModel.transformer.type.ordinal,
+            onChange = fragmentViewModel::onSelectTransformer,
+            label = { Text("Transformer") },
+            backgroundColor = Color.White
+        )
 
 //        when(fragmentViewModel.transformer) {
 //            is FragmentTransformer.SilenceTransformer -> {
@@ -68,12 +83,16 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel) {
             enabled = fragmentViewModel.canStopFragment,
             onClick = fragmentViewModel::onStopClicked
         ) {
-            Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
+            Icon(useResource("icons/stop_black_24dp.svg") {
+                loadSvgPainter(it, density)
+            }, "stop")
         }
         Button(
             onClick = fragmentViewModel::onRemoveClicked
         ) {
-            Icon(svgResource("icons/delete_black_24dp.svg"), "delete")
+            Icon(useResource("icons/delete_black_24dp.svg") {
+                loadSvgPainter(it, density)
+            }, "remove")
         }
     }
 }
@@ -81,6 +100,12 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel) {
 @Composable
 private fun SimpleFragmentPanel(fragmentViewModel: FragmentViewModel) {
     Row {
-        Text("Simple fragment")
+        when (val transformer = fragmentViewModel.transformer) {
+            is IdleTransformer -> {
+            }
+            is SilenceTransformer -> {
+                Text("${transformer.silenceDurationUs / 1e3} ms")
+            }
+        }
     }
 }

@@ -9,9 +9,9 @@ version = "1.0"
 
 plugins {
     idea
-    kotlin("jvm") version "1.5.10"
-    id("org.jetbrains.compose") version "0.5.0-build228"
-    kotlin("plugin.serialization") version "1.5.10"
+    kotlin("jvm") version "1.6.10"
+    id("org.jetbrains.compose") version "1.0.1-rc2"
+    kotlin("plugin.serialization") version "1.6.10"
     id("org.bytedeco.gradle-javacpp-platform") version "1.5.6"
     id("com.google.protobuf") version "0.8.16"
 }

@@ -1,5 +1,6 @@
 package viewmodels.api.editor.panel
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -65,6 +66,7 @@ interface ClipPanelViewModel: BaseViewModel {
     fun onPlayClicked()
     fun onPauseClicked()
     fun onStopClicked()
+    @ExperimentalComposeUiApi
     fun onKeyEvent(event: KeyEvent): Boolean
 
     /* Methods */

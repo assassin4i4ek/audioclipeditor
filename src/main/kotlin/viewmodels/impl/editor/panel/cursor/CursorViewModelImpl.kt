@@ -41,19 +41,15 @@ class CursorViewModelImpl(
     }
 
     override suspend fun animateToXPositionAbsPx(targetXPositionAbsPx: Float, durationUs: Long, easing: Easing) {
-        coroutineScope {
-            xPositionAbsPxAnimatable.snapTo(xPositionAbsPx)
-            xPositionAbsPxAnimatable.animateTo(
-                targetValue = targetXPositionAbsPx,
-                animationSpec = tween(
-                    durationMillis = (durationUs.toDouble() / 1e3).toInt(),
-                    easing = easing
-                )
-            ) {
-                launch {
-                    xPositionAbsPx = value
-                }
-            }
+        xPositionAbsPxAnimatable.snapTo(xPositionAbsPx)
+        xPositionAbsPxAnimatable.animateTo(
+            targetValue = targetXPositionAbsPx,
+            animationSpec = tween(
+                durationMillis = (durationUs.toDouble() / 1e3).toInt(),
+                easing = easing
+            )
+        ) {
+            xPositionAbsPx = value
         }
     }
 

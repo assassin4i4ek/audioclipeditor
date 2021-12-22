@@ -13,6 +13,7 @@ interface ClipEditorViewModel: BaseViewModel {
     /* Simple properties */
 
     /* Stateful properties */
+    val canShowFileChooser: Boolean
     val showFileChooser: Boolean
     val selectedPanel: ClipPanelViewModel?
 

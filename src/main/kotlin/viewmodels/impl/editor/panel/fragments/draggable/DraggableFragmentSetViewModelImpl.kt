@@ -85,10 +85,10 @@ class DraggableFragmentSetViewModelImpl(
         var isError = false
         val newFragment = kotlin.runCatching {
             if (dragStartPositionUs < selectPositionUs) {
-                audioClip.createMinDurationFragmentAtEnd(selectPositionUs, SilenceTransformerImpl(audioClip))
+                audioClip.createMinDurationFragmentAtEnd(selectPositionUs)
             }
             else {
-                audioClip.createMinDurationFragmentAtStart(selectPositionUs, SilenceTransformerImpl(audioClip))
+                audioClip.createMinDurationFragmentAtStart(selectPositionUs)
             }
         }.getOrElse {
             println("Tier 1 error: ${it.message}")

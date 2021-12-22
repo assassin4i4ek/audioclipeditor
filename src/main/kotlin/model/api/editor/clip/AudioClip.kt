@@ -18,8 +18,8 @@ interface AudioClip: AudioPcm {
     val fragments: SortedSet<MutableAudioClipFragment>
 
     fun readPcm(startPosition: Int, size: Int, buffer: ByteArray)
-    fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long, transformer: FragmentTransformer): MutableAudioClipFragment
-    fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long, transformer: FragmentTransformer): MutableAudioClipFragment
+    fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment
+    fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment
     fun removeFragment(fragment: MutableAudioClipFragment)
     fun close()
 }

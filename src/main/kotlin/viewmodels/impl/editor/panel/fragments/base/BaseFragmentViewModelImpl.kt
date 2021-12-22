@@ -5,6 +5,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.impl.editor.clip.fragment.transformer.IdleTransformerImpl
+import model.impl.editor.clip.fragment.transformer.SilenceTransformerImpl
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
 
@@ -65,11 +68,6 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
             toWinOffset(toAbsPx(rightImmutableAreaEndUs))
         }
     }
-//    override val maxRightBoundWinPx: Float by derivedStateOf {
-//        with (clipUnitConverter) {
-//            toWinOffset(toAbsPx(fragment.maxRightBoundUs))
-//        }
-//    }
 
     override var isError: Boolean by mutableStateOf(false)
         protected set
@@ -89,6 +87,19 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     private var isFragmentPlaying by mutableStateOf(false)
     override val canPlayFragment: Boolean get() = !isError && !isFragmentPlaying
     override val canStopFragment: Boolean get() = !isError && isFragmentPlaying
+    
+    protected abstract var fragmentTransformer: FragmentTransformer
+    override val transformer: FragmentTransformer get() = fragmentTransformer
+
+    override val transformerOptions: List<String> = FragmentTransformer.Type.values().map {
+        when (it) {
+            FragmentTransformer.Type.IDLE -> "IDLE"
+            FragmentTransformer.Type.SILENCE -> "SILENCE"
+        }
+    }
+
+    private var _selectedTransformerOptionIndex: Int by mutableStateOf(fragment.transformer.type.ordinal)
+    override val selectedTransformerOptionIndex: Int get() = _selectedTransformerOptionIndex
 
     /* Callbacks */
     override fun onControlPanelPlaced(controlPanelWidthWinPx: Float) {
@@ -107,13 +118,22 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         parentViewModel.removeFragment(fragment)
     }
 
+
+    override fun onSelectTransformer(transformerOptionIndex: Int) {
+        _selectedTransformerOptionIndex = transformerOptionIndex
+        fragmentTransformer = when (FragmentTransformer.Type.values()[transformerOptionIndex]) {
+            FragmentTransformer.Type.IDLE -> IdleTransformerImpl()
+            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl()
+        }
+    }
+
     /* Methods */
     override fun updateToMatchFragment() {
         leftImmutableAreaStartUs = fragment.leftImmutableAreaStartUs
         mutableAreaStartUs = fragment.mutableAreaStartUs
         mutableAreaEndUs = fragment.mutableAreaEndUs
         rightImmutableAreaEndUs = fragment.rightImmutableAreaEndUs
-        //TODO Transformer
+        fragmentTransformer = fragment.transformer
     }
 
     override fun setPlaying(isFragmentPlaying: Boolean) {

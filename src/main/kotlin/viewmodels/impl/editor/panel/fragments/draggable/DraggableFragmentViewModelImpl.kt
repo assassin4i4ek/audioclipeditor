@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
 import model.api.editor.clip.fragment.MutableAudioClipFragment
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
@@ -76,6 +77,8 @@ class DraggableFragmentViewModelImpl(
     override val rightImmutableDraggableAreaWidthWinPx: Float by derivedStateOf {
         rawRightImmutableAreaWidthWinPx * specs.immutableDraggableAreaFraction
     }
+
+    override var fragmentTransformer: FragmentTransformer by mutableStateOf(fragment.transformer)
 
     /* Callbacks */
 

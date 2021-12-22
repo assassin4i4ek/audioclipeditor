@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.awtEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -201,7 +202,7 @@ class ClipPanelViewModelImpl(
 
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        return if (event.nativeKeyEvent.id == NativeKeyEvent.KEY_PRESSED) {
+        return if (event.type == KeyEventType.KeyDown) {
             when (event.key) {
                 Key.Spacebar -> {
                     if (canPauseClip || canStopClip) {

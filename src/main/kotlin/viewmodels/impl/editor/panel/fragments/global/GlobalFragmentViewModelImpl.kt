@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
 import viewmodels.impl.editor.panel.fragments.base.BaseFragmentViewModelImpl
@@ -25,6 +26,8 @@ class GlobalFragmentViewModelImpl(
     override var mutableAreaStartUs: Long by mutableStateOf(fragment.mutableAreaStartUs)
     override var mutableAreaEndUs: Long by mutableStateOf(fragment.mutableAreaEndUs)
     override var rightImmutableAreaEndUs: Long by mutableStateOf(fragment.rightImmutableAreaEndUs)
+
+    override var fragmentTransformer: FragmentTransformer by mutableStateOf(fragment.transformer)
 
     /* Callbacks */
 

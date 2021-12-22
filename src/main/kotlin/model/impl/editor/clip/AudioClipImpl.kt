@@ -4,6 +4,7 @@ import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.MutableAudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import model.impl.editor.clip.fragment.AudioClipFragmentImpl
+import model.impl.editor.clip.fragment.transformer.IdleTransformerImpl
 import model.impl.editor.clip.fragment.transformer.SilenceTransformerImpl
 import specs.api.immutable.audio.AudioServiceSpecs
 import java.util.*
@@ -28,29 +29,34 @@ class AudioClipImpl(
     }
 
     override fun createMinDurationFragmentAtStart(
-        mutableAreaStartUs: Long, transformer: FragmentTransformer
+        mutableAreaStartUs: Long
     ): MutableAudioClipFragment {
         return createMinDurationFragment(
-            mutableAreaStartUs, mutableAreaStartUs + specs.minMutableAreaDurationUs, transformer
+            mutableAreaStartUs, mutableAreaStartUs + specs.minMutableAreaDurationUs
         )
     }
 
     override fun createMinDurationFragmentAtEnd(
-        mutableAreaEndUs: Long, transformer: FragmentTransformer
+        mutableAreaEndUs: Long
     ): MutableAudioClipFragment {
         return createMinDurationFragment(
-            mutableAreaEndUs - specs.minMutableAreaDurationUs, mutableAreaEndUs, transformer
+            mutableAreaEndUs - specs.minMutableAreaDurationUs, mutableAreaEndUs
         )
     }
 
     private fun createMinDurationFragment(
-        mutableAreaStartUs: Long, mutableAreaEndUs: Long, transformer: FragmentTransformer
+        mutableAreaStartUs: Long, mutableAreaEndUs: Long
     ): MutableAudioClipFragment {
+        val newFragmentTransformer = when(specs.defaultFragmentTransformerType) {
+            FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
+            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(this, specs)
+        }
+
         val newFragment = AudioClipFragmentImpl(
             mutableAreaStartUs - specs.minImmutableAreaDurationUs,
             mutableAreaStartUs, mutableAreaEndUs,
             mutableAreaStartUs + specs.minMutableAreaDurationUs + specs.minImmutableAreaDurationUs,
-            durationUs, specs, transformer
+            durationUs, specs, newFragmentTransformer
         )
 
         val prevFragment = _fragments.floor(newFragment)

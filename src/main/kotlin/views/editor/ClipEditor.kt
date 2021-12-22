@@ -1,6 +1,5 @@
 package views.editor
 
-import androidx.compose.desktop.LocalAppWindow
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,22 +9,30 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.res.svgResource
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.loadSvgPainter
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import androidx.compose.ui.window.AwtWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import viewmodels.api.editor.ClipEditorViewModel
 import views.editor.panel.ClipPanel
 import java.awt.FileDialog
+import java.awt.Frame
 import java.io.FilenameFilter
 
 @Composable
+@ExperimentalComposeUiApi
 fun ClipEditor(
     clipEditorViewModel: ClipEditorViewModel
 ) {
@@ -44,26 +51,29 @@ fun ClipEditor(
     //
 
     if (clipEditorViewModel.showFileChooser) {
-        val window = LocalAppWindow.current.window
-        rememberCoroutineScope().launch {
-            withContext(Dispatchers.Main) {
-                val fileDialog = FileDialog(window, "Choose audio clips to open", FileDialog.LOAD)
-                val filenameFilter = FilenameFilter { _, name ->
-                    name.endsWith(".mp3") || name.endsWith(".json")
-                }
-                fileDialog.isMultipleMode = true
-                fileDialog.file = "*.mp3;*.json"
-                fileDialog.filenameFilter = filenameFilter
-                fileDialog.isVisible = true
-
-
-                clipEditorViewModel.onSubmitClips(
-                     fileDialog.files.filter {
-                        filenameFilter.accept(it.parentFile, it.name)
+        AwtWindow(create = {
+            object : FileDialog(null as Frame?, "Choose audio clips to open", FileDialog.LOAD) {
+                init {
+                    isMultipleMode = true
+                    file = "*.mp3;*.json"
+                    filenameFilter = FilenameFilter { _, name ->
+                        name.endsWith(".mp3") || name.endsWith(".json")
                     }
-                )
+                }
+
+                override fun setVisible(isVisible: Boolean) {
+                    super.setVisible(isVisible)
+
+                    if (!isVisible) {
+                        clipEditorViewModel.onSubmitClips(
+                            files.filter {
+                                filenameFilter.accept(it.parentFile, it.name)
+                            }
+                        )
+                    }
+                }
             }
-        }
+        }, dispose = FileDialog::dispose)
     }
 
     if (clipEditorViewModel.selectedPanel != null) {
@@ -76,7 +86,7 @@ fun ClipEditor(
             Box(modifier = Modifier
                 .size(min(minWidth, minHeight))
                 .clip(CircleShape)
-                .clickable {
+                .clickable(clipEditorViewModel.canShowFileChooser) {
                     clipEditorViewModel.onOpenClips()
                 }
                 .border(
@@ -84,7 +94,9 @@ fun ClipEditor(
                 )
             ) {
                 Icon(
-                    svgResource("icons/folder_open_black_24dp.svg"), "open",
+                    useResource("icons/folder_open_black_24dp.svg") {
+                        loadSvgPainter(it, LocalDensity.current)
+                    }, "open",
                     modifier = Modifier.matchParentSize().padding(40.dp),
                     tint = MaterialTheme.colors.primary
                 )

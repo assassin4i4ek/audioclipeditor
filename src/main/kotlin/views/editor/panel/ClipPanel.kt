@@ -10,12 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.svgResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.loadSvgPainter
+import androidx.compose.ui.res.useResource
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
@@ -27,11 +30,13 @@ import views.editor.panel.fragments.DraggableFragmentSetPanel
 import views.editor.panel.fragments.FragmentSetFramesView
 
 @Composable
+@ExperimentalComposeUiApi
 fun ClipPanel(
     clipPanelViewModel: ClipPanelViewModel
 ) {
-    val focusRequester = remember(clipPanelViewModel) { FocusRequester() }
+    val density = LocalDensity.current
 
+    val focusRequester = remember(clipPanelViewModel) { FocusRequester() }
     LaunchedEffect(clipPanelViewModel) {
         focusRequester.requestFocus()
     }
@@ -107,38 +112,54 @@ fun ClipPanel(
         }
         Row {
             Button(onClick = clipPanelViewModel::onOpenClips) {
-                Icon(svgResource("icons/folder_open_black_24dp.svg"), "open")
+                Icon(useResource("icons/folder_open_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "open")
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 enabled = clipPanelViewModel.canPlayClip,
                 onClick = clipPanelViewModel::onPlayClicked
             ) {
-                Icon(svgResource("icons/play_arrow_black_24dp.svg"), "play")
+                Icon(useResource("icons/play_arrow_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "play")
             }
             Button(
                 enabled = clipPanelViewModel.canPauseClip,
                 onClick = clipPanelViewModel::onPauseClicked
             ) {
-                Icon(svgResource("icons/pause_black_24dp.svg"), "pause")
+                Icon(useResource("icons/pause_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "pause")
             }
             Button(
                 enabled = clipPanelViewModel.canStopClip,
                 onClick = clipPanelViewModel::onStopClicked
             ) {
-                Icon(svgResource("icons/stop_black_24dp.svg"), "stop")
+                Icon(useResource("icons/stop_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "stop")
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = clipPanelViewModel::onIncreaseZoomClick) {
-                Icon(svgResource("icons/zoom_in_black_24dp.svg"), "zoom_in")
+                Icon(useResource("icons/zoom_in_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "zoom_in")
             }
             Button(onClick = clipPanelViewModel::onDecreaseZoomClick) {
-                Icon(svgResource("icons/zoom_out_black_24dp.svg"), "zoom_out")
+                Icon(useResource("icons/zoom_out_black_24dp.svg") {
+                    loadSvgPainter(it, density)
+                }, "zoom_out")
             }
             Button(onClick = clipPanelViewModel::onSwitchInputDevice) {
                 when (clipPanelViewModel.inputDevice) {
-                    InputDevice.Touchpad -> Icon(svgResource("icons/touch_app_black_24dp.svg"), "touchpad")
-                    InputDevice.Mouse -> Icon(svgResource("icons/mouse_black_24dp.svg"), "mouse")
+                    InputDevice.Touchpad -> Icon(useResource("icons/touch_app_black_24dp.svg") {
+                        loadSvgPainter(it, density)
+                    }, "touchpad")
+                    InputDevice.Mouse -> Icon(useResource("icons/mouse_black_24dp.svg") {
+                        loadSvgPainter(it, density)
+                    }, "mouse")
                 }
             }
         }

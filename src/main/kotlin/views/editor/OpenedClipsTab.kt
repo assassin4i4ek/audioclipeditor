@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.svgResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.loadSvgPainter
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import viewmodels.api.editor.OpenedClipsTabViewModel
@@ -35,7 +37,9 @@ fun OpenedClipsTab(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(clipName)
                         Icon(
-                            painter = svgResource("icons/close_black_24dp.svg"),
+                            painter = useResource("icons/close_black_24dp.svg") {
+                                loadSvgPainter(it, LocalDensity.current)
+                            },
                             contentDescription = "close",
                             modifier = Modifier
                                 .padding(start = 6.dp)

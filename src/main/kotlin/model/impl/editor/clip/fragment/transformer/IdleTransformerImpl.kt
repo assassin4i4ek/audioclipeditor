@@ -1,11 +1,11 @@
 package model.impl.editor.clip.fragment.transformer
 
 import model.api.editor.clip.AudioPcm
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.clip.fragment.transformer.IdleTransformer
 
 class IdleTransformerImpl(
     srcAudioPcm: AudioPcm
-): FragmentTransformer.IdleTransformer {
+): IdleTransformer {
     override val sampleRate: Int = srcAudioPcm.sampleRate
     override val numChannels: Int = srcAudioPcm.numChannels
 

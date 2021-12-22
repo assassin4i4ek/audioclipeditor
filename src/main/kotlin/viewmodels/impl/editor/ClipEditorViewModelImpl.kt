@@ -31,6 +31,8 @@ class ClipEditorViewModelImpl(
 
     /* Stateful Properties */
     private var _showFileChooser by mutableStateOf(false)
+
+    override val canShowFileChooser: Boolean get() = !_showFileChooser
     override val showFileChooser: Boolean get() = _showFileChooser
 
     private var _panelViewModels: Map<String, ClipPanelViewModel> by mutableStateOf(emptyMap())

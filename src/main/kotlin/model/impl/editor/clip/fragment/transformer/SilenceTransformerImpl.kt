@@ -6,10 +6,8 @@ import specs.api.immutable.audio.AudioServiceSpecs
 
 class SilenceTransformerImpl(
     srcAudioPcm: AudioPcm,
-    specs: AudioServiceSpecs,
+    override var silenceDurationUs: Long
 ): SilenceTransformer {
-    override var silenceDurationUs: Long = specs.defaultSilenceTransformerSilenceDurationUs
-
     override val sampleRate: Int = srcAudioPcm.sampleRate
     override val numChannels: Int = srcAudioPcm.numChannels
 

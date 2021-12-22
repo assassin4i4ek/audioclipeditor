@@ -4,12 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
-import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.MutableAudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
-import model.impl.editor.clip.fragment.transformer.IdleTransformerImpl
-import model.impl.editor.clip.fragment.transformer.SilenceTransformerImpl
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
@@ -22,30 +19,18 @@ class DraggableFragmentSetViewModelImpl(
     private val density: Density,
     private val specs: EditorSpecs
 ):
-    BaseFragmentSetViewModelImpl<DraggableFragmentViewModel>(),
+    BaseFragmentSetViewModelImpl<MutableAudioClipFragment, DraggableFragmentViewModel>(),
     DraggableFragmentSetViewModel {
     /* Parent ViewModels */
-    interface Parent: DraggableFragmentViewModelImpl.Parent
+    interface Parent: DraggableFragmentViewModelImpl.Parent {
+        fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment
+        fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment
+    }
 
     /* Child ViewModels */
 
     /* Simple properties */
-    private lateinit var audioClip: AudioClip
     private var selectPositionUs: Long = 0
-
-    private class ErrorAudioClipFragment(
-        override var mutableAreaStartUs: Long,
-        override val maxRightBoundUs: Long,
-        override var transformer: FragmentTransformer
-    ): MutableAudioClipFragment {
-        override var leftImmutableAreaStartUs: Long = mutableAreaStartUs
-        override var mutableAreaEndUs: Long = mutableAreaStartUs
-        override var rightImmutableAreaEndUs: Long = mutableAreaStartUs
-        override var leftBoundingFragment: MutableAudioClipFragment? = null
-        override var rightBoundingFragment: MutableAudioClipFragment? = null
-        override val minImmutableAreaDurationUs: Long = 0
-        override val minMutableAreaDurationUs: Long = 0
-    }
 
     /* Stateful properties */
     private var _draggedFragment: AudioClipFragment? by mutableStateOf(null)
@@ -54,16 +39,10 @@ class DraggableFragmentSetViewModelImpl(
     /* Callbacks */
 
     /* Methods */
-    override fun submitClip(audioClip: AudioClip) {
-        check (!this::audioClip.isInitialized) {
-            "Cannot assign audio clip twice: new clip $audioClip, previous clip $audioClip"
-        }
-        this.audioClip = audioClip
-        audioClip.fragments.forEach {
-            super.submitFragment(
-                it, DraggableFragmentViewModelImpl(it, parentViewModel, clipUnitConverter, density, specs)
-            )
-        }
+    override fun submitFragment(fragment: MutableAudioClipFragment) {
+        super.submitFragmentViewModel(
+            fragment, DraggableFragmentViewModelImpl(fragment, parentViewModel, clipUnitConverter, density, specs)
+        )
     }
 
     override fun trySelectFragmentAt(positionUs: Long) {
@@ -82,36 +61,28 @@ class DraggableFragmentSetViewModelImpl(
     }
 
     private fun createNewDraggedFragment(selectPositionUs: Long, dragStartPositionUs: Long): MutableAudioClipFragment {
-        var isError = false
-        val newFragment = kotlin.runCatching {
-            if (dragStartPositionUs < selectPositionUs) {
-                audioClip.createMinDurationFragmentAtEnd(selectPositionUs)
+        val newFragment = if (dragStartPositionUs < selectPositionUs) {
+                parentViewModel.createMinDurationFragmentAtEnd(selectPositionUs)
+            } else {
+                parentViewModel.createMinDurationFragmentAtStart(selectPositionUs)
             }
-            else {
-                audioClip.createMinDurationFragmentAtStart(selectPositionUs)
-            }
-        }.getOrElse {
-            println("Tier 1 error: ${it.message}")
-            isError = true
-            ErrorAudioClipFragment(selectPositionUs, audioClip.durationUs, IdleTransformerImpl(audioClip))
+
+        val newFragmentViewModel = fragmentViewModels[newFragment]!!
+
+        if (dragStartPositionUs < selectPositionUs) {
+            newFragmentViewModel.setDraggableState(
+                DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound, 0
+            )
+        }
+        else {
+            newFragmentViewModel.setDraggableState(
+                DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound, 0
+            )
         }
 
-        DraggableFragmentViewModelImpl(newFragment, parentViewModel, clipUnitConverter, density, specs).apply {
-            if (dragStartPositionUs < selectPositionUs) {
-                setDraggableState(DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound, 0)
-            }
-            else {
-                setDraggableState(DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound, 0)
-            }
-
-            super.submitFragment(newFragment, this)
-
-            if (isError) {
-                setDraggableStateError()
-            }
-            else {
-                selectedFragment = newFragment
-            }
+        if (!newFragmentViewModel.isError) {
+            newFragmentViewModel.fitImmutableBoundsToPreferredWidth()
+            selectedFragment = newFragment
         }
 
         return newFragment
@@ -168,16 +139,10 @@ class DraggableFragmentSetViewModelImpl(
         val draggedFragmentViewModel = fragmentViewModels[draggedFragment]!!
 
         if (draggedFragmentViewModel.isError) {
-            removeFragment(draggedFragment)
+            parentViewModel.removeFragment(draggedFragment)
         }
 
+        _draggedFragment = null
         selectPositionUs = 0
-    }
-
-    override fun removeFragment(fragment: AudioClipFragment) {
-        super.removeFragment(fragment)
-        if (draggedFragment !is ErrorAudioClipFragment) {
-            audioClip.removeFragment(fragment as MutableAudioClipFragment)
-        }
     }
 }

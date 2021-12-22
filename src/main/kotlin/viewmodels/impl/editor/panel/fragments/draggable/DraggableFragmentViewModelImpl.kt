@@ -39,33 +39,33 @@ class DraggableFragmentViewModelImpl(
         get() = _leftImmutableAreaStartUs
         set(value) {
             _leftImmutableAreaStartUs = value
-            if (!isError) {
+//            if (!isError) {
                 fragment.leftImmutableAreaStartUs = value
-            }
+//            }
         }
     override var mutableAreaStartUs: Long
         get() = _mutableAreaStartUs
         set(value) {
             _mutableAreaStartUs = value
-            if (!isError) {
+//            if (!isError) {
                 fragment.mutableAreaStartUs = value
-            }
+//            }
         }
     override var mutableAreaEndUs: Long
         get() = _mutableAreaEndUs
         set(value) {
             _mutableAreaEndUs = value
-            if (!isError) {
+//            if (!isError) {
                 fragment.mutableAreaEndUs = value
-            }
+//            }
         }
     override var rightImmutableAreaEndUs: Long
         get() = _rightImmutableAreaEndUs
         set(value) {
             _rightImmutableAreaEndUs = value
-            if (!isError) {
+//            if (!isError) {
                 fragment.rightImmutableAreaEndUs = value
-            }
+//            }
         }
 
     override val leftImmutableDraggableAreaWidthWinPx: Float by derivedStateOf {
@@ -83,7 +83,7 @@ class DraggableFragmentViewModelImpl(
     /* Callbacks */
 
     /* Methods */
-    init {
+    override fun fitImmutableBoundsToPreferredWidth() {
         val preferredImmutableAreaDurationUs = with(clipUnitConverter) {
             toUs(toAbsSize(with(density) { specs.preferredImmutableAreaWidthWinDp.toPx() }))
         }.coerceAtLeast(fragment.minImmutableAreaDurationUs)
@@ -97,8 +97,8 @@ class DraggableFragmentViewModelImpl(
         )
     }
 
-    override fun setDraggableStateError() {
-        isError = true
+    override fun setError(fragmentSwap: MutableAudioClipFragment?) {
+        super.setError(fragmentSwap)
         leftImmutableAreaStartUs = mutableAreaStartUs
         rightImmutableAreaEndUs = mutableAreaEndUs
     }
@@ -123,28 +123,22 @@ class DraggableFragmentViewModelImpl(
     }
 
     override fun tryDragAt(dragPositionUs: Long) {
-        kotlin.runCatching {
-            if (!isError) {
-                when (dragSegment) {
-                    DraggableFragmentViewModel.FragmentDragSegment.Center ->
-                        dragCenter(dragPositionUs)
-                    DraggableFragmentViewModel.FragmentDragSegment.ImmutableLeftBound ->
-                        dragImmutableLeftBound(dragPositionUs)
-                    DraggableFragmentViewModel.FragmentDragSegment.ImmutableRightBound ->
-                        dragImmutableRightBound(dragPositionUs)
-                    DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound ->
-                        dragMutableLeftBound(dragPositionUs)
-                    DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound ->
-                        dragMutableRightBound(dragPositionUs)
-                }
+        if (!isError) {
+            when (dragSegment) {
+                DraggableFragmentViewModel.FragmentDragSegment.Center ->
+                    dragCenter(dragPositionUs)
+                DraggableFragmentViewModel.FragmentDragSegment.ImmutableLeftBound ->
+                    dragImmutableLeftBound(dragPositionUs)
+                DraggableFragmentViewModel.FragmentDragSegment.ImmutableRightBound ->
+                    dragImmutableRightBound(dragPositionUs)
+                DraggableFragmentViewModel.FragmentDragSegment.MutableLeftBound ->
+                    dragMutableLeftBound(dragPositionUs)
+                DraggableFragmentViewModel.FragmentDragSegment.MutableRightBound ->
+                    dragMutableRightBound(dragPositionUs)
             }
-            else {
-                dragError(dragPositionUs)
-            }
-        }.onFailure {
-            println(it)
-            setDraggableStateError()
-            throw it
+        }
+        else {
+            dragError(dragPositionUs)
         }
     }
 

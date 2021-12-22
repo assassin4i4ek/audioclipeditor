@@ -20,7 +20,7 @@ import views.utils.OutlinedExposedDropDownMenu
 
 @Composable
 fun DraggableFragmentSetPanel(
-    fragmentSetViewModel: FragmentSetViewModel<*>
+    fragmentSetViewModel: FragmentSetViewModel<*, *>
 ) {
 
     Box {
@@ -40,10 +40,12 @@ fun DraggableFragmentSetPanel(
                     }
                 }) {
 
-                if (fragment == fragmentSetViewModel.selectedFragment) {
-                    SelectedFragmentPanel(fragmentViewModel)
-                } else {
-                    SimpleFragmentPanel(fragmentViewModel)
+                if (!fragmentViewModel.isError) {
+                    if (fragment == fragmentSetViewModel.selectedFragment) {
+                        SelectedFragmentPanel(fragmentViewModel)
+                    } else {
+                        SimpleFragmentPanel(fragmentViewModel)
+                    }
                 }
             }
         }
@@ -51,7 +53,7 @@ fun DraggableFragmentSetPanel(
 }
 
 @Composable
-private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel) {
+private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel<*>) {
     val density = LocalDensity.current
 
     Row {
@@ -98,7 +100,7 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel) {
 }
 
 @Composable
-private fun SimpleFragmentPanel(fragmentViewModel: FragmentViewModel) {
+private fun SimpleFragmentPanel(fragmentViewModel: FragmentViewModel<*>) {
     Row {
         when (val transformer = fragmentViewModel.transformer) {
             is IdleTransformer -> {

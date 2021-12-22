@@ -4,16 +4,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 
 
-open class BaseFragmentSetViewModelImpl<V: FragmentViewModel>: FragmentSetViewModel<V> {
+abstract class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentViewModel<K>>: FragmentSetViewModel<K, V> {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -47,7 +44,7 @@ open class BaseFragmentSetViewModelImpl<V: FragmentViewModel>: FragmentSetViewMo
         _selectedFragment = null
     }
 
-    protected fun submitFragment(fragment: AudioClipFragment, fragmentViewModel: V) {
+    protected fun submitFragmentViewModel(fragment: AudioClipFragment, fragmentViewModel: V) {
         require(!fragmentViewModels.containsKey(fragment)) {
             "Trying to submit an already present fragment $fragment"
         }

@@ -49,7 +49,9 @@ class AudioClipImpl(
     ): MutableAudioClipFragment {
         val newFragmentTransformer = when(specs.defaultFragmentTransformerType) {
             FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
-            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(this, specs)
+            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(
+                this, specs.defaultSilenceTransformerSilenceDurationUs
+            )
         }
 
         val newFragment = AudioClipFragmentImpl(
@@ -77,6 +79,15 @@ class AudioClipImpl(
         _fragments.add(newFragment)
 
         return newFragment
+    }
+
+    override fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer {
+        return when(type) {
+            FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
+            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(
+                this, specs.defaultSilenceTransformerSilenceDurationUs
+            )
+        }
     }
 
     override fun removeFragment(fragment: MutableAudioClipFragment) {

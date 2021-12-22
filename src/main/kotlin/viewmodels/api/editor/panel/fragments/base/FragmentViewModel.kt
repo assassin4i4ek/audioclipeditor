@@ -1,9 +1,10 @@
 package viewmodels.api.editor.panel.fragments.base
 
+import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import viewmodels.api.BaseViewModel
 
-interface FragmentViewModel: BaseViewModel {
+interface FragmentViewModel<K: AudioClipFragment>: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -47,6 +48,6 @@ interface FragmentViewModel: BaseViewModel {
 
     /* Methods */
     fun updateToMatchFragment()
+    fun setError(fragmentSwap: K?)
     fun setPlaying(isFragmentPlaying: Boolean)
-
 }

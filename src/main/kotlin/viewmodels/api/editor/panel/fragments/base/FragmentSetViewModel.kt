@@ -4,7 +4,7 @@ import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.BaseViewModel
 import java.util.*
 
-interface FragmentSetViewModel<V: FragmentViewModel>: BaseViewModel {
+interface FragmentSetViewModel<K: AudioClipFragment, V: FragmentViewModel<K>>: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -21,6 +21,7 @@ interface FragmentSetViewModel<V: FragmentViewModel>: BaseViewModel {
     /* Callbacks */
 
     /* Methods */
+    fun submitFragment(fragment: K)
     fun trySelectFragmentAt(positionUs: Long)
     fun deselectFragment()
     fun removeFragment(fragment: AudioClipFragment)

@@ -3,7 +3,7 @@ package viewmodels.api.editor.panel.fragments.global
 import model.api.editor.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 
-interface GlobalFragmentSetViewModel: FragmentSetViewModel<GlobalFragmentViewModel> {
+interface GlobalFragmentSetViewModel: FragmentSetViewModel<AudioClipFragment, GlobalFragmentViewModel> {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -15,5 +15,4 @@ interface GlobalFragmentSetViewModel: FragmentSetViewModel<GlobalFragmentViewMod
     /* Callbacks */
 
     /* Methods */
-    fun submitFragment(fragment: AudioClipFragment)
 }

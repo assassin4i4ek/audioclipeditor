@@ -5,19 +5,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.awt.awtEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import model.api.editor.clip.AudioClip
 import model.api.editor.clip.AudioClipPlayer
 import model.api.editor.clip.AudioClipService
 import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.clip.fragment.MutableAudioClipFragment
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
@@ -34,6 +38,7 @@ import viewmodels.impl.editor.panel.cursor.CursorViewModelImpl
 import viewmodels.impl.editor.panel.fragments.draggable.DraggableFragmentSetViewModelImpl
 import viewmodels.impl.editor.panel.fragments.global.GlobalFragmentSetViewModelImpl
 import viewmodels.impl.editor.panel.global.GlobalWindowClipViewModelImpl
+import viewmodels.impl.utils.AudioClipFragmentErrorStub
 import viewmodels.impl.utils.FragmentEasing
 import java.io.File
 
@@ -149,9 +154,6 @@ class ClipPanelViewModelImpl(
         editableFragmentSetViewModel.startDragFragment(dragStartPositionUs)
         val draggedFragment = editableFragmentSetViewModel.draggedFragment!!
 
-        if (!globalFragmentSetViewModel.fragmentViewModels.containsKey(draggedFragment)) {
-            globalFragmentSetViewModel.submitFragment(draggedFragment)
-        }
         if (draggedFragment == playingFragment) {
             stopPlayFragment(draggedFragment)
         }
@@ -161,18 +163,27 @@ class ClipPanelViewModelImpl(
         change.consumePositionChange()
         val dragPositionUs = editableClipViewModel.toUs(editableClipViewModel.toAbsOffset(change.position.x))
 
-        editableFragmentSetViewModel.handleDragAt(dragPositionUs)
+        kotlin.runCatching {
+            editableFragmentSetViewModel.handleDragAt(dragPositionUs)
+        }.getOrElse {
+            println("Type 2 error")
+            println(it.message)
+            val draggedFragment = editableFragmentSetViewModel.draggedFragment!!
+            val errorTransformer = audioClip.createTransformerForType(FragmentTransformer.Type.IDLE)
+            val fragmentErrorStub = AudioClipFragmentErrorStub(
+                draggedFragment.mutableAreaStartUs, audioClip.durationUs, errorTransformer
+            )
+            editableFragmentSetViewModel.fragmentViewModels[draggedFragment]!!.setError(fragmentErrorStub)
+            globalFragmentSetViewModel.fragmentViewModels[draggedFragment]!!.setError(fragmentErrorStub)
+            editableFragmentSetViewModel.deselectFragment()
+            globalFragmentSetViewModel.deselectFragment()
+            editableFragmentSetViewModel.handleDragAt(dragPositionUs)
+        }
         globalFragmentSetViewModel.fragmentViewModels[editableFragmentSetViewModel.draggedFragment!!]!!.updateToMatchFragment()
     }
 
     override fun onEditableClipViewDragEnd() {
-        val draggedFragment = editableFragmentSetViewModel.draggedFragment!!
         editableFragmentSetViewModel.stopDragFragment()
-
-        if (!editableFragmentSetViewModel.fragmentViewModels.containsKey(draggedFragment)) {
-            // the dragging produced error and should be removed from global view
-            globalFragmentSetViewModel.removeFragment(draggedFragment)
-        }
     }
 
     override fun onGlobalClipViewPress(press: Offset) {
@@ -255,7 +266,10 @@ class ClipPanelViewModelImpl(
             player = audioClipService.createPlayer(audioClip)
             editableClipViewModel.submitClip(audioClip)
             globalClipViewModel.submitClip(audioClip)
-            editableFragmentSetViewModel.submitClip(audioClip)
+            audioClip.fragments.forEach {
+                editableFragmentSetViewModel.submitFragment(it)
+                globalFragmentSetViewModel.submitFragment(it)
+            }
 
             _isLoading = false
         }
@@ -374,5 +388,43 @@ class ClipPanelViewModelImpl(
         }
         editableFragmentSetViewModel.removeFragment(fragment)
         globalFragmentSetViewModel.removeFragment(fragment)
+
+        if (fragment in audioClip.fragments) {
+            audioClip.removeFragment(fragment as MutableAudioClipFragment)
+        }
+    }
+
+    override fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment {
+        return createMinDurationFragment(mutableAreaStartUs) {
+            audioClip.createMinDurationFragmentAtStart(mutableAreaStartUs)
+        }
+    }
+
+    override fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment {
+        return createMinDurationFragment(mutableAreaEndUs) {
+            audioClip.createMinDurationFragmentAtEnd(mutableAreaEndUs)
+        }
+    }
+
+    private fun createMinDurationFragment(
+        positionUs: Long, tryCreateFragment: () -> MutableAudioClipFragment
+    ): MutableAudioClipFragment {
+        var isError = false
+        return runCatching(tryCreateFragment)
+            .getOrElse {
+                println("Type 1 error")
+                println(it.message)
+                isError = true
+                val errorTransformer = audioClip.createTransformerForType(FragmentTransformer.Type.IDLE)
+                AudioClipFragmentErrorStub(positionUs, audioClip.durationUs, errorTransformer)
+            }.also { fragmentErrorStub ->
+                editableFragmentSetViewModel.submitFragment(fragmentErrorStub)
+                globalFragmentSetViewModel.submitFragment(fragmentErrorStub)
+
+                if (isError) {
+                    editableFragmentSetViewModel.fragmentViewModels[fragmentErrorStub]!!.setError(fragmentErrorStub)
+                    globalFragmentSetViewModel.fragmentViewModels[fragmentErrorStub]!!.setError(fragmentErrorStub)
+                }
+            }
     }
 }

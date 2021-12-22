@@ -32,6 +32,15 @@ class AudioClipServiceImpl(
             else -> throw IllegalArgumentException(
                 "Trying to open file with unsupported extension (not in [mp3, json])"
             )
+        }.apply {
+            createMinDurationFragmentAtStart(1e6.toLong()).apply {
+                rightImmutableAreaEndUs = 4e6.toLong()
+                mutableAreaEndUs = 3e6.toLong()
+            }
+            createMinDurationFragmentAtStart(4e6.toLong()).apply {
+                rightImmutableAreaEndUs = 5.5e6.toLong()
+                mutableAreaEndUs = 5e6.toLong()
+            }
         }
     }
 

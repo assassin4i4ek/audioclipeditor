@@ -12,10 +12,10 @@ import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
 
 abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
-    protected val fragment: K,
+    protected var fragment: K,
     private val parentViewModel: Parent,
     protected val clipUnitConverter: ClipUnitConverter,
-): FragmentViewModel {
+): FragmentViewModel<K> {
     /* Parent ViewModels */
     interface Parent {
         fun startPlayFragment(fragment: AudioClipFragment)
@@ -121,10 +121,10 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
 
     override fun onSelectTransformer(transformerOptionIndex: Int) {
         _selectedTransformerOptionIndex = transformerOptionIndex
-        fragmentTransformer = when (FragmentTransformer.Type.values()[transformerOptionIndex]) {
-            FragmentTransformer.Type.IDLE -> IdleTransformerImpl()
-            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl()
-        }
+//        fragmentTransformer = when (FragmentTransformer.Type.values()[transformerOptionIndex]) {
+//            FragmentTransformer.Type.IDLE -> IdleTransformerImpl()
+//            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl()
+//        }
     }
 
     /* Methods */
@@ -134,6 +134,14 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         mutableAreaEndUs = fragment.mutableAreaEndUs
         rightImmutableAreaEndUs = fragment.rightImmutableAreaEndUs
         fragmentTransformer = fragment.transformer
+    }
+
+    override fun setError(fragmentSwap: K?) {
+        isError = true
+
+        if (fragmentSwap != null) {
+            fragment = fragmentSwap
+        }
     }
 
     override fun setPlaying(isFragmentPlaying: Boolean) {

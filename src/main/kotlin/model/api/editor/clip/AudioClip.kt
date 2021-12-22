@@ -20,6 +20,7 @@ interface AudioClip: AudioPcm {
     fun readPcm(startPosition: Int, size: Int, buffer: ByteArray)
     fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment
     fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment
+    fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer
     fun removeFragment(fragment: MutableAudioClipFragment)
     fun close()
 }

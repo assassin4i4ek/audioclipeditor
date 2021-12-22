@@ -1,8 +1,9 @@
 package viewmodels.api.editor.panel.fragments.draggable
 
+import model.api.editor.clip.fragment.MutableAudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 
-interface DraggableFragmentViewModel: FragmentViewModel {
+interface DraggableFragmentViewModel: FragmentViewModel<MutableAudioClipFragment> {
     enum class FragmentDragSegment {
         Center, ImmutableLeftBound, ImmutableRightBound, MutableLeftBound, MutableRightBound
     }
@@ -21,8 +22,8 @@ interface DraggableFragmentViewModel: FragmentViewModel {
     /* Callbacks */
 
     /* Methods */
+    fun fitImmutableBoundsToPreferredWidth()
     fun setDraggableState(dragSegment: FragmentDragSegment, dragStartPositionUs: Long)
     fun resetDraggableState()
-    fun setDraggableStateError()
     fun tryDragAt(dragPositionUs: Long)
 }

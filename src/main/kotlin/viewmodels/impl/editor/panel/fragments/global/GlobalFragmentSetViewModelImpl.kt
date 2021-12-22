@@ -10,7 +10,7 @@ class GlobalFragmentSetViewModelImpl(
     private val parentViewModel: Parent,
     private val clipUnitConverter: ClipUnitConverter
 ):
-    BaseFragmentSetViewModelImpl<GlobalFragmentViewModel>(),
+    BaseFragmentSetViewModelImpl<AudioClipFragment, GlobalFragmentViewModel>(),
     GlobalFragmentSetViewModel
 {
     /* Parent ViewModels */
@@ -26,6 +26,6 @@ class GlobalFragmentSetViewModelImpl(
 
     /* Methods */
     override fun submitFragment(fragment: AudioClipFragment) {
-        super.submitFragment(fragment, GlobalFragmentViewModelImpl(fragment, parentViewModel, clipUnitConverter))
+        super.submitFragmentViewModel(fragment, GlobalFragmentViewModelImpl(fragment, parentViewModel, clipUnitConverter))
     }
 }

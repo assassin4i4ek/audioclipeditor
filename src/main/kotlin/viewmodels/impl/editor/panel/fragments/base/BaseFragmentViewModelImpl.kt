@@ -5,7 +5,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
 import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
-import model.api.editor.clip.fragment.transformer.SilenceTransformer
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
@@ -18,6 +17,7 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
 ): FragmentViewModel<K> {
     /* Parent ViewModels */
     interface Parent {
+        fun selectFragment(fragment: AudioClipFragment)
         fun startPlayFragment(fragment: AudioClipFragment)
         fun stopPlayFragment(fragment: AudioClipFragment)
         fun removeFragment(fragment: AudioClipFragment)
@@ -96,8 +96,9 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
 
     override val transformerTypeOptions: List<String> = FragmentTransformer.Type.values().map {
         when (it) {
-            FragmentTransformer.Type.IDLE -> "IDLE"
             FragmentTransformer.Type.SILENCE -> "SILENCE"
+            FragmentTransformer.Type.DELETE -> "DELETE"
+            FragmentTransformer.Type.IDLE -> "IDLE"
         }
     }
 
@@ -113,11 +114,17 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         this.controlPanelWidthWinPx = controlPanelWidthWinPx
     }
 
+    override fun onControlPanelPress() {
+        parentViewModel.selectFragment(fragment)
+    }
+
     override fun onPlayClicked() {
+        parentViewModel.selectFragment(fragment)
         parentViewModel.startPlayFragment(fragment)
     }
 
     override fun onStopClicked() {
+        parentViewModel.selectFragment(fragment)
         parentViewModel.stopPlayFragment(fragment)
     }
 
@@ -125,8 +132,8 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         parentViewModel.removeFragment(fragment)
     }
 
-
     override fun onSelectTransformer(transformerOptionIndex: Int) {
+        parentViewModel.selectFragment(fragment)
         _selectedTransformerTypeOptionIndex = transformerOptionIndex
         val selectedTransformerType = FragmentTransformer.Type.values()[transformerOptionIndex]
 
@@ -137,12 +144,13 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     }
 
     override fun onInputSilenceDurationMs(silenceDurationMs: String) {
+        parentViewModel.selectFragment(fragment)
         val newSilenceDurationUs =
             if (silenceDurationMs.isEmpty()) 0
             else silenceDurationMs.toLongOrNull()?.times(1000)
 
         if (newSilenceDurationUs != null && newSilenceDurationUs >= 0) {
-            (fragment.transformer as SilenceTransformer).silenceDurationUs = newSilenceDurationUs
+            (fragment.transformer as FragmentTransformer.SilenceTransformer).silenceDurationUs = newSilenceDurationUs
 
             _silenceTransformerSilenceDurationMs =
                 if (silenceDurationMs.isEmpty()) ""
@@ -151,18 +159,20 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     }
 
     override fun onRefreshSilenceDurationMs() {
-        val silenceDurationUs = (fragment.transformer as SilenceTransformer).silenceDurationUs
+        val silenceDurationUs = (fragment.transformer as FragmentTransformer.SilenceTransformer).silenceDurationUs
         _silenceTransformerSilenceDurationMs = (silenceDurationUs / 1000).toString()
     }
 
     override fun onIncreaseSilenceDurationMs() {
-        val silenceTransformer = fragment.transformer as SilenceTransformer
+        parentViewModel.selectFragment(fragment)
+        val silenceTransformer = fragment.transformer as FragmentTransformer.SilenceTransformer
         silenceTransformer.silenceDurationUs += specs.silenceTransformerSilenceDurationUsIncrementStep
         _silenceTransformerSilenceDurationMs = (silenceTransformer.silenceDurationUs / 1000).toString()
     }
 
     override fun onDecreaseSilenceDurationMs() {
-        val silenceTransformer = fragment.transformer as SilenceTransformer
+        parentViewModel.selectFragment(fragment)
+        val silenceTransformer = fragment.transformer as FragmentTransformer.SilenceTransformer
         silenceTransformer.silenceDurationUs = (silenceTransformer.silenceDurationUs -
                 specs.silenceTransformerSilenceDurationUsIncrementStep).coerceAtLeast(0)
         _silenceTransformerSilenceDurationMs = (silenceTransformer.silenceDurationUs / 1000).toString()
@@ -171,16 +181,26 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
         return if (event.type == KeyEventType.KeyDown) {
-            when (event.key) {
-                Key.DirectionUp -> {
-                    onIncreaseSilenceDurationMs()
-                    true
+            when (transformerType) {
+                FragmentTransformer.Type.SILENCE -> {
+                    when (event.key) {
+                        Key.DirectionUp -> {
+                            onIncreaseSilenceDurationMs()
+                            true
+                        }
+                        Key.DirectionDown -> {
+                            onDecreaseSilenceDurationMs()
+                            true
+                        }
+                        else -> false
+                    }
                 }
-                Key.DirectionDown -> {
-                    onDecreaseSilenceDurationMs()
-                    true
+                FragmentTransformer.Type.DELETE -> {
+                    false
                 }
-                else -> false
+                FragmentTransformer.Type.IDLE -> {
+                    false
+                }
             }
         }
         else {
@@ -204,11 +224,12 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
 
     private fun updateToMatchFragmentTransformer() {
         when (transformerType) {
-            FragmentTransformer.Type.IDLE -> {}
             FragmentTransformer.Type.SILENCE -> {
-                val silenceTransformer = fragment.transformer as SilenceTransformer
+                val silenceTransformer = fragment.transformer as FragmentTransformer.SilenceTransformer
                 _silenceTransformerSilenceDurationMs = (silenceTransformer.silenceDurationUs / 1000).toString()
             }
+            FragmentTransformer.Type.DELETE -> {}
+            FragmentTransformer.Type.IDLE -> {}
         }
     }
 

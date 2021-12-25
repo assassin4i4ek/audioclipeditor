@@ -4,6 +4,7 @@ import model.api.editor.clip.AudioClip
 import model.api.editor.clip.fragment.MutableAudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import model.impl.editor.clip.fragment.AudioClipFragmentImpl
+import model.impl.editor.clip.fragment.transformer.DeleteTransformerImpl
 import model.impl.editor.clip.fragment.transformer.IdleTransformerImpl
 import model.impl.editor.clip.fragment.transformer.SilenceTransformerImpl
 import specs.api.immutable.audio.AudioServiceSpecs
@@ -47,12 +48,7 @@ class AudioClipImpl(
     private fun createMinDurationFragment(
         mutableAreaStartUs: Long, mutableAreaEndUs: Long
     ): MutableAudioClipFragment {
-        val newFragmentTransformer = when(specs.defaultFragmentTransformerType) {
-            FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
-            FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(
-                this, specs.defaultSilenceTransformerSilenceDurationUs
-            )
-        }
+        val newFragmentTransformer = createTransformerForType(specs.defaultFragmentTransformerType)
 
         val newFragment = AudioClipFragmentImpl(
             mutableAreaStartUs - specs.minImmutableAreaDurationUs,
@@ -83,10 +79,11 @@ class AudioClipImpl(
 
     override fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer {
         return when(type) {
-            FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
             FragmentTransformer.Type.SILENCE -> SilenceTransformerImpl(
                 this, specs.defaultSilenceTransformerSilenceDurationUs
             )
+            FragmentTransformer.Type.DELETE -> DeleteTransformerImpl(this)
+            FragmentTransformer.Type.IDLE -> IdleTransformerImpl(this)
         }
     }
 

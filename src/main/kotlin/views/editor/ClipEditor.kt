@@ -46,8 +46,6 @@ fun ClipEditor(
     }
     //
 
-    val coroutineScope = rememberCoroutineScope()
-
     if (clipEditorViewModel.showFileChooser) {
         AwtWindow(
             create = {
@@ -62,42 +60,17 @@ fun ClipEditor(
 
                     override fun setVisible(isVisible: Boolean) {
                         if (!isVisible) {
-                            coroutineScope.launch {
-                                clipEditorViewModel.onSubmitClips(
-                                    files.filter {
-                                        filenameFilter.accept(it.parentFile, it.name)
-                                    }
-                                )
-                            }
+                            clipEditorViewModel.onSubmitClips(
+                                files.filter {
+                                    filenameFilter.accept(it.parentFile, it.name)
+                                }
+                            )
                         }
                         super.setVisible(isVisible)
                     }
-
-                    /*
-                    override fun setVisible(isVisible: Boolean) {
-                        super.setVisible(isVisible)
-
-                        if (!isVisible) {
-                            coroutineScope.launch {
-                                clipEditorViewModel.onSubmitClips(
-                                    files.filter {
-                                        filenameFilter.accept(it.parentFile, it.name)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                     */
                 }
             },
             dispose = FileDialog::dispose,
-//        update = { fileDialog ->
-//            clipEditorViewModel.onSubmitClips(
-//                fileDialog.files.filter {
-//                    fileDialog.filenameFilter.accept(it.parentFile, it.name)
-//                }
-//            )
-//        }
         )
     }
 

@@ -19,24 +19,6 @@ fun ClipView(
         .onSizeChanged {
             clipViewModel.onSizeChanged(it)
         }
-//        .scrollable(rememberScrollableState {
-//            clipViewModel.onHorizontalScroll(it)
-//        }, Orientation.Horizontal)
-//        .scrollable(rememberScrollableState {
-//            clipViewModel.onVerticalScroll(it)
-//        }, Orientation.Vertical)
-//        .pointerInput(clipViewModel) {
-//            detectTapGestures(
-//                onPress = { clipViewModel.onPress(it) }
-//            )
-//        }
-//        .pointerInput(clipViewModel) {
-//            detectDragGestures(
-//                onDragStart = clipViewModel::onDragStart,
-//                onDrag = clipViewModel::onDrag,
-//                onDragEnd = clipViewModel::onDragEnd
-//            )
-//        }
     ) {
         Column {
             Divider()

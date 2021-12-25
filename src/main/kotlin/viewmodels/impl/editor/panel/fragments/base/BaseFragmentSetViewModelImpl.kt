@@ -34,6 +34,13 @@ abstract class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentVie
     /* Callbacks */
 
     /* Methods */
+    override fun selectFragment(fragment: AudioClipFragment) {
+        require(fragmentViewModels.containsKey(fragment)) {
+            "Trying to select fragment $fragment which does NOT belong to current fragment set $fragmentViewModels"
+        }
+        _selectedFragment = fragment
+    }
+
     override fun trySelectFragmentAt(positionUs: Long) {
         val fragmentsDescending = fragmentViewModels.keys.sortedDescending()
         _selectedFragment = fragmentsDescending.find { positionUs in it && it != _selectedFragment }
@@ -55,6 +62,7 @@ abstract class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentVie
     }
 
     override fun removeFragment(fragment: AudioClipFragment) {
+        println("Remove fragment $fragment")
         require(fragmentViewModels.containsKey(fragment)) {
             "Trying to remove an absent fragment $fragment"
         }

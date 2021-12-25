@@ -14,11 +14,25 @@ fun GlobalWindowClipView(
     globalWindowClipViewModel: GlobalWindowClipViewModel
 ) {
     Canvas(modifier = Modifier.fillMaxSize()) {
+        /*
         drawRect(
             Color.Yellow,
             Offset(globalWindowClipViewModel.xOffsetWinPx, 0f),
             Size(globalWindowClipViewModel.widthWinPx, size.height),
             0.5f
+        )
+         */
+        drawRect(
+            Color.Black,
+            Offset(0f, 0f),
+            Size(globalWindowClipViewModel.xOffsetWinPx, size.height),
+            0.1f
+        )
+        drawRect(
+            Color.Black,
+            Offset(globalWindowClipViewModel.xOffsetWinPx + globalWindowClipViewModel.widthWinPx, 0f),
+            Size(size.width, size.height),
+            0.1f
         )
     }
 }

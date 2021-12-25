@@ -70,6 +70,8 @@ class ClipEditorViewModelImpl(
     }
 
     /* Methods */
+    override val canOpenClips: Boolean get() = canShowFileChooser
+
     override fun removeClip(clipId: String) {
         require(_panelViewModels.containsKey(clipId)) {
             "Trying to remove panel view model with id $clipId which is absent if $_panelViewModels"

@@ -6,33 +6,31 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.*
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
 import views.editor.panel.clip.GlobalWindowClipView
-import views.editor.panel.fragments.FragmentSetView
 import views.editor.panel.cursor.ClipCursor
-import views.editor.panel.fragments.DraggableFragmentSetView
 import views.editor.panel.fragments.DraggableFragmentSetPanel
+import views.editor.panel.fragments.DraggableFragmentSetView
 import views.editor.panel.fragments.FragmentSetFramesView
+import views.editor.panel.fragments.FragmentSetView
 
 @Composable
 @ExperimentalComposeUiApi
@@ -47,7 +45,7 @@ fun ClipPanel(
     Column(modifier = Modifier
         .fillMaxSize()
         .focusRequester(focusRequester)
-        .pointerInput(Unit) {
+        .pointerInput(clipPanelViewModel) {
             detectTapGestures(
                 onPress = {
                     focusRequester.requestFocus()
@@ -63,6 +61,14 @@ fun ClipPanel(
         }
         .onKeyEvent(clipPanelViewModel::onKeyEvent)
         .focusable()
+        .scrollable(
+            rememberScrollableState(clipPanelViewModel::onEditableClipViewHorizontalScroll),
+            Orientation.Horizontal
+        )
+        .scrollable(
+            rememberScrollableState(clipPanelViewModel::onEditableClipViewVerticalScroll),
+            Orientation.Vertical
+        )
     ) {
         Column(modifier = Modifier.weight(1f)) {
             if (clipPanelViewModel.isLoading) {
@@ -113,14 +119,6 @@ fun ClipPanel(
                                 onDragEnd = clipPanelViewModel::onEditableClipViewDragEnd
                             )
                         }
-                        .scrollable(
-                            rememberScrollableState(clipPanelViewModel::onEditableClipViewHorizontalScroll),
-                            Orientation.Horizontal
-                        )
-                        .scrollable(
-                            rememberScrollableState(clipPanelViewModel::onEditableClipViewVerticalScroll),
-                            Orientation.Vertical
-                        )
                     ) {
                         FragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
                         DraggableFragmentSetView(clipPanelViewModel.editableFragmentSetViewModel)
@@ -133,8 +131,8 @@ fun ClipPanel(
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
-        Row {
-            Button(onClick = clipPanelViewModel::onOpenClips) {
+        Row(modifier = Modifier.padding(horizontal = 4.dp)) {
+            Button(enabled = clipPanelViewModel.canOpenClips, onClick = clipPanelViewModel::onOpenClips) {
                 Icon(useResource("icons/folder_open_black_24dp.svg") {
                     loadSvgPainter(it, density)
                 }, "open")

@@ -1,13 +1,12 @@
 package model.impl.editor.clip.fragment.transformer
 
 import model.api.editor.clip.AudioPcm
-import model.api.editor.clip.fragment.transformer.SilenceTransformer
-import specs.api.immutable.audio.AudioServiceSpecs
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 
 class SilenceTransformerImpl(
     srcAudioPcm: AudioPcm,
     override var silenceDurationUs: Long
-): SilenceTransformer {
+): FragmentTransformer.SilenceTransformer {
     override val sampleRate: Int = srcAudioPcm.sampleRate
     override val numChannels: Int = srcAudioPcm.numChannels
 

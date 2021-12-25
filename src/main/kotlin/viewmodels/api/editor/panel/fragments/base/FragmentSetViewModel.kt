@@ -22,6 +22,7 @@ interface FragmentSetViewModel<K: AudioClipFragment, V: FragmentViewModel<K>>: B
 
     /* Methods */
     fun submitFragment(fragment: K)
+    fun selectFragment(fragment: AudioClipFragment)
     fun trySelectFragmentAt(positionUs: Long)
     fun deselectFragment()
     fun removeFragment(fragment: AudioClipFragment)

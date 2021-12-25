@@ -30,8 +30,9 @@ fun FragmentSetView(
                     )
                 } else {
                     val mutableAreaColor = when (fragmentViewModel.transformerType) {
-                        FragmentTransformer.Type.IDLE -> Color.Cyan.copy(alpha = 0.5f)
                         FragmentTransformer.Type.SILENCE -> Color.Magenta
+                        FragmentTransformer.Type.DELETE -> Color.Red.copy(alpha = 0.5f)
+                        FragmentTransformer.Type.IDLE -> Color.Cyan.copy(alpha = 0.5f)
                     }
                     drawRect(
                         Color.Green,
@@ -80,7 +81,7 @@ fun FragmentSetFramesView(
         if (fragmentSetViewModel.selectedFragmentViewModel != null) {
             with(fragmentSetViewModel.selectedFragmentViewModel!!) {
                 drawRect(
-                    Color.Red, Offset(leftImmutableAreaStartPositionWinPx, 1.dp.toPx()),
+                    Color(0xFFC00000), Offset(leftImmutableAreaStartPositionWinPx, 1.dp.toPx()),
                     Size(rawTotalWidthWinPx, size.height - 2.dp.toPx()),
                     style = Stroke(2.dp.toPx())
                 )
@@ -99,8 +100,9 @@ fun DraggableFragmentSetView(
                 if (!isError) {
                     /*Draggable areas*/
                     val mutableAreaColor = when (fragmentViewModel.transformerType) {
-                        FragmentTransformer.Type.IDLE -> Color.Cyan
                         FragmentTransformer.Type.SILENCE -> Color.Magenta
+                        FragmentTransformer.Type.DELETE -> Color.Red.copy(alpha = 0.5f)
+                        FragmentTransformer.Type.IDLE -> Color.Cyan
                     }
                     drawRect(
                         Color.Green,

@@ -45,6 +45,7 @@ interface FragmentViewModel<K: AudioClipFragment>: BaseViewModel {
 
     /* Callbacks */
     fun onControlPanelPlaced(controlPanelWidthWinPx: Float)
+    fun onControlPanelPress()
     fun onPlayClicked()
     fun onStopClicked()
     fun onRemoveClicked()

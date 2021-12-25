@@ -37,6 +37,7 @@ interface ClipPanelViewModel: BaseViewModel {
     /* Simple properties */
 
     /* Stateful properties */
+    val canOpenClips: Boolean
     val maxPanelViewHeightDp: Dp
     val minPanelViewHeightDp: Dp
     val inputDevice: InputDevice

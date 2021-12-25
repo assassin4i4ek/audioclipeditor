@@ -53,6 +53,7 @@ class ClipPanelViewModelImpl(
 ): ClipPanelViewModel, DraggableFragmentSetViewModelImpl.Parent, GlobalFragmentSetViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
+        val canOpenClips: Boolean
         fun openClips()
     }
 
@@ -81,6 +82,8 @@ class ClipPanelViewModelImpl(
     private var playingFragment: AudioClipFragment? = null
 
     /* Stateful properties */
+    override val canOpenClips: Boolean get() = parentViewModel.canOpenClips
+
     override val maxPanelViewHeightDp: Dp get() = specs.maxPanelViewHeightDp
     override val minPanelViewHeightDp: Dp get() = specs.minPanelViewHeightDp
 
@@ -302,6 +305,10 @@ class ClipPanelViewModelImpl(
     }
 
     private fun startPlayClip() {
+        if (playingFragment != null) {
+            stopPlayFragment(playingFragment!!)
+        }
+
         isClipPlaying = true
 
         with(editableClipViewModel) {
@@ -336,9 +343,18 @@ class ClipPanelViewModelImpl(
         }
     }
 
+    override fun selectFragment(fragment: AudioClipFragment) {
+        editableFragmentSetViewModel.selectFragment(fragment)
+        globalFragmentSetViewModel.selectFragment(fragment)
+    }
+
     override fun startPlayFragment(fragment: AudioClipFragment) {
         if (playingFragment != null) {
             stopPlayFragment(playingFragment!!, false)
+        }
+
+        if (isClipPlaying) {
+            stopPlayClip(true)
         }
 
         playingFragment = fragment

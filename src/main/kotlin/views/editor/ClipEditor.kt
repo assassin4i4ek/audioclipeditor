@@ -11,20 +11,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.AwtWindow
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import viewmodels.api.editor.ClipEditorViewModel
 import views.editor.panel.ClipPanel
 import java.awt.FileDialog
@@ -50,30 +46,59 @@ fun ClipEditor(
     }
     //
 
+    val coroutineScope = rememberCoroutineScope()
+
     if (clipEditorViewModel.showFileChooser) {
-        AwtWindow(create = {
-            object : FileDialog(null as Frame?, "Choose audio clips to open", FileDialog.LOAD) {
-                init {
-                    isMultipleMode = true
-                    file = "*.mp3;*.json"
-                    filenameFilter = FilenameFilter { _, name ->
-                        name.endsWith(".mp3") || name.endsWith(".json")
+        AwtWindow(
+            create = {
+                object : FileDialog(null as Frame?, "Choose audio clips to open", LOAD) {
+                    init {
+                        isMultipleMode = true
+                        file = "*.mp3;*.json"
+                        filenameFilter = FilenameFilter { _, name ->
+                            name.endsWith(".mp3") || name.endsWith(".json")
+                        }
                     }
-                }
 
-                override fun setVisible(isVisible: Boolean) {
-                    super.setVisible(isVisible)
-
-                    if (!isVisible) {
-                        clipEditorViewModel.onSubmitClips(
-                            files.filter {
-                                filenameFilter.accept(it.parentFile, it.name)
+                    override fun setVisible(isVisible: Boolean) {
+                        if (!isVisible) {
+                            coroutineScope.launch {
+                                clipEditorViewModel.onSubmitClips(
+                                    files.filter {
+                                        filenameFilter.accept(it.parentFile, it.name)
+                                    }
+                                )
                             }
-                        )
+                        }
+                        super.setVisible(isVisible)
                     }
+
+                    /*
+                    override fun setVisible(isVisible: Boolean) {
+                        super.setVisible(isVisible)
+
+                        if (!isVisible) {
+                            coroutineScope.launch {
+                                clipEditorViewModel.onSubmitClips(
+                                    files.filter {
+                                        filenameFilter.accept(it.parentFile, it.name)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                     */
                 }
-            }
-        }, dispose = FileDialog::dispose)
+            },
+            dispose = FileDialog::dispose,
+//        update = { fileDialog ->
+//            clipEditorViewModel.onSubmitClips(
+//                fileDialog.files.filter {
+//                    fileDialog.filenameFilter.accept(it.parentFile, it.name)
+//                }
+//            )
+//        }
+        )
     }
 
     if (clipEditorViewModel.selectedPanel != null) {

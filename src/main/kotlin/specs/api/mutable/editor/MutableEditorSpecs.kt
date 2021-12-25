@@ -23,4 +23,7 @@ interface MutableEditorSpecs: EditorSpecs {
 
     override var minImmutableAreaWidthWinDp: Dp
     override var minMutableAreaWidthWinDp: Dp
+    override var preferredImmutableAreaWidthWinDp: Dp
+
+    override var silenceTransformerSilenceDurationUsIncrementStep: Long
 }

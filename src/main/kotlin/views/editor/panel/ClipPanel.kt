@@ -6,19 +6,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.*
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
+import kotlinx.coroutines.launch
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
@@ -37,14 +42,26 @@ fun ClipPanel(
     val density = LocalDensity.current
 
     val focusRequester = remember(clipPanelViewModel) { FocusRequester() }
-    LaunchedEffect(clipPanelViewModel) {
-        focusRequester.requestFocus()
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .onPreviewKeyEvent(clipPanelViewModel::onKeyEvent)
         .focusRequester(focusRequester)
+        .pointerInput(Unit) {
+            detectTapGestures(
+                onPress = {
+                    focusRequester.requestFocus()
+                }
+            )
+        }
+        .onFocusChanged {
+            if (!it.hasFocus) {
+                coroutineScope.launch {
+                    focusRequester.requestFocus()
+                }
+            }
+        }
+        .onKeyEvent(clipPanelViewModel::onKeyEvent)
         .focusable()
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -61,7 +78,10 @@ fun ClipPanel(
                         .weight(1f)
                         .pointerInput(clipPanelViewModel) {
                             detectTapGestures(
-                                onPress = { clipPanelViewModel.onGlobalClipViewPress(it) }
+                                onPress = {
+                                    focusRequester.requestFocus()
+                                    clipPanelViewModel.onGlobalClipViewPress(it)
+                                }
                             )
                         }
                         .pointerInput(clipPanelViewModel) {
@@ -80,7 +100,10 @@ fun ClipPanel(
                         .weight(2f)
                         .pointerInput(clipPanelViewModel) {
                             detectTapGestures(
-                                onPress = { clipPanelViewModel.onEditableClipViewPress(it) }
+                                onPress = {
+                                    focusRequester.requestFocus()
+                                    clipPanelViewModel.onEditableClipViewPress(it)
+                                }
                             )
                         }
                         .pointerInput(clipPanelViewModel) {

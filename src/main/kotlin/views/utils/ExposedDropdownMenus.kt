@@ -1,12 +1,9 @@
 package views.utils
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.mouseClickable
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -115,18 +114,19 @@ private fun ExposedDropDownMenuImpl(
     var dismissed by remember { mutableStateOf(false) }
     var textfieldSize by remember { mutableStateOf(Size.Zero) }
 
-    val indicatorColor = MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
-//        if (expanded) MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
-//        else MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.UnfocusedIndicatorLineOpacity)
+    val indicatorColor = //MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
+        if (expanded) MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
+        else MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.UnfocusedIndicatorLineOpacity)
     val indicatorWidth = (if (expanded) 2 else 1).dp
-    val labelColor = MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
-//        if (expanded) MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
-//        else MaterialTheme.colors.onSurface.copy(ContentAlpha.medium)
-    val trailingIconColor = MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
-
+    val labelColor = //MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
+        if (expanded) MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
+        else MaterialTheme.colors.onSurface.copy(ContentAlpha.medium)
+    val trailingIconColor = //MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
+        if (expanded) MaterialTheme.colors.primary.copy(alpha = ContentAlpha.high)
+        else MaterialTheme.colors.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
     val rotation: Float by animateFloatAsState(if (expanded) 180f else 0f)
 
-    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
 
     Column(modifier = modifier.width(IntrinsicSize.Min)) {
         decorator(indicatorColor, indicatorWidth) {
@@ -135,13 +135,14 @@ private fun ExposedDropDownMenuImpl(
                 .background(color = backgroundColor, shape = shape)
                 .onGloballyPositioned { textfieldSize = it.size.toSize() }
                 .clip(shape)
+                .focusRequester(focusRequester)
                 .clickable {
                     if (!dismissed) {
                         expanded = true
                     }
-                    focusManager.clearFocus()
+                    focusRequester.requestFocus()
                 }
-                .padding(start = 16.dp, end = 12.dp, top = 7.dp, bottom = 10.dp)
+                .padding(start = 16.dp, end = 12.dp, top = 9.dp, bottom = 13.5.dp)
             ) {
                 Column(Modifier.padding(end = 32.dp)) {
                     ProvideTextStyle(value = MaterialTheme.typography.caption.copy(color = labelColor)) {
@@ -149,7 +150,7 @@ private fun ExposedDropDownMenuImpl(
                     }
                     Text(
                         text = values[selectedIndex],
-                        modifier = Modifier.padding(top = 1.dp)
+                        modifier = Modifier.padding(top = 1.5.dp)
                     )
                 }
                 Icon(

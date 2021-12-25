@@ -43,7 +43,7 @@ class ClipEditorViewModelImpl(
 
     /* Callbacks */
     override fun onOpenClips() {
-        _showFileChooser = true
+        openClips()
     }
 
     override fun onSubmitClips(audioClipFiles: List<File>) {
@@ -81,6 +81,6 @@ class ClipEditorViewModelImpl(
     }
 
     override fun openClips() {
-        onOpenClips()
+        _showFileChooser = true
     }
 }

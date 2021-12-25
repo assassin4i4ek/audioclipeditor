@@ -10,7 +10,7 @@ import java.util.prefs.Preferences
 class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
 
-    override var inputDevice by savableProperty(
+    override var inputDevice: InputDevice by savableProperty(
         InputDevice.Touchpad, ::inputDevice, { it.name }, { InputDevice.valueOf(it) }
     )
 
@@ -23,11 +23,11 @@ class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
     )
 
     override var maxPanelViewHeightDp: Dp by savableProperty(
-        300.dp, ::maxPanelViewHeightDp
+        400.dp, ::maxPanelViewHeightDp
     )
 
     override var minPanelViewHeightDp: Dp by savableProperty(
-        100.dp, ::minPanelViewHeightDp
+        200.dp, ::minPanelViewHeightDp
     )
 
     override var xStepDpPerSec: Dp by savableProperty(
@@ -60,7 +60,11 @@ class PreferenceEditorSpecs: BasePreferenceSpecs(), MutableEditorSpecs {
     override var minMutableAreaWidthWinDp: Dp by savableProperty(
         32.dp, ::minMutableAreaWidthWinDp
     )
-    override val preferredImmutableAreaWidthWinDp: Dp by savableProperty(
+    override var preferredImmutableAreaWidthWinDp: Dp by savableProperty(
         160.dp, ::preferredImmutableAreaWidthWinDp
+    )
+
+    override var silenceTransformerSilenceDurationUsIncrementStep: Long by savableProperty(
+        50e3.toLong(), ::silenceTransformerSilenceDurationUsIncrementStep
     )
 }

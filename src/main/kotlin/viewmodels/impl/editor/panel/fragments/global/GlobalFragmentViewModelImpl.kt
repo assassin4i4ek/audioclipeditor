@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import model.api.editor.clip.fragment.AudioClipFragment
 import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
 import viewmodels.impl.editor.panel.fragments.base.BaseFragmentViewModelImpl
@@ -12,8 +13,9 @@ import viewmodels.impl.editor.panel.fragments.base.BaseFragmentViewModelImpl
 class GlobalFragmentViewModelImpl(
     fragment: AudioClipFragment,
     parentViewModel: Parent,
-    clipUnitConverter: ClipUnitConverter
-): BaseFragmentViewModelImpl<AudioClipFragment>(fragment, parentViewModel, clipUnitConverter), GlobalFragmentViewModel {
+    clipUnitConverter: ClipUnitConverter,
+    specs: EditorSpecs
+): BaseFragmentViewModelImpl<AudioClipFragment>(fragment, parentViewModel, clipUnitConverter, specs), GlobalFragmentViewModel {
     /* Parent ViewModels */
     interface Parent: BaseFragmentViewModelImpl.Parent
 
@@ -26,8 +28,6 @@ class GlobalFragmentViewModelImpl(
     override var mutableAreaStartUs: Long by mutableStateOf(fragment.mutableAreaStartUs)
     override var mutableAreaEndUs: Long by mutableStateOf(fragment.mutableAreaEndUs)
     override var rightImmutableAreaEndUs: Long by mutableStateOf(fragment.rightImmutableAreaEndUs)
-
-    override var fragmentTransformer: FragmentTransformer by mutableStateOf(fragment.transformer)
 
     /* Callbacks */
 

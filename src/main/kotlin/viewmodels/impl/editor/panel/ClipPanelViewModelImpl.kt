@@ -71,7 +71,7 @@ class ClipPanelViewModelImpl(
         this, editableClipViewModel, density, specs
     )
     override val globalFragmentSetViewModel: GlobalFragmentSetViewModel = GlobalFragmentSetViewModelImpl(
-        this, globalClipViewModel
+        this, globalClipViewModel, specs
     )
 
     /* Simple properties */
@@ -96,7 +96,9 @@ class ClipPanelViewModelImpl(
 
     /* Callbacks */
     override fun onOpenClips() {
-        parentViewModel.openClips()
+        coroutineScope.launch {
+            parentViewModel.openClips()
+        }
     }
 
     override fun onSwitchInputDevice() {
@@ -213,7 +215,7 @@ class ClipPanelViewModelImpl(
 
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        return if (event.type == KeyEventType.KeyDown) {
+        val isEventHandled = if (event.type == KeyEventType.KeyDown) {
             when (event.key) {
                 Key.Spacebar -> {
                     if (canPauseClip || canStopClip) {
@@ -257,6 +259,12 @@ class ClipPanelViewModelImpl(
             }
         }
         else false
+
+        return if (isEventHandled) {
+            true
+        } else {
+            editableFragmentSetViewModel.selectedFragmentViewModel?.onKeyEvent(event) ?: false
+        }
     }
 
     /* Methods */
@@ -426,5 +434,9 @@ class ClipPanelViewModelImpl(
                     globalFragmentSetViewModel.fragmentViewModels[fragmentErrorStub]!!.setError(fragmentErrorStub)
                 }
             }
+    }
+
+    override fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer {
+        return audioClip.createTransformerForType(type)
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import model.api.editor.clip.fragment.transformer.FragmentTransformer
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
 
@@ -28,6 +29,10 @@ fun FragmentSetView(
                         0.25f
                     )
                 } else {
+                    val mutableAreaColor = when (fragmentViewModel.transformerType) {
+                        FragmentTransformer.Type.IDLE -> Color.Cyan.copy(alpha = 0.5f)
+                        FragmentTransformer.Type.SILENCE -> Color.Magenta
+                    }
                     drawRect(
                         Color.Green,
                         Offset(leftImmutableAreaStartPositionWinPx, 0f),
@@ -35,7 +40,7 @@ fun FragmentSetView(
                         0.25f
                     )
                     drawRect(
-                        Color.Magenta,
+                        mutableAreaColor,
                         Offset(mutableAreaStartPositionWinPx, 0f),
                         Size(mutableAreaWidthWinPx, size.height),
                         0.5f
@@ -93,6 +98,10 @@ fun DraggableFragmentSetView(
             with(fragmentViewModel) {
                 if (!isError) {
                     /*Draggable areas*/
+                    val mutableAreaColor = when (fragmentViewModel.transformerType) {
+                        FragmentTransformer.Type.IDLE -> Color.Cyan
+                        FragmentTransformer.Type.SILENCE -> Color.Magenta
+                    }
                     drawRect(
                         Color.Green,
                         Offset(leftImmutableAreaStartPositionWinPx, 0f),
@@ -100,13 +109,13 @@ fun DraggableFragmentSetView(
                         0.25f
                     )
                     drawRect(
-                        Color.Magenta,
+                        mutableAreaColor,
                         Offset(mutableAreaStartPositionWinPx, 0f),
                         Size(mutableDraggableAreaWidthWinPx, size.height),
                         0.5f
                     )
                     drawRect(
-                        Color.Magenta,
+                        mutableAreaColor,
                         Offset(mutableAreaEndPositionWinPx - mutableDraggableAreaWidthWinPx, 0f),
                         Size(mutableDraggableAreaWidthWinPx, size.height),
                         0.5f

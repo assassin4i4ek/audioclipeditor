@@ -27,7 +27,7 @@ import viewmodels.api.editor.panel.ClipPanelViewModel
 import views.editor.panel.clip.ClipView
 import views.editor.panel.clip.GlobalWindowClipView
 import views.editor.panel.cursor.ClipCursor
-import views.editor.panel.fragments.DraggableFragmentSetPanel
+import views.editor.panel.fragments.FragmentSetPanel
 import views.editor.panel.fragments.DraggableFragmentSetView
 import views.editor.panel.fragments.FragmentSetFramesView
 import views.editor.panel.fragments.FragmentSetView
@@ -126,7 +126,7 @@ fun ClipPanel(
                         ClipCursor(clipPanelViewModel.editableCursorViewModel)
                         FragmentSetFramesView(clipPanelViewModel.editableFragmentSetViewModel)
                     }
-                    DraggableFragmentSetPanel(clipPanelViewModel.editableFragmentSetViewModel)
+                    FragmentSetPanel(clipPanelViewModel.editableFragmentSetViewModel)
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }

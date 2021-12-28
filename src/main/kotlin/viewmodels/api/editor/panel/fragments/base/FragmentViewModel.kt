@@ -2,8 +2,8 @@ package viewmodels.api.editor.panel.fragments.base
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.KeyEvent
-import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import viewmodels.api.BaseViewModel
 
 interface FragmentViewModel<K: AudioClipFragment>: BaseViewModel {

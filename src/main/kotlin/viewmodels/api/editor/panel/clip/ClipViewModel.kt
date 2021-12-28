@@ -3,8 +3,7 @@ package viewmodels.api.editor.panel.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
-import model.api.editor.clip.AudioClip
-import specs.api.immutable.editor.EditorSpecs
+import model.api.editor.audio.clip.AudioClip
 import viewmodels.api.BaseViewModel
 import viewmodels.api.utils.ClipUnitConverter
 

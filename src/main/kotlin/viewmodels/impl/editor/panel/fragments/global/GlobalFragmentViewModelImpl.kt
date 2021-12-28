@@ -3,8 +3,7 @@ package viewmodels.impl.editor.panel.fragments.global
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.AudioClipFragment
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter

@@ -1,6 +1,6 @@
 package viewmodels.impl.editor.panel.fragments.global
 
-import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.AudioClipFragment
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel

@@ -1,7 +1,7 @@
 package viewmodels.impl.utils
 
 import androidx.compose.animation.core.Easing
-import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.AudioClipFragment
 
 class FragmentEasing(
     fragment: AudioClipFragment,

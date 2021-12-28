@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
-import model.api.editor.clip.AudioClipService
+import model.api.editor.audio.AudioClipService
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.ClipEditorViewModel
 import viewmodels.api.editor.OpenedClipsTabViewModel

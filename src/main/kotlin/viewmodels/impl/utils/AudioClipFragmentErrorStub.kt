@@ -1,7 +1,7 @@
 package viewmodels.impl.utils
 
-import model.api.editor.clip.fragment.MutableAudioClipFragment
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 
 class AudioClipFragmentErrorStub(
     override var mutableAreaStartUs: Long,

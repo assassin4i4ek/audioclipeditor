@@ -3,8 +3,8 @@ package viewmodels.impl.editor.panel.fragments.base
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
-import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
@@ -21,7 +21,7 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         fun startPlayFragment(fragment: AudioClipFragment)
         fun stopPlayFragment(fragment: AudioClipFragment)
         fun removeFragment(fragment: AudioClipFragment)
-        fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer
+        fun updateFragmentTransformer(type: FragmentTransformer.Type, fragment: AudioClipFragment)
     }
 
     /* Child ViewModels */
@@ -97,6 +97,10 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     override val transformerTypeOptions: List<String> = FragmentTransformer.Type.values().map {
         when (it) {
             FragmentTransformer.Type.SILENCE -> "SILENCE"
+            FragmentTransformer.Type.BELL -> "BELL"
+            FragmentTransformer.Type.K_SOUND -> "'K' SOUND"
+            FragmentTransformer.Type.T_SOUND -> "'T' SOUND"
+            FragmentTransformer.Type.D_SOUND -> "'D' SOUND"
             FragmentTransformer.Type.DELETE -> "DELETE"
             FragmentTransformer.Type.IDLE -> "IDLE"
         }
@@ -138,8 +142,7 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         val selectedTransformerType = FragmentTransformer.Type.values()[transformerOptionIndex]
 
         if (selectedTransformerType != transformerType) {
-            fragment.transformer = parentViewModel.createTransformerForType(selectedTransformerType)
-            _transformerType = fragment.transformer.type
+            parentViewModel.updateFragmentTransformer(selectedTransformerType, fragment)
         }
     }
 
@@ -181,30 +184,48 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
         return if (event.type == KeyEventType.KeyDown) {
-            when (transformerType) {
-                FragmentTransformer.Type.SILENCE -> {
-                    when (event.key) {
-                        Key.DirectionUp -> {
-                            onIncreaseSilenceDurationMs()
-                            true
-                        }
-                        Key.DirectionDown -> {
-                            onDecreaseSilenceDurationMs()
-                            true
-                        }
-                        else -> false
-                    }
+            when (event.key) {
+                Key.DirectionUp -> {
+                    return onUpArrowClicked()
                 }
-                FragmentTransformer.Type.DELETE -> {
-                    false
+                Key.DirectionDown -> {
+                    return onDownArrowClicked()
                 }
-                FragmentTransformer.Type.IDLE -> {
-                    false
-                }
+                else -> false
             }
         }
         else {
             false
+        }
+    }
+
+    private fun onUpArrowClicked(): Boolean {
+        return when(transformerType) {
+            FragmentTransformer.Type.SILENCE,
+            FragmentTransformer.Type.K_SOUND,
+            FragmentTransformer.Type.T_SOUND,
+            FragmentTransformer.Type.D_SOUND -> {
+                onIncreaseSilenceDurationMs()
+                true
+            }
+            FragmentTransformer.Type.BELL,
+            FragmentTransformer.Type.DELETE,
+            FragmentTransformer.Type.IDLE -> false
+        }
+    }
+
+    private fun onDownArrowClicked(): Boolean {
+        return when(transformerType) {
+            FragmentTransformer.Type.SILENCE,
+            FragmentTransformer.Type.K_SOUND,
+            FragmentTransformer.Type.T_SOUND,
+            FragmentTransformer.Type.D_SOUND -> {
+                onDecreaseSilenceDurationMs()
+                true
+            }
+            FragmentTransformer.Type.BELL,
+            FragmentTransformer.Type.DELETE,
+            FragmentTransformer.Type.IDLE -> false
         }
     }
 
@@ -224,11 +245,15 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
 
     private fun updateToMatchFragmentTransformer() {
         when (transformerType) {
-            FragmentTransformer.Type.SILENCE -> {
+            FragmentTransformer.Type.SILENCE,
+            FragmentTransformer.Type.K_SOUND,
+            FragmentTransformer.Type.T_SOUND,
+            FragmentTransformer.Type.D_SOUND -> {
                 val silenceTransformer = fragment.transformer as FragmentTransformer.SilenceTransformer
                 _silenceTransformerSilenceDurationMs = (silenceTransformer.silenceDurationUs / 1000).toString()
             }
-            FragmentTransformer.Type.DELETE -> {}
+            FragmentTransformer.Type.BELL,
+            FragmentTransformer.Type.DELETE,
             FragmentTransformer.Type.IDLE -> {}
         }
     }

@@ -1,6 +1,6 @@
 package viewmodels.api.editor.panel.fragments.base
 
-import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.AudioClipFragment
 import viewmodels.api.BaseViewModel
 import java.util.*
 

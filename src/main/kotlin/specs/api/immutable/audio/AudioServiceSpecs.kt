@@ -1,6 +1,6 @@
 package specs.api.immutable.audio
 
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 
 interface AudioServiceSpecs {
     val dataLineMaxBufferDesolation: Float

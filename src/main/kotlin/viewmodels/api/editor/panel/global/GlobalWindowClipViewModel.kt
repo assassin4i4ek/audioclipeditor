@@ -17,5 +17,5 @@ interface GlobalWindowClipViewModel: BaseViewModel {
 
     /* Methods */
     fun updateWidthAbsPx(widthAbsPx: Float)
-    fun updateXOffsetAbsPx(offsetAbsPx: Float)
+    fun updateXOffsetAbsPx(xOffsetAbsPx: Float)
 }

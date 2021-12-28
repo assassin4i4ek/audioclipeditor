@@ -4,7 +4,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import model.api.editor.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.AudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import java.util.*
@@ -62,7 +62,6 @@ abstract class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentVie
     }
 
     override fun removeFragment(fragment: AudioClipFragment) {
-        println("Remove fragment $fragment")
         require(fragmentViewModels.containsKey(fragment)) {
             "Trying to remove an absent fragment $fragment"
         }

@@ -1,7 +1,6 @@
 package specs.impl.audio
 
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
-import specs.api.immutable.editor.InputDevice
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.mutable.audio.MutableAudioServiceSpecs
 import specs.impl.BasePreferenceSpecs
 import java.util.prefs.Preferences

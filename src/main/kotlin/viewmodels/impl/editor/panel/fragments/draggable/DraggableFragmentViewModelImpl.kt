@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
-import model.api.editor.clip.fragment.MutableAudioClipFragment
+import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
 import viewmodels.api.utils.ClipUnitConverter
@@ -38,33 +38,25 @@ class DraggableFragmentViewModelImpl(
         get() = _leftImmutableAreaStartUs
         set(value) {
             _leftImmutableAreaStartUs = value
-//            if (!isError) {
-                fragment.leftImmutableAreaStartUs = value
-//            }
+            fragment.leftImmutableAreaStartUs = value
         }
     override var mutableAreaStartUs: Long
         get() = _mutableAreaStartUs
         set(value) {
             _mutableAreaStartUs = value
-//            if (!isError) {
-                fragment.mutableAreaStartUs = value
-//            }
+            fragment.mutableAreaStartUs = value
         }
     override var mutableAreaEndUs: Long
         get() = _mutableAreaEndUs
         set(value) {
             _mutableAreaEndUs = value
-//            if (!isError) {
-                fragment.mutableAreaEndUs = value
-//            }
+            fragment.mutableAreaEndUs = value
         }
     override var rightImmutableAreaEndUs: Long
         get() = _rightImmutableAreaEndUs
         set(value) {
             _rightImmutableAreaEndUs = value
-//            if (!isError) {
-                fragment.rightImmutableAreaEndUs = value
-//            }
+            fragment.rightImmutableAreaEndUs = value
         }
 
     override val leftImmutableDraggableAreaWidthWinPx: Float by derivedStateOf {

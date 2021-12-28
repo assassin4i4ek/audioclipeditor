@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import model.api.editor.clip.AudioClip
+import model.api.editor.audio.clip.AudioClip
 import specs.api.immutable.editor.EditorSpecs
 import viewmodels.api.editor.panel.clip.ClipViewModel
 import viewmodels.api.utils.PcmPathBuilder

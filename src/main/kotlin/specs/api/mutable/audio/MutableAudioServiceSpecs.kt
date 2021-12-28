@@ -1,6 +1,6 @@
 package specs.api.mutable.audio
 
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.audio.AudioServiceSpecs
 
 interface MutableAudioServiceSpecs: AudioServiceSpecs {

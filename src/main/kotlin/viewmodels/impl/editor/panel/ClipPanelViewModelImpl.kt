@@ -16,12 +16,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import model.api.editor.clip.AudioClip
-import model.api.editor.clip.AudioClipPlayer
-import model.api.editor.clip.AudioClipService
-import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.MutableAudioClipFragment
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.AudioClip
+import model.api.editor.audio.AudioClipPlayer
+import model.api.editor.audio.AudioClipService
+import model.api.editor.audio.clip.fragment.AudioClipFragment
+import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.editor.InputDevice
 import specs.api.mutable.editor.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
@@ -362,8 +362,8 @@ class ClipPanelViewModelImpl(
         globalFragmentSetViewModel.fragmentViewModels[fragment]!!.setPlaying(true)
 
         with(editableClipViewModel) {
-            val fragmentStartAbsPx = toAbsPx(fragment.leftImmutableAreaStartUs)
-            val fragmentEndAbsPx = toAbsPx(fragment.rightImmutableAreaEndUs)
+            val fragmentStartAbsPx = toAbsPx(fragment.adjustedLeftImmutableAreaStartUs)
+            val fragmentEndAbsPx = toAbsPx(fragment.adjustedRightImmutableAreaEndUs)
             editableCursorViewModel.saveXPositionAbsPxState()
             globalCursorViewModel.saveXPositionAbsPxState()
             editableCursorViewModel.updatePositionAbsPx(fragmentStartAbsPx)
@@ -413,9 +413,10 @@ class ClipPanelViewModelImpl(
         editableFragmentSetViewModel.removeFragment(fragment)
         globalFragmentSetViewModel.removeFragment(fragment)
 
-        if (fragment in audioClip.fragments) {
-            audioClip.removeFragment(fragment as MutableAudioClipFragment)
+        require(fragment in audioClip.fragments) {
+            "Trying to remove fragment $fragment which does NOT belong to current clip $audioClip"
         }
+        audioClip.removeFragment(fragment as MutableAudioClipFragment)
     }
 
     override fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment {
@@ -452,7 +453,12 @@ class ClipPanelViewModelImpl(
             }
     }
 
-    override fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer {
-        return audioClip.createTransformerForType(type)
+    override fun updateFragmentTransformer(type: FragmentTransformer.Type, fragment: AudioClipFragment) {
+        require(fragment in audioClip.fragments) {
+            "Trying to update fragment $fragment which does NOT belong to current clip $audioClip"
+        }
+        (fragment as MutableAudioClipFragment).transformer = audioClip.createTransformerForType(type)
+        editableFragmentSetViewModel.fragmentViewModels[fragment]!!.updateToMatchFragment()
+        globalFragmentSetViewModel.fragmentViewModels[fragment]!!.updateToMatchFragment()
     }
 }

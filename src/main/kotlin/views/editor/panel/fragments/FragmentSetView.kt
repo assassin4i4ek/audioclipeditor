@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import model.api.editor.clip.fragment.transformer.FragmentTransformer
+import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
 
@@ -31,6 +31,10 @@ fun FragmentSetView(
                 } else {
                     val mutableAreaColor = when (fragmentViewModel.transformerType) {
                         FragmentTransformer.Type.SILENCE -> Color.Magenta
+                        FragmentTransformer.Type.BELL -> Color.Yellow.copy(alpha = 0.5f)
+                        FragmentTransformer.Type.K_SOUND -> Color(0xFFB266FF)
+                        FragmentTransformer.Type.T_SOUND -> Color(0xFFFF66FF)
+                        FragmentTransformer.Type.D_SOUND -> Color(0xFFFF66B2)
                         FragmentTransformer.Type.DELETE -> Color.Red.copy(alpha = 0.5f)
                         FragmentTransformer.Type.IDLE -> Color.Cyan.copy(alpha = 0.5f)
                     }
@@ -101,6 +105,10 @@ fun DraggableFragmentSetView(
                     /*Draggable areas*/
                     val mutableAreaColor = when (fragmentViewModel.transformerType) {
                         FragmentTransformer.Type.SILENCE -> Color.Magenta
+                        FragmentTransformer.Type.BELL -> Color.Yellow.copy(alpha = 0.5f)
+                        FragmentTransformer.Type.K_SOUND -> Color(0xFFB266FF)
+                        FragmentTransformer.Type.T_SOUND -> Color(0xFFFF66FF)
+                        FragmentTransformer.Type.D_SOUND -> Color(0xFFFF66B2)
                         FragmentTransformer.Type.DELETE -> Color.Red.copy(alpha = 0.5f)
                         FragmentTransformer.Type.IDLE -> Color.Cyan
                     }

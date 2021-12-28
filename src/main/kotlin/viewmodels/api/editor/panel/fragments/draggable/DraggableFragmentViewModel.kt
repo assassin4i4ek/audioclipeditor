@@ -1,6 +1,6 @@
 package viewmodels.api.editor.panel.fragments.draggable
 
-import model.api.editor.clip.fragment.MutableAudioClipFragment
+import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 
 interface DraggableFragmentViewModel: FragmentViewModel<MutableAudioClipFragment> {

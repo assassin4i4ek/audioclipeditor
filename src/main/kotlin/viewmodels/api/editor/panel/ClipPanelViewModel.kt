@@ -5,19 +5,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.Dp
-import model.api.editor.clip.fragment.AudioClipFragment
-import model.api.editor.clip.fragment.MutableAudioClipFragment
 import specs.api.immutable.editor.InputDevice
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
 import viewmodels.api.editor.panel.clip.GlobalClipViewModel
 import viewmodels.api.editor.panel.cursor.CursorViewModel
-import viewmodels.api.editor.panel.fragments.base.FragmentSetViewModel
-import viewmodels.api.editor.panel.fragments.base.FragmentViewModel
 import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentSetViewModel
-import viewmodels.api.editor.panel.fragments.draggable.DraggableFragmentViewModel
 import viewmodels.api.editor.panel.fragments.global.GlobalFragmentSetViewModel
-import viewmodels.api.editor.panel.fragments.global.GlobalFragmentViewModel
 import viewmodels.api.editor.panel.global.GlobalWindowClipViewModel
 
 interface ClipPanelViewModel: BaseViewModel {

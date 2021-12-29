@@ -6,8 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalDrawer
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.AwtWindow
-import kotlinx.coroutines.launch
 import viewmodels.api.editor.ClipEditorViewModel
 import views.editor.panel.ClipPanel
 import java.awt.FileDialog
@@ -72,6 +72,16 @@ fun ClipEditor(
             },
             dispose = FileDialog::dispose,
         )
+    }
+
+    if (clipEditorViewModel.showCloseConfirmDialog) {
+        ModalDrawer(
+            drawerContent = {
+                Text("Hello")
+            }
+        ) {
+
+        }
     }
 
     if (clipEditorViewModel.selectedPanel != null) {

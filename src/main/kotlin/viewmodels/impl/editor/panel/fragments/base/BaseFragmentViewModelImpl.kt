@@ -185,11 +185,39 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
     override fun onKeyEvent(event: KeyEvent): Boolean {
         return if (event.type == KeyEventType.KeyDown) {
             when (event.key) {
-                Key.DirectionUp -> {
-                    return onUpArrowClicked()
+                Key.DirectionUp, Key.W -> {
+                    onUpArrowClicked()
                 }
-                Key.DirectionDown -> {
-                    return onDownArrowClicked()
+                Key.DirectionDown, Key.S -> {
+                    onDownArrowClicked()
+                }
+                Key.One -> {
+                    onSelectTransformer(0)
+                    true
+                }
+                Key.Two -> {
+                    onSelectTransformer(1)
+                    true
+                }
+                Key.Three -> {
+                    onSelectTransformer(2)
+                    true
+                }
+                Key.Four -> {
+                    onSelectTransformer(3)
+                    true
+                }
+                Key.Five -> {
+                    onSelectTransformer(4)
+                    true
+                }
+                Key.Six -> {
+                    onSelectTransformer(5)
+                    true
+                }
+                Key.Seven -> {
+                    onSelectTransformer(6)
+                    true
                 }
                 else -> false
             }

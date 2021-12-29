@@ -45,7 +45,7 @@ dependencies {
 //    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 //    implementation("org.apache.httpcomponents.client5:httpclient5:5.1")
 
-//    implementation("org.tensorflow:tensorflow-core-platform:0.3.3")
+    implementation("org.tensorflow:tensorflow-core-platform:0.3.3")
 //    implementation( "com.google.protobuf:protobuf-kotlin:3.17.3")
 //    compileOnly("com.google.protobuf:protobuf-gradle-plugin:0.8.16")
     implementation("libs:Libresample4j-1.0")
@@ -64,6 +64,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "AudioClipsEditorApp"
             packageVersion = "1.0.0"
+            appResourcesRootDir.set(sourceSets.main.get().output.resourcesDir)
         }
     }
 }

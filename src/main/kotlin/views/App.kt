@@ -25,7 +25,7 @@ fun App() {
 
             ClipEditor(remember {
                 ClipEditorViewModelImpl(
-                    audioClipService = AudioClipServiceImpl(preferenceAudioServiceSpecs),
+                    audioClipService = AudioClipServiceImpl(preferenceAudioServiceSpecs, coroutineScope),
                     pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
                     coroutineScope = coroutineScope,
                     density = density,

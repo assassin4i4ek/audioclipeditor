@@ -1,22 +1,30 @@
 package model.impl.editor.audio
 
+import kotlinx.coroutines.CoroutineScope
 import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.codecs.AudioClipCodec
 import model.api.editor.audio.codecs.AudioClipMetaCodec
+import model.api.editor.audio.preprocess.PreprocessRoutine
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.impl.editor.audio.codecs.AudioClipJsonCodecImpl
 import model.impl.editor.audio.codecs.AudioClipMp3CodecImpl
-import model.impl.editor.audio.storage.WavSoundPatternResourceStorageImpl
+import model.impl.editor.audio.preprocess.FragmentResolverImpl
+import model.impl.editor.audio.preprocess.PreprocessRoutineImpl
+import model.impl.editor.audio.storage.Mp3SoundPatternResourceStorage
 import specs.api.immutable.audio.AudioServiceSpecs
 import java.io.File
 
 class AudioClipServiceImpl(
-    private val specs: AudioServiceSpecs
+    private val specs: AudioServiceSpecs,
+    coroutineScope: CoroutineScope
 ): AudioClipService {
-    private val soundPatternStorage: SoundPatternStorage = WavSoundPatternResourceStorageImpl()
+    private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage()
     private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, specs)
     private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, specs)
+    private val fragmentResolver = FragmentResolverImpl(coroutineScope)
+    private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
+        .then(fragmentResolver::resolve)
 
     override fun getAudioClipId(audioClipFile: File): String {
         return when (audioClipFile.extension.lowercase()) {
@@ -29,23 +37,16 @@ class AudioClipServiceImpl(
     }
 
     override suspend fun openAudioClip(audioClipFile: File): AudioClip {
-//        delay(3000)
-        return when (audioClipFile.extension.lowercase()) {
+        val clip = when (audioClipFile.extension.lowercase()) {
             "mp3" -> audioClipMp3Codec.open(audioClipFile)
             "json" -> audioClipJsonCodec.open(audioClipFile)
             else -> throw IllegalArgumentException(
                 "Trying to open file with unsupported extension (not in [mp3, json])"
             )
-        }.apply {
-            createMinDurationFragmentAtStart(1e6.toLong()).apply {
-                rightImmutableAreaEndUs = 4e6.toLong()
-                mutableAreaEndUs = 3e6.toLong()
-            }
-            createMinDurationFragmentAtStart(4e6.toLong()).apply {
-                rightImmutableAreaEndUs = 5.5e6.toLong()
-                mutableAreaEndUs = 5e6.toLong()
-            }
         }
+
+        preprocessRoutine.apply(clip)
+        return clip
     }
 
     override fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {

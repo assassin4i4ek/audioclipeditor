@@ -41,6 +41,9 @@ class ClipEditorViewModelImpl(
         openedClipsTabViewModel.selectedClipId?.let { _panelViewModels[it] }
     }
 
+    private var _showCloseConfirmDialog: Boolean by mutableStateOf(false)
+    override val showCloseConfirmDialog: Boolean get() = _showCloseConfirmDialog
+
     /* Callbacks */
     override fun onOpenClips() {
         openClips()
@@ -76,6 +79,7 @@ class ClipEditorViewModelImpl(
         require(_panelViewModels.containsKey(clipId)) {
             "Trying to remove panel view model with id $clipId which is absent if $_panelViewModels"
         }
+
         _panelViewModels = HashMap(_panelViewModels).apply {
             remove(clipId)!!.close()
         }

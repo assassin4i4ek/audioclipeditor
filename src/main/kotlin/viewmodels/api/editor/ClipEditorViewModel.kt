@@ -15,6 +15,7 @@ interface ClipEditorViewModel: BaseViewModel {
     /* Stateful properties */
     val canShowFileChooser: Boolean
     val showFileChooser: Boolean
+    val showCloseConfirmDialog: Boolean
     val selectedPanel: ClipPanelViewModel?
 
     /* Callbacks */

@@ -30,10 +30,10 @@ class AudioClipPlayerImpl(
 
         coroutineScope {
             playJob = launch(Job()) {
-                var currentPosition = startPosition
-                dataLine.start()
+                withContext(Dispatchers.IO) {
+                    var currentPosition = startPosition
+                    dataLine.start()
 
-                withContext(Dispatchers.Default) {
                     while (currentPosition < endPosition) {
                         println("write start at pos $currentPosition, available = ${dataLine.available()}")
                         val readSize = (currentPosition + dataLine.available()).coerceAtMost(endPosition) - currentPosition
@@ -42,6 +42,7 @@ class AudioClipPlayerImpl(
                         delay(bufferRefreshPeriodMs)
                     }
                 }
+                stop()
             }
         }
 
@@ -70,10 +71,10 @@ class AudioClipPlayerImpl(
 
         coroutineScope {
             playJob = launch(Job()) {
-                var currentPosition = leftImmutableAreaStartPosition
-                dataLine.start()
+                withContext(Dispatchers.IO) {
+                    var currentPosition = leftImmutableAreaStartPosition
+                    dataLine.start()
 
-                withContext(Dispatchers.Default) {
                     while (currentPosition < rightImmutableAreaEndPosition) {
                         println("write start at pos $currentPosition, available = ${dataLine.available()}")
                         when {
@@ -107,6 +108,7 @@ class AudioClipPlayerImpl(
                         }
                     }
                 }
+                stop()
             }
         }
 

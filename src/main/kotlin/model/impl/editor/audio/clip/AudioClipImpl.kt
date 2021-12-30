@@ -15,8 +15,8 @@ class AudioClipImpl(
     override val sampleRate: Int,
     override val durationUs: Long,
     override val audioFormat: AudioFormat,
-    override val channelsPcm: List<FloatArray>,
     private val originalPcmByteArray: ByteArray,
+    override val channelsPcm: List<FloatArray>,
     private val soundPatternStorage: SoundPatternStorage,
     private val specs: AudioServiceSpecs
 ) : AudioClip {
@@ -47,7 +47,12 @@ class AudioClipImpl(
     private fun createMinDurationFragment(
         mutableAreaStartUs: Long, mutableAreaEndUs: Long
     ): MutableAudioClipFragment {
-        val newFragmentTransformer = createTransformerForType(specs.defaultFragmentTransformerType)
+        val newFragmentTransformer = if (fragments.isEmpty() && specs.useBellTransformerForFirstFragment) {
+            createTransformerForType(FragmentTransformer.Type.BELL)
+        }
+        else {
+            createTransformerForType(specs.defaultFragmentTransformerType)
+        }
 
         val newFragment = AudioClipFragmentImpl(
             mutableAreaStartUs - specs.minImmutableAreaDurationUs,

@@ -10,6 +10,6 @@ interface MutableAudioServiceSpecs: AudioServiceSpecs {
     override var minMutableAreaDurationUs: Long
 
     override var defaultFragmentTransformerType: FragmentTransformer.Type
-
     override var defaultSilenceTransformerSilenceDurationUs: Long
+    override var useBellTransformerForFirstFragment: Boolean
 }

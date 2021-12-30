@@ -9,6 +9,6 @@ interface AudioServiceSpecs {
     val minMutableAreaDurationUs: Long
 
     val defaultFragmentTransformerType: FragmentTransformer.Type
-
     val defaultSilenceTransformerSilenceDurationUs: Long
+    val useBellTransformerForFirstFragment: Boolean
 }

@@ -12,26 +12,33 @@ import specs.impl.editor.PreferenceEditorSpecs
 import viewmodels.impl.editor.ClipEditorViewModelImpl
 import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
 import views.editor.ClipEditor
+import views.utils.WithoutTouchSlop
 
 @ExperimentalComposeUiApi
 fun App() {
-    singleWindowApplication {
-        MaterialTheme {
+    singleWindowApplication(
+        title = "Clip Editor"
+    ) {
+        val coroutineScope = rememberCoroutineScope()
+        val density = LocalDensity.current
+        val clipEditorViewModel = remember {
             val preferenceAudioServiceSpecs = PreferenceAudioServiceSpecs()
             val preferenceEditorSpecs = PreferenceEditorSpecs()
             preferenceEditorSpecs.reset()
-            val coroutineScope = rememberCoroutineScope()
-            val density = LocalDensity.current
 
-            ClipEditor(remember {
-                ClipEditorViewModelImpl(
-                    audioClipService = AudioClipServiceImpl(preferenceAudioServiceSpecs, coroutineScope),
-                    pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
-                    coroutineScope = coroutineScope,
-                    density = density,
-                    specs = preferenceEditorSpecs
-                )
-            })
+            ClipEditorViewModelImpl(
+                audioClipService = AudioClipServiceImpl(preferenceAudioServiceSpecs, coroutineScope),
+                pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
+                coroutineScope = coroutineScope,
+                density = density,
+                specs = preferenceEditorSpecs
+            )
+        }
+
+        WithoutTouchSlop {
+            MaterialTheme {
+                ClipEditor(clipEditorViewModel, window)
+            }
         }
     }
 }

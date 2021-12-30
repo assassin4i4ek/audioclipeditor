@@ -5,6 +5,7 @@ import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.codecs.AudioClipCodec
 import model.api.editor.audio.codecs.AudioClipMetaCodec
+import model.api.editor.audio.SoundProcessor
 import model.api.editor.audio.preprocess.PreprocessRoutine
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.impl.editor.audio.codecs.AudioClipJsonCodecImpl
@@ -19,9 +20,10 @@ class AudioClipServiceImpl(
     private val specs: AudioServiceSpecs,
     coroutineScope: CoroutineScope
 ): AudioClipService {
-    private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage()
-    private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, specs)
-    private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, specs)
+    private val processor: SoundProcessor = SoundProcessorImpl()
+    private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage(processor)
+    private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, processor, specs)
+    private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, processor, specs)
     private val fragmentResolver = FragmentResolverImpl(coroutineScope)
     private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
         .then(fragmentResolver::resolve)

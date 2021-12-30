@@ -9,7 +9,7 @@ import kotlin.math.*
 
 class PcmPathBuilderImpl: PcmPathBuilder {
     override suspend fun build(channelPcm: FloatArray, xStep: Int): Path {
-        return withContext(Dispatchers.Default) {
+        return withContext(Dispatchers.IO) {
             // channelPcm in range [-1.0, 1.0]
             val path = Path()
 

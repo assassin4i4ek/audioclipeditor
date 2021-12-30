@@ -22,6 +22,7 @@ class PreferenceSavableStatefulProperty<T, V, U>(
         val key = "${thisRef!!::class.simpleName}/${property.name}"
 
         val value = when (val defaultValueAsSupported = toSupportedType(defaultValue)) {
+            is Boolean -> preferences.getBoolean(key, defaultValueAsSupported) as U
             is Float -> preferences.getFloat(key, defaultValueAsSupported) as U
             is Long -> preferences.getLong(key, defaultValueAsSupported) as U
             is String -> preferences.get(key, defaultValueAsSupported) as U
@@ -42,6 +43,7 @@ class PreferenceSavableStatefulProperty<T, V, U>(
         val key = "${thisRef!!::class.simpleName}/${property.name}"
 
         when (val valueAsSupportedType = toSupportedType(value)) {
+            is Boolean -> preferences.putBoolean(key, valueAsSupportedType as Boolean)
             is Float -> preferences.putFloat(key, valueAsSupportedType as Float)
             is Long -> preferences.putLong(key, valueAsSupportedType as Long)
             is String -> preferences.put(key, valueAsSupportedType as String)

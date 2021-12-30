@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.Density
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.AwtWindow
 import viewmodels.api.editor.ClipEditorViewModel
 import views.editor.panel.ClipPanel
+import views.utils.WithoutTouchSlop
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.FilenameFilter
@@ -30,9 +33,11 @@ import java.io.FilenameFilter
 @Composable
 @ExperimentalComposeUiApi
 fun ClipEditor(
-    clipEditorViewModel: ClipEditorViewModel
+    clipEditorViewModel: ClipEditorViewModel,
+    window: ComposeWindow
 ) {
     // Fix touchSlope in ViewConfiguration
+    /*
     with(LocalViewConfiguration.current) {
         val densityField = this.javaClass.getDeclaredField("density")
         val isDensityFieldAccessible = densityField.canAccess(this)
@@ -44,71 +49,73 @@ fun ClipEditor(
 
         densityField.isAccessible = isDensityFieldAccessible
     }
+     */
     //
 
-    if (clipEditorViewModel.showFileChooser) {
-        AwtWindow(
-            create = {
-                object : FileDialog(null as Frame?, "Choose audio clips to open", LOAD) {
-                    init {
-                        isMultipleMode = true
-                        file = "*.mp3;*.json"
-                        filenameFilter = FilenameFilter { _, name ->
-                            name.endsWith(".mp3") || name.endsWith(".json")
+        if (clipEditorViewModel.showFileChooser) {
+            AwtWindow(
+                create = {
+                    object : FileDialog(window, "Choose audio clips to open", LOAD) {
+                        init {
+                            isMultipleMode = true
+                            file = "*.mp3;*.json"
+                            filenameFilter = FilenameFilter { _, name ->
+                                name.endsWith(".mp3") || name.endsWith(".json")
+                            }
+                        }
+
+                        override fun setVisible(isVisible: Boolean) {
+                            if (!isVisible) {
+                                clipEditorViewModel.onSubmitClips(
+                                    files.filter {
+                                        filenameFilter.accept(it.parentFile, it.name)
+                                    }
+                                )
+                            }
+                            super.setVisible(isVisible)
                         }
                     }
+                },
+                dispose = FileDialog::dispose,
+            )
+        }
 
-                    override fun setVisible(isVisible: Boolean) {
-                        if (!isVisible) {
-                            clipEditorViewModel.onSubmitClips(
-                                files.filter {
-                                    filenameFilter.accept(it.parentFile, it.name)
-                                }
-                            )
-                        }
-                        super.setVisible(isVisible)
+//        if (clipEditorViewModel.showCloseConfirmDialog) {
+//            ModalDrawer(
+//                drawerContent = {
+//                    Text("Hello")
+//                }
+//            ) {
+//
+//            }
+//        }
+
+        if (clipEditorViewModel.selectedPanel != null) {
+            Column {
+                OpenedClipsTab(clipEditorViewModel.openedClipsTabViewModel)
+                ClipPanel(clipEditorViewModel.selectedPanel!!)
+            }
+        } else {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(60.dp), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier
+                    .size(min(minWidth, minHeight))
+                    .clip(CircleShape)
+                    .clickable(clipEditorViewModel.canShowFileChooser) {
+                        clipEditorViewModel.onOpenClips()
                     }
+                    .border(
+                        8.dp, MaterialTheme.colors.primary, CircleShape
+                    )
+                ) {
+                    Icon(
+                        useResource("icons/folder_open_black_24dp.svg") {
+                            loadSvgPainter(it, LocalDensity.current)
+                        }, "open",
+                        modifier = Modifier.matchParentSize().padding(40.dp),
+                        tint = MaterialTheme.colors.primary
+                    )
                 }
-            },
-            dispose = FileDialog::dispose,
-        )
-    }
-
-    if (clipEditorViewModel.showCloseConfirmDialog) {
-        ModalDrawer(
-            drawerContent = {
-                Text("Hello")
-            }
-        ) {
-
-        }
-    }
-
-    if (clipEditorViewModel.selectedPanel != null) {
-        Column {
-            OpenedClipsTab(clipEditorViewModel.openedClipsTabViewModel)
-            ClipPanel(clipEditorViewModel.selectedPanel!!)
-        }
-    } else {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(60.dp), contentAlignment = Alignment.Center) {
-            Box(modifier = Modifier
-                .size(min(minWidth, minHeight))
-                .clip(CircleShape)
-                .clickable(clipEditorViewModel.canShowFileChooser) {
-                    clipEditorViewModel.onOpenClips()
-                }
-                .border(
-                    8.dp, MaterialTheme.colors.primary, CircleShape
-                )
-            ) {
-                Icon(
-                    useResource("icons/folder_open_black_24dp.svg") {
-                        loadSvgPainter(it, LocalDensity.current)
-                    }, "open",
-                    modifier = Modifier.matchParentSize().padding(40.dp),
-                    tint = MaterialTheme.colors.primary
-                )
             }
         }
-    }
+
 }

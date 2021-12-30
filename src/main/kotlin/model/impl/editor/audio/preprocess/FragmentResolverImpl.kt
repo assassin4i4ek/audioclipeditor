@@ -20,6 +20,9 @@ class FragmentResolverImpl(
     }
 
     override suspend fun resolve(clip: AudioClip) {
-        model.await()
+        withContext(Dispatchers.Default) {
+            val model = model.await()
+
+        }
     }
 }

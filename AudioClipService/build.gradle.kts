@@ -26,6 +26,7 @@ dependencies {
     implementation("com.cloudburst:java-lame:3.98.4")
     implementation("com.laszlosystems:libresample4j:1.0")
     implementation("org.tensorflow:tensorflow-core-platform:0.3.3")
+    implementation(project(":FragmentResolverModelProto"))
 }
 
 tasks.getByName<Test>("test") {

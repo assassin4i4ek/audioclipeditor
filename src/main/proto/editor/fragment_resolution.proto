@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+
+message FragmentResolutionRequest {
+  int32 sampleRate = 1;
+  // float encoded in little endian
+  bytes audioSamplesChannel1 = 2;
+}
+
+message ResolvedTransformer {
+  enum Type {
+    SILENCE = 0;
+  }
+
+  Type type = 1;
+  int64 silenceDurationUs = 2;
+}
+
+message ResolvedFragment {
+  int64 startUs = 1;
+  int64 endUs = 2;
+  ResolvedTransformer transformer = 3;
+}
+
+message FragmentResolutionResponse {
+  repeated ResolvedFragment fragments = 1;
+}

@@ -24,6 +24,7 @@ dependencies {
     implementation("com.laszlosystems:libresample4j:1.0")
     implementation("org.tensorflow:tensorflow-core-platform:0.3.3")
     implementation(project(":FragmentResolverModelProto"))
+    implementation(project(":AudioClipServiceProto"))
 }
 
 tasks.getByName<Test>("test") {

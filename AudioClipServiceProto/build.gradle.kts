@@ -26,8 +26,9 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation( "com.google.protobuf:protobuf-kotlin:3.19.1")
-    compileOnly("com.google.protobuf:protoc:3.19.1")
+    api( "com.google.protobuf:protobuf-kotlin:3.19.1")
+    api( "com.google.protobuf:protobuf-java-util:3.19.1")
+//    compileOnly("com.google.protobuf:protoc:3.19.1")
 }
 
 protobuf {
@@ -37,15 +38,15 @@ protobuf {
     }
     generateProtoTasks {
         all().forEach { task ->
-            task.generateDescriptorSet = true
+//            task.generateDescriptorSet = true
             task.builtins {
 //                getAt("java").outputSubDir += "/generated"
                 create("kotlin") {
 //                    outputSubDir += "/generated"
                 }
-                create("python") {
+//                create("python") {
 //                    outputSubDir += "/generated"
-                }
+//                }
             }
         }
     }

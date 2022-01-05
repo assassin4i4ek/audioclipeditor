@@ -39,7 +39,7 @@ fun App() {
 
             ClipEditorViewModelImpl(
                 audioClipService = AudioClipServiceImpl(
-                    preferenceAudioServiceSpecs, ComposeResourceResolverImpl(), coroutineScope//GlobalScope
+                    ComposeResourceResolverImpl(), preferenceAudioServiceSpecs, coroutineScope//GlobalScope
                 ),
                 pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
                 coroutineScope = coroutineScope,

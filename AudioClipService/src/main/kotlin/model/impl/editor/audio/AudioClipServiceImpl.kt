@@ -1,5 +1,6 @@
 package model.impl.editor.audio
 
+import com.google.protobuf.util.JsonFormat
 import kotlinx.coroutines.CoroutineScope
 import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
@@ -21,42 +22,38 @@ import specs.api.immutable.AudioServiceSpecs
 import java.io.File
 
 class AudioClipServiceImpl(
-    private val specs: AudioServiceSpecs,
     resourceResolver: ResourceResolver,
-    coroutineScope: CoroutineScope
+    private val specs: AudioServiceSpecs,
+    coroutineScope: CoroutineScope,
 ): AudioClipService {
     private val processor: SoundProcessor = SoundProcessorImpl()
     private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage(processor, resourceResolver)
     private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, processor, specs)
     private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, processor, specs)
-    private val fragmentResolver: FragmentResolver = FragmentResolverImpl(resourceResolver, processor, coroutineScope)
+    private val fragmentResolver: FragmentResolver = FragmentResolverImpl(resourceResolver, processor, specs, coroutineScope)
     private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
-        .then(fragmentResolver::resolve)
-        .then(this::adjustLeftmostFragment)
-        .then(this::adjustRightmostFragment)
-        .then { clip ->
-            clip.fragments.forEach { fragment ->
-                if (fragment.leftBoundingFragment == null) {
-                    fragment.leftImmutableAreaStartUs = -fragment.minImmutableAreaDurationUs
-                    fragment.mutableAreaStartUs = 0
-                }
-                else {
-                    fragment.leftImmutableAreaStartUs = (
-                            fragment.leftBoundingFragment!!.mutableAreaEndUs + fragment.mutableAreaStartUs
-                            ) / 2
-                }
 
-                if (fragment.rightBoundingFragment == null) {
-                    fragment.rightImmutableAreaEndUs = fragment.maxRightBoundUs + fragment.minImmutableAreaDurationUs
-                    fragment.mutableAreaEndUs = fragment.maxRightBoundUs
+    init {
+        val serializedPreprocessRoutinePath = resourceResolver.getResourceAbsolutePath(
+   "settings/preprocess_routine.json"
+        )
+        val serializedPreprocessRoutineJson = File(serializedPreprocessRoutinePath).readText()
+        val serializedPreprocessRoutineBuilder = AudioClipServiceProto.SerializedPreprocessRoutine.newBuilder()
+        JsonFormat.parser().merge(serializedPreprocessRoutineJson, serializedPreprocessRoutineBuilder)
+        val serializedPreprocessRoutine = serializedPreprocessRoutineBuilder.build()
+        println("Serialized Preprocess Routine\n$serializedPreprocessRoutineJson")
+        serializedPreprocessRoutine.routinesList.forEach { routineType ->
+            preprocessRoutine.then(
+                when (routineType) {
+                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> { {} }
+                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> fragmentResolver::resolve
+                    else -> {
+                        throw IllegalArgumentException("Unknown preprocess routine type: $routineType")
+                    }
                 }
-                else {
-                    fragment.rightImmutableAreaEndUs = (
-                            fragment.rightBoundingFragment!!.mutableAreaStartUs + fragment.mutableAreaEndUs
-                            ) / 2
-                }
-            }
+            )
         }
+    }
 
     override fun getAudioClipId(audioClipFile: File): String {
         return when (audioClipFile.extension.lowercase()) {
@@ -88,18 +85,5 @@ class AudioClipServiceImpl(
 
     override fun createPlayer(audioClip: AudioClip): AudioClipPlayer {
         return AudioClipPlayerImpl(audioClip, specs.dataLineMaxBufferDesolation)
-    }
-
-    private fun adjustLeftmostFragment(clip: AudioClip) {
-        if (specs.useBellTransformerForFirstFragment) {
-            clip.fragments.firstOrNull()?.transformer = clip.createTransformerForType(FragmentTransformer.Type.BELL)
-        }
-    }
-
-    private fun adjustRightmostFragment(clip: AudioClip) {
-        val lastFragmentTransformer = clip.fragments.lastOrNull()?.transformer
-        if (lastFragmentTransformer is FragmentTransformer.SilenceTransformer) {
-            lastFragmentTransformer.silenceDurationUs = specs.lastFragmentSilenceDurationUs
-        }
     }
 }

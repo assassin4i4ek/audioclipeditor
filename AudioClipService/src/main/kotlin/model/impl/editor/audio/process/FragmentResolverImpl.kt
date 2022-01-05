@@ -15,6 +15,7 @@ import org.tensorflow.SavedModelBundle
 import org.tensorflow.ndarray.Shape
 import org.tensorflow.ndarray.buffer.DataBuffers
 import org.tensorflow.types.TString
+import specs.api.immutable.AudioServiceSpecs
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.time.ExperimentalTime
@@ -23,7 +24,8 @@ import kotlin.time.measureTimedValue
 class FragmentResolverImpl(
     resourceResolver: ResourceResolver,
     private val processor: SoundProcessor,
-    coroutineScope: CoroutineScope
+    private val specs: AudioServiceSpecs,
+    coroutineScope: CoroutineScope,
 ): FragmentResolver {
     private val deferredModelWithConfig:
             Deferred<Pair<SavedModelBundle, FragmentResolverProto.FragmentResolverModelConfig>> =
@@ -57,6 +59,7 @@ class FragmentResolverImpl(
     @OptIn(ExperimentalTime::class)
     override suspend fun resolve(clip: AudioClip) {
         withContext(Dispatchers.Default) {
+            println("Resolving fragments for ${clip.filePath}")
             val (resampledFirstChannelPcm, resampleTime) = measureTimedValue {
                 prepareResampledFirstChannelPcm(clip)
             }
@@ -74,8 +77,9 @@ class FragmentResolverImpl(
                 Triple(it.value.value, it.value.duration, it.duration)
             }
             println("Fragments resolved in $selfResolutionTime (model awaiting time ${globalResolutionTime - selfResolutionTime})")
-
             appendFragmentsToClip(response, clip)
+            println(response)
+            adjustFragments(clip)
         }
     }
 
@@ -138,6 +142,41 @@ class FragmentResolverImpl(
                     }
                 }
                 else -> {}
+            }
+        }
+    }
+
+    private fun adjustFragments(clip: AudioClip) {
+        clip.fragments.forEach { fragment ->
+            if (fragment.leftBoundingFragment == null) {
+                // leftmost fragment
+                fragment.leftImmutableAreaStartUs = -fragment.minImmutableAreaDurationUs
+                fragment.mutableAreaStartUs = 0
+
+                if (specs.useBellTransformerForFirstFragment) {
+                    clip.fragments.firstOrNull()?.transformer = clip.createTransformerForType(FragmentTransformer.Type.BELL)
+                }
+            }
+            else {
+                fragment.leftImmutableAreaStartUs = (
+                        fragment.leftBoundingFragment!!.mutableAreaEndUs + fragment.mutableAreaStartUs
+                        ) / 2
+            }
+
+            if (fragment.rightBoundingFragment == null) {
+                // rightmost fragment
+                fragment.rightImmutableAreaEndUs = fragment.maxRightBoundUs + fragment.minImmutableAreaDurationUs
+                fragment.mutableAreaEndUs = fragment.maxRightBoundUs
+
+                if (fragment.transformer is FragmentTransformer.SilenceTransformer) {
+                    (fragment.transformer as FragmentTransformer.SilenceTransformer).silenceDurationUs =
+                        specs.lastFragmentSilenceDurationUs
+                }
+            }
+            else {
+                fragment.rightImmutableAreaEndUs = (
+                        fragment.rightBoundingFragment!!.mutableAreaStartUs + fragment.mutableAreaEndUs
+                        ) / 2
             }
         }
     }

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_outer_classname = "AudioClipServiceProto";
+
+message SerializedPreprocessRoutine {
+  enum Type {
+    NORMALIZE = 0;
+    RESOLVE_FRAGMENTS = 1;
+  }
+
+  repeated Type routines = 1;
+}

@@ -2,7 +2,7 @@ package model.impl.editor.audio.codecs
 
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.codecs.AudioClipMetaCodec
-import model.api.editor.audio.SoundProcessor
+import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.storage.SoundPatternStorage
 import specs.api.immutable.AudioServiceSpecs
 import java.io.File

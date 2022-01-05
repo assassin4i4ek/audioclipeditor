@@ -35,4 +35,8 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
     override var useBellTransformerForFirstFragment: Boolean by savableProperty(
         true, ::useBellTransformerForFirstFragment
     )
+
+    override var lastFragmentSilenceDurationUs: Long by savableProperty(
+        500e3.toLong(), ::lastFragmentSilenceDurationUs
+    )
 }

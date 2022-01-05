@@ -126,14 +126,13 @@ class AudioProcessRequestDecoderLayer(ProtoDecoderLayer):
     def call(self, audio_process_requests_batch):
         _, audio_requests_list = tf.io.decode_proto(
             audio_process_requests_batch, 'FragmentResolverModelRequest',
-            ['sampleRate', 'audioSamplesChannel1'], [tf.int32, tf.string],
+            ['audioSamplesChannel1'], [tf.string],
             descriptor_source=self._binary_descriptor
         )
-        sample_rates = tf.reshape(audio_requests_list[0], [-1])
-        audio_samples_raw = tf.reshape(audio_requests_list[1], [-1])
+        audio_samples_raw = tf.reshape(audio_requests_list[0], [-1])
         audio_samples = tf.map_fn(
             self._decode_samples_from_raw,
-            (audio_samples_raw, sample_rates),
+            audio_samples_raw,
             fn_output_signature=tf.RaggedTensorSpec(
                 shape=[None, 1], dtype=tf.float32, ragged_rank=0
             )
@@ -141,7 +140,6 @@ class AudioProcessRequestDecoderLayer(ProtoDecoderLayer):
         return audio_samples
 
     @tf.function
-    def _decode_samples_from_raw(self, raw_samples_with_sample_rate):
-        raw_samples, sample_rate = raw_samples_with_sample_rate
+    def _decode_samples_from_raw(self, raw_samples):
         audio_samples = tf.io.decode_raw(raw_samples, tf.float32)
         return tf.expand_dims(audio_samples, -1)

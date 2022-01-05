@@ -7,7 +7,7 @@ import model.impl.editor.audio.clip.fragment.transformer.base.BaseTransformerImp
 class DeleteTransformerImpl(
     srcAudioPcm: AudioPcm
 ): BaseTransformerImpl(srcAudioPcm), FragmentTransformer.DeleteTransformer {
-    override fun transform(inputBytes: ByteArray): ByteArray {
+    override fun transform(inputPcmBytes: ByteArray): ByteArray {
         return ByteArray(0)
     }
 }

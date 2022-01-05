@@ -7,7 +7,7 @@ import model.impl.editor.audio.clip.fragment.transformer.base.BaseTransformerImp
 class IdleTransformerImpl(
     srcAudioPcm: AudioPcm
 ): BaseTransformerImpl(srcAudioPcm), FragmentTransformer.IdleTransformer {
-    override fun transform(inputBytes: ByteArray): ByteArray {
-        return inputBytes
+    override fun transform(inputPcmBytes: ByteArray): ByteArray {
+        return inputPcmBytes
     }
 }

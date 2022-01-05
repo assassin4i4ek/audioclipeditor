@@ -4,13 +4,15 @@ import groovy.lang.MetaClass
 group = "com.ruslanborysov"
 version = "1.0"
 
+buildDir = projectDir.resolve("results")
+
 plugins {
     id("ru.vyarus.use-python") apply true
 }
 
 python {
     pip("jupyter:1.0.0")
-    pip("scip   y:1.7.1")
+    pip("scipy:1.7.1")
     pip("matplotlib:3.5.1")
 
     pip("protobuf:3.19.1")
@@ -39,3 +41,4 @@ tasks.register<Exec>("runJupyter") {
     workingDir("src")
     executable("jupyter-notebook.exe")
 }
+

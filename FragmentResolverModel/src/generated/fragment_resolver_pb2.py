@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x66ragment_resolver.proto\"P\n\x1c\x46ragmentResolverModelRequest\x12\x12\n\nsampleRate\x18\x01 \x01(\x05\x12\x1c\n\x14\x61udioSamplesChannel1\x18\x02 \x01(\x0c\"n\n\x13ResolvedTransformer\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.ResolvedTransformer.Type\x12\x19\n\x11silenceDurationUs\x18\x02 \x01(\x03\"\x13\n\x04Type\x12\x0b\n\x07SILENCE\x10\x00\"]\n\x10ResolvedFragment\x12\x0f\n\x07startUs\x18\x01 \x01(\x03\x12\r\n\x05\x65ndUs\x18\x02 \x01(\x03\x12)\n\x0btransformer\x18\x03 \x01(\x0b\x32\x14.ResolvedTransformer\"E\n\x1d\x46ragmentResolverModelResponse\x12$\n\tfragments\x18\x01 \x03(\x0b\x32\x11.ResolvedFragmentb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x66ragment_resolver.proto\"<\n\x1c\x46ragmentResolverModelRequest\x12\x1c\n\x14\x61udioSamplesChannel1\x18\x01 \x01(\x0c\"n\n\x13ResolvedTransformer\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.ResolvedTransformer.Type\x12\x19\n\x11silenceDurationUs\x18\x02 \x01(\x03\"\x13\n\x04Type\x12\x0b\n\x07SILENCE\x10\x00\"]\n\x10ResolvedFragment\x12\x0f\n\x07startUs\x18\x01 \x01(\x03\x12\r\n\x05\x65ndUs\x18\x02 \x01(\x03\x12)\n\x0btransformer\x18\x03 \x01(\x0b\x32\x14.ResolvedTransformer\"E\n\x1d\x46ragmentResolverModelResponse\x12$\n\tfragments\x18\x01 \x03(\x0b\x32\x11.ResolvedFragment\"1\n\x1b\x46ragmentResolverModelConfig\x12\x12\n\nsampleRate\x18\x01 \x01(\x03\x42\x17\x42\x15\x46ragmentResolverProtob\x06proto3')
 
 
 
@@ -22,6 +22,7 @@ _FRAGMENTRESOLVERMODELREQUEST = DESCRIPTOR.message_types_by_name['FragmentResolv
 _RESOLVEDTRANSFORMER = DESCRIPTOR.message_types_by_name['ResolvedTransformer']
 _RESOLVEDFRAGMENT = DESCRIPTOR.message_types_by_name['ResolvedFragment']
 _FRAGMENTRESOLVERMODELRESPONSE = DESCRIPTOR.message_types_by_name['FragmentResolverModelResponse']
+_FRAGMENTRESOLVERMODELCONFIG = DESCRIPTOR.message_types_by_name['FragmentResolverModelConfig']
 _RESOLVEDTRANSFORMER_TYPE = _RESOLVEDTRANSFORMER.enum_types_by_name['Type']
 FragmentResolverModelRequest = _reflection.GeneratedProtocolMessageType('FragmentResolverModelRequest', (_message.Message,), {
   'DESCRIPTOR' : _FRAGMENTRESOLVERMODELREQUEST,
@@ -51,17 +52,27 @@ FragmentResolverModelResponse = _reflection.GeneratedProtocolMessageType('Fragme
   })
 _sym_db.RegisterMessage(FragmentResolverModelResponse)
 
+FragmentResolverModelConfig = _reflection.GeneratedProtocolMessageType('FragmentResolverModelConfig', (_message.Message,), {
+  'DESCRIPTOR' : _FRAGMENTRESOLVERMODELCONFIG,
+  '__module__' : 'fragment_resolver_pb2'
+  # @@protoc_insertion_point(class_scope:FragmentResolverModelConfig)
+  })
+_sym_db.RegisterMessage(FragmentResolverModelConfig)
+
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'B\025FragmentResolverProto'
   _FRAGMENTRESOLVERMODELREQUEST._serialized_start=27
-  _FRAGMENTRESOLVERMODELREQUEST._serialized_end=107
-  _RESOLVEDTRANSFORMER._serialized_start=109
-  _RESOLVEDTRANSFORMER._serialized_end=219
-  _RESOLVEDTRANSFORMER_TYPE._serialized_start=200
-  _RESOLVEDTRANSFORMER_TYPE._serialized_end=219
-  _RESOLVEDFRAGMENT._serialized_start=221
-  _RESOLVEDFRAGMENT._serialized_end=314
-  _FRAGMENTRESOLVERMODELRESPONSE._serialized_start=316
-  _FRAGMENTRESOLVERMODELRESPONSE._serialized_end=385
+  _FRAGMENTRESOLVERMODELREQUEST._serialized_end=87
+  _RESOLVEDTRANSFORMER._serialized_start=89
+  _RESOLVEDTRANSFORMER._serialized_end=199
+  _RESOLVEDTRANSFORMER_TYPE._serialized_start=180
+  _RESOLVEDTRANSFORMER_TYPE._serialized_end=199
+  _RESOLVEDFRAGMENT._serialized_start=201
+  _RESOLVEDFRAGMENT._serialized_end=294
+  _FRAGMENTRESOLVERMODELRESPONSE._serialized_start=296
+  _FRAGMENTRESOLVERMODELRESPONSE._serialized_end=365
+  _FRAGMENTRESOLVERMODELCONFIG._serialized_start=367
+  _FRAGMENTRESOLVERMODELCONFIG._serialized_end=416
 # @@protoc_insertion_point(module_scope)

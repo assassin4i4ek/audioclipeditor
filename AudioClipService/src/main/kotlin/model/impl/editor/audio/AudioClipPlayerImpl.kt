@@ -41,8 +41,10 @@ class AudioClipPlayerImpl(
                         currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
                         delay(bufferRefreshPeriodMs)
                     }
+                    dataLine.drain()
                 }
-                stop()
+                playJob = null
+                dataLine.stop()
             }
         }
 
@@ -66,7 +68,7 @@ class AudioClipPlayerImpl(
         val mutableAreaStartPosition = audioClip.toPcmBytePosition(fragment.mutableAreaStartUs)
         val mutableAreaEndPosition = mutableAreaStartPosition + outMutableAreaPcmBytes.size.toLong()
         val rightImmutableAreaEndPosition = mutableAreaEndPosition + audioClip.toPcmBytePosition(
-            fragment.adjustedRightImmutableAreaEndUs - fragment.mutableAreaEndUs
+            fragment.adjustedRightImmutableAreaDurationUs
         )
 
         coroutineScope {
@@ -107,8 +109,10 @@ class AudioClipPlayerImpl(
                             delay(bufferRefreshPeriodMs)
                         }
                     }
+                    dataLine.drain()
                 }
-                stop()
+                playJob = null
+                dataLine.stop()
             }
         }
 

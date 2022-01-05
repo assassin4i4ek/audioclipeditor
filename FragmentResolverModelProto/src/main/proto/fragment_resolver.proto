@@ -1,10 +1,10 @@
 syntax = "proto3";
 
+option java_outer_classname = "FragmentResolverProto";
 
 message FragmentResolverModelRequest {
-  int32 sampleRate = 1;
   // float encoded in little endian
-  bytes audioSamplesChannel1 = 2;
+  bytes audioSamplesChannel1 = 1;
 }
 
 message ResolvedTransformer {
@@ -24,4 +24,8 @@ message ResolvedFragment {
 
 message FragmentResolverModelResponse {
   repeated ResolvedFragment fragments = 1;
+}
+
+message FragmentResolverModelConfig {
+  int32 sampleRate = 1;
 }

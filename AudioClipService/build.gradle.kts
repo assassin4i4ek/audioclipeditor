@@ -1,7 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-//    java
     kotlin("jvm")
     id("org.bytedeco.gradle-javacpp-platform")
 }
@@ -31,6 +28,20 @@ dependencies {
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.register<Copy>("fetchModels") {
+    group = "build"
+    println(project(":FragmentResolverModel").buildDir)
+    from(project(":FragmentResolverModel").buildDir.resolve("saved_models"))
+    into(
+        sourceSets.main.get().resources.srcDirs.find { it.name == "resources"}!!
+            .resolve("models").absolutePath
+    )
+}
+
+tasks.getByName("processResources") {
+    dependsOn("fetchModels")
 }
 
 //tasks.withType<KotlinCompile> {

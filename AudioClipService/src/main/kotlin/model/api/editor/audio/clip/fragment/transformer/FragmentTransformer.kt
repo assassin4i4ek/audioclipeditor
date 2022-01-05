@@ -7,7 +7,7 @@ interface FragmentTransformer: AudioPcm {
         SILENCE, BELL, K_SOUND, T_SOUND, D_SOUND, DELETE, IDLE
     }
     val type: Type
-    fun transform(inputBytes: ByteArray): ByteArray
+    fun transform(inputPcmBytes: ByteArray): ByteArray
 
 
     interface SilenceTransformer: FragmentTransformer {

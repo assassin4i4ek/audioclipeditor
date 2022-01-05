@@ -3,7 +3,7 @@ package model.impl.editor.audio.codecs
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.editor.audio.codecs.AudioClipCodec
-import model.api.editor.audio.SoundProcessor
+import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.codecs.SoundCodec
 import model.impl.editor.audio.clip.AudioClipImpl
 import specs.api.immutable.AudioServiceSpecs

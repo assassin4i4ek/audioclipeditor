@@ -13,7 +13,7 @@ abstract class CachingTransformerImpl<K>(
     private var cachedTransformedPcmBytes: ByteArray? = null
 
 
-    override fun transform(inputBytes: ByteArray): ByteArray {
+    override fun transform(inputPcmBytes: ByteArray): ByteArray {
         if (cachedTransformedPcmBytes == null || cacheKey != currentKey) {
             cacheKey = currentKey
             cachedTransformedPcmBytes = produceTransformPcmBytes()

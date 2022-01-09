@@ -10,6 +10,6 @@ abstract class SoundPatternTransformerImpl<K>(
     initKey: K,
     soundPatternStorage: SoundPatternStorage
 ): CachingTransformerImpl<K>(srcAudioPcm, initKey) {
-    protected val soundPatternPcmByteArray: ByteArray =
+    protected val soundPatternPcmBytes: ByteArray =
         soundPatternStorage.getPcmBytes(soundPatternPath, isLocalResourcePath, sampleRate, numChannels)
 }

@@ -16,6 +16,6 @@ class BellSoundTransformerImpl(
     override var currentKey: Unit = Unit
 
     override fun produceTransformPcmBytes(): ByteArray {
-        return soundPatternPcmByteArray
+        return soundPatternPcmBytes
     }
 }

@@ -88,7 +88,7 @@ class EditableClipViewModelImpl(
                 xOffsetAbsPx -= linearDelta
             }
             InputDevice.Mouse -> {
-                val sigmoidFunctionMultiplier = specs.transformZoomScrollCoef / (1 + exp(0.5f * adjustedDelta))
+                val sigmoidFunctionMultiplier = 2f / (1 + exp(0.5f * adjustedDelta))
                 zoom *= sigmoidFunctionMultiplier
             }
         }
@@ -99,7 +99,7 @@ class EditableClipViewModelImpl(
 
         when(specs.inputDevice) {
             InputDevice.Touchpad -> {
-                val sigmoidFunctionMultiplier = specs.transformZoomScrollCoef / (1 + exp(0.5f * adjustedDelta))
+                val sigmoidFunctionMultiplier = 2f / (1 + exp(0.5f * adjustedDelta))
                 zoom *= sigmoidFunctionMultiplier
             }
             InputDevice.Mouse -> {

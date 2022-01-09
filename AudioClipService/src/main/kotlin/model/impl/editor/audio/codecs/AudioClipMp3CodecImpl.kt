@@ -11,6 +11,8 @@ import java.io.File
 import java.nio.ByteOrder
 import javax.sound.sampled.AudioFormat
 import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 open class AudioClipMp3CodecImpl(
     private val soundPatternStorage: SoundPatternStorage,
@@ -19,24 +21,13 @@ open class AudioClipMp3CodecImpl(
 ): AudioClipCodec {
     private val mp3Codec: SoundCodec = LameMp3Codec()
 
-    override suspend fun open(audioClipFile: File): AudioClip {
-        var audioClip: AudioClip
-
-        val decodingTime = measureTimeMillis {
+    @OptIn(ExperimentalTime::class)
+    override suspend fun read(audioClipFile: File): AudioClip {
+        val (audioClip, decodingTime) = measureTimedValue {
             val decodedSound = mp3Codec.decode(audioClipFile.absolutePath)
 
             // prepare audio info fields
-            val pcmBytesEndian = ByteOrder.LITTLE_ENDIAN
             val sampleRate = decodedSound.sampleRate
-            val audioFormat = AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                sampleRate.toFloat(),
-                16,
-                decodedSound.numChannels,
-                4,
-                sampleRate.toFloat(),//AudioSystem.NOT_SPECIFIED.toFloat(),
-                pcmBytesEndian == ByteOrder.BIG_ENDIAN
-            )
 
             val pcmByteArray = decodedSound.pcmBytes
             val channelsPcm = processor.generateChannelsPcm(pcmByteArray, decodedSound.numChannels)
@@ -44,13 +35,21 @@ open class AudioClipMp3CodecImpl(
             val durationUs = (pcmByteArray.size.toDouble() / decodedSound.numChannels / 2 /*Short.BYTES_SIZE*/
                     * 1e6 / sampleRate).toLong()
 
-            audioClip = AudioClipImpl(
-                audioClipFile.absolutePath, sampleRate, durationUs,
-                audioFormat, pcmByteArray, channelsPcm, soundPatternStorage, specs
+            AudioClipImpl(
+                audioClipFile.absolutePath, durationUs, decodedSound.audioFormat,
+                pcmByteArray, channelsPcm, soundPatternStorage, specs
             )
         }
         println("${audioClip.filePath} decoded in $decodingTime ms")
 
         return audioClip
+    }
+
+    override suspend fun write(audioClip: AudioClip, audioClipFile: File) {
+        // prepare clip's transformed PCM
+        val pcmBytes = ByteArray(audioClip.toPcmBytePosition(audioClip.durationUs).toInt())
+        audioClip.readPcmBytes(0, pcmBytes.size, pcmBytes)
+
+        mp3Codec.encode(audioClipFile.absolutePath, SoundCodec.Sound(audioClip.audioFormat, pcmBytes))
     }
 }

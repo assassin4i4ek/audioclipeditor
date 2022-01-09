@@ -43,7 +43,7 @@ class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpe
     )
 
     override var transformZoomScrollCoef: Float by savableProperty(
-        2f, ::transformZoomScrollCoef
+        1.5f, ::transformZoomScrollCoef
     )
 
 

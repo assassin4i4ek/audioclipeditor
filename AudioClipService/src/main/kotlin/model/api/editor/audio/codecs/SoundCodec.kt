@@ -1,13 +1,17 @@
 package model.api.editor.audio.codecs
 
 import model.api.editor.audio.clip.AudioPcm
+import javax.sound.sampled.AudioFormat
 
 interface SoundCodec {
     class Sound(
-        override val sampleRate: Int,
-        override val numChannels: Int,
+        val audioFormat: AudioFormat,
         val pcmBytes: ByteArray
-    ): AudioPcm
+    ): AudioPcm {
+        override val sampleRate: Int = audioFormat.sampleRate.toInt()
+        override val numChannels: Int = audioFormat.channels
+    }
 
     suspend fun decode(soundPath: String): Sound
+    suspend fun encode(soundPath: String, sound: Sound)
 }

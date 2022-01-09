@@ -17,8 +17,8 @@ open class SoundPatternWithSilenceTransformerImpl(
 
     override fun produceTransformPcmBytes(): ByteArray {
         val silenceDurationPcmLength = toPcmBytePosition(silenceDurationUs).toInt()
-        val resultPcmByteArray = ByteArray(soundPatternPcmByteArray.size + silenceDurationPcmLength)
-        System.arraycopy(soundPatternPcmByteArray, 0, resultPcmByteArray, 0, soundPatternPcmByteArray.size)
-        return resultPcmByteArray
+        val resultPcmBytes = ByteArray(soundPatternPcmBytes.size + silenceDurationPcmLength)
+        System.arraycopy(soundPatternPcmBytes, 0, resultPcmBytes, 0, soundPatternPcmBytes.size)
+        return resultPcmBytes
     }
 }

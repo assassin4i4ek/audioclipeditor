@@ -2,12 +2,8 @@ package specs.impl
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.mutable.MutableAudioServiceSpecs
-import specs.impl.utils.BasePreferenceSpecs
 import specs.impl.utils.BasePreferenceSpecsImpl
-import specs.impl.utils.PreferenceSavableProperty
-import specs.impl.utils.PreferenceSavablePropertyImpl
 import java.util.prefs.Preferences
-import kotlin.reflect.KProperty
 
 class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServiceSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
@@ -38,5 +34,21 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
 
     override var lastFragmentSilenceDurationUs: Long by savableProperty(
         500e3.toLong(), ::lastFragmentSilenceDurationUs
+    )
+
+    override var normalizationRmsDb: Float by savableProperty(
+        -6f, ::normalizationRmsDb
+    )
+
+    override var normalizationCompressorThresholdDb: Float by savableProperty(
+        -0.5f, ::normalizationCompressorThresholdDb
+    )
+
+    override var normalizationCompressorAttackTimeMs: Float by savableProperty(
+        1f, ::normalizationCompressorAttackTimeMs
+    )
+
+    override var normalizationCompressorReleaseTimeMs: Float by savableProperty(
+        100f, ::normalizationCompressorReleaseTimeMs
     )
 }

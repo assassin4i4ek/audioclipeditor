@@ -18,7 +18,7 @@ class AudioClipJsonCodecImpl(
         }
     }
 
-    override suspend fun open(audioClipFile: File): AudioClip {
-        return super.open(File(getSourceFilePath(audioClipFile)))
+    override suspend fun read(audioClipFile: File): AudioClip {
+        return super.read(File(getSourceFilePath(audioClipFile)))
     }
 }

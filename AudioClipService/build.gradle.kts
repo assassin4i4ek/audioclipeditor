@@ -21,8 +21,10 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("com.cloudburst:java-lame:3.98.4")
-    implementation("com.laszlosystems:libresample4j:1.0")
     implementation("org.tensorflow:tensorflow-core-platform:0.3.3")
+
+    implementation("com.laszlosystems:libresample4j:1.0")
+
     implementation(project(":FragmentResolverModelProto"))
     implementation(project(":AudioClipServiceProto"))
 }
@@ -33,7 +35,6 @@ tasks.getByName<Test>("test") {
 
 tasks.register<Copy>("fetchModels") {
     group = "build"
-    println(project(":FragmentResolverModel").buildDir)
     from(project(":FragmentResolverModel").buildDir.resolve("saved_models"))
     into(
         sourceSets.main.get().resources.srcDirs.find { it.name == "resources"}!!

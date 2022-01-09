@@ -6,8 +6,7 @@ import model.api.editor.audio.storage.SoundPatternStorage
 import model.impl.editor.audio.clip.fragment.transformer.base.SoundPatternTransformerImpl
 import model.impl.utils.getLocalResourcePath
 
-class
-BellSoundTransformerImpl(
+class BellSoundTransformerImpl(
     srcAudioPcm: AudioPcm,
     soundPatternStorage: SoundPatternStorage
 ):

@@ -12,20 +12,46 @@ import javax.sound.sampled.AudioFormat
 
 class AudioClipImpl(
     override val filePath: String,
-    override val sampleRate: Int,
     override val durationUs: Long,
     override val audioFormat: AudioFormat,
-    private val originalPcmByteArray: ByteArray,
-    override val channelsPcm: List<FloatArray>,
+    private var pcmBytes: ByteArray,
+    channelsPcm: List<FloatArray>,
     private val soundPatternStorage: SoundPatternStorage,
     private val specs: AudioServiceSpecs
 ) : AudioClip {
+    override val sampleRate: Int = audioFormat.sampleRate.toInt()
+    override var channelsPcm: List<FloatArray> = channelsPcm
+        private set
+
     private val _fragments: TreeSet<MutableAudioClipFragment> = sortedSetOf()
 
     override val fragments: SortedSet<MutableAudioClipFragment> get() = _fragments
 
-    override fun readPcm(startPosition: Int, size: Int, buffer: ByteArray) {
-        System.arraycopy(originalPcmByteArray, startPosition, buffer, 0, size)
+    init {
+        checkPcmValidity()
+    }
+
+    private fun checkPcmValidity() {
+        // require all channels are of equal size
+        val channelSize = channelsPcm.map { it.size }.reduce { channelSize, firstChannelSize ->
+            require(channelSize == firstChannelSize) {
+                "Received channels of different sizes"
+            }
+            firstChannelSize
+        }
+        require(channelSize * channelsPcm.size * 2 /* Short.SIZE_BYTES */ == pcmBytes.size) {
+            "Channel sizes does NOT match pcm byte array size"
+        }
+    }
+
+    override fun readPcmBytes(startPosition: Int, size: Int, buffer: ByteArray) {
+        System.arraycopy(pcmBytes, startPosition, buffer, 0, size)
+    }
+
+    override fun updatePcm(channelsPcm: List<FloatArray>, pcmBytes: ByteArray) {
+        this.channelsPcm = channelsPcm
+        this.pcmBytes = pcmBytes
+        checkPcmValidity()
     }
 
     override fun createMinDurationFragmentAtStart(

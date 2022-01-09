@@ -78,7 +78,6 @@ class FragmentResolverImpl(
             }
             println("Fragments resolved in $selfResolutionTime (model awaiting time ${globalResolutionTime - selfResolutionTime})")
             appendFragmentsToClip(response, clip)
-            println(response)
             adjustFragments(clip)
         }
     }

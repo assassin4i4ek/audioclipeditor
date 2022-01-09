@@ -37,7 +37,7 @@ class AudioClipPlayerImpl(
                     while (currentPosition < endPosition) {
                         println("write start at pos $currentPosition, available = ${dataLine.available()}")
                         val readSize = (currentPosition + dataLine.available()).coerceAtMost(endPosition) - currentPosition
-                        audioClip.readPcm(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
+                        audioClip.readPcmBytes(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
                         currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
                         delay(bufferRefreshPeriodMs)
                     }
@@ -60,7 +60,7 @@ class AudioClipPlayerImpl(
         val inMutableAreaPcmBytes = ByteArray(
             audioClip.toPcmBytePosition(fragment.mutableAreaEndUs - fragment.mutableAreaStartUs).toInt()
         ).also {
-            audioClip.readPcm(audioClip.toPcmBytePosition(fragment.mutableAreaStartUs).toInt(), it.size, it)
+            audioClip.readPcmBytes(audioClip.toPcmBytePosition(fragment.mutableAreaStartUs).toInt(), it.size, it)
         }
         val outMutableAreaPcmBytes = fragment.transformer.transform(inMutableAreaPcmBytes)
 
@@ -83,7 +83,7 @@ class AudioClipPlayerImpl(
                             currentPosition < mutableAreaStartPosition -> {
                                 val readSize = (currentPosition + dataLine.available())
                                     .coerceAtMost(mutableAreaStartPosition) - currentPosition
-                                audioClip.readPcm(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
+                                audioClip.readPcmBytes(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
                                 currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
                             }
                             currentPosition < mutableAreaEndPosition -> {
@@ -98,7 +98,7 @@ class AudioClipPlayerImpl(
                             currentPosition < rightImmutableAreaEndPosition -> {
                                 val readSize = (currentPosition + dataLine.available())
                                     .coerceAtMost(rightImmutableAreaEndPosition) - currentPosition
-                                audioClip.readPcm(
+                                audioClip.readPcmBytes(
                                     currentPosition.toInt() - outMutableAreaPcmBytes.size
                                             + inMutableAreaPcmBytes.size, readSize.toInt(), pcmBuffer)
                                 currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())

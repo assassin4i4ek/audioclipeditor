@@ -7,7 +7,6 @@ import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.codecs.AudioClipCodec
 import model.api.editor.audio.codecs.AudioClipMetaCodec
 import model.api.editor.audio.process.SoundProcessor
-import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import model.api.editor.audio.process.FragmentResolver
 import model.api.editor.audio.process.PreprocessRoutine
 import model.api.editor.audio.storage.SoundPatternStorage
@@ -26,7 +25,7 @@ class AudioClipServiceImpl(
     private val specs: AudioServiceSpecs,
     coroutineScope: CoroutineScope,
 ): AudioClipService {
-    private val processor: SoundProcessor = SoundProcessorImpl()
+    private val processor: SoundProcessor = SoundProcessorImpl(specs)
     private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage(processor, resourceResolver)
     private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, processor, specs)
     private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, processor, specs)
@@ -45,8 +44,8 @@ class AudioClipServiceImpl(
         serializedPreprocessRoutine.routinesList.forEach { routineType ->
             preprocessRoutine.then(
                 when (routineType) {
-                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> { {} }
-                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> fragmentResolver::resolve
+                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> this::normalizeClip
+                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> this::resolveFragments
                     else -> {
                         throw IllegalArgumentException("Unknown preprocess routine type: $routineType")
                     }
@@ -67,8 +66,8 @@ class AudioClipServiceImpl(
 
     override suspend fun openAudioClip(audioClipFile: File): AudioClip {
         val clip = when (audioClipFile.extension.lowercase()) {
-            "mp3" -> audioClipMp3Codec.open(audioClipFile)
-            "json" -> audioClipJsonCodec.open(audioClipFile)
+            "mp3" -> audioClipMp3Codec.read(audioClipFile)
+            "json" -> audioClipJsonCodec.read(audioClipFile)
             else -> throw IllegalArgumentException(
                 "Trying to open file with unsupported extension (not in [mp3, json])"
             )
@@ -85,5 +84,25 @@ class AudioClipServiceImpl(
 
     override fun createPlayer(audioClip: AudioClip): AudioClipPlayer {
         return AudioClipPlayerImpl(audioClip, specs.dataLineMaxBufferDesolation)
+    }
+
+    override suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File) {
+        when (newAudioClipFile.extension.lowercase()) {
+            "mp3" -> audioClipMp3Codec.write(audioClip, newAudioClipFile)
+            "json" -> audioClipJsonCodec.write(audioClip, newAudioClipFile)
+            else -> throw IllegalArgumentException(
+                "Trying to save file with unsupported extension (not in [mp3, json])"
+            )
+        }
+    }
+
+    private suspend fun resolveFragments(audioClip: AudioClip) {
+        fragmentResolver.resolve(audioClip)
+    }
+
+    private suspend fun normalizeClip(clip: AudioClip) {
+        val normalizedChannelsPcm = processor.normalizeChannelsPcm(clip.channelsPcm, clip.sampleRate)
+        val normalizedPcmBytes = processor.generatePcmBytes(normalizedChannelsPcm)
+        clip.updatePcm(normalizedChannelsPcm, normalizedPcmBytes)
     }
 }

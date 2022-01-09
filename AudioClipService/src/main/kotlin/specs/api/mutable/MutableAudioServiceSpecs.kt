@@ -14,4 +14,9 @@ interface MutableAudioServiceSpecs: AudioServiceSpecs, MutableSpecs {
     override var useBellTransformerForFirstFragment: Boolean
 
     override var lastFragmentSilenceDurationUs: Long
+
+    override var normalizationRmsDb: Float
+    override var normalizationCompressorThresholdDb: Float
+    override var normalizationCompressorAttackTimeMs: Float
+    override var normalizationCompressorReleaseTimeMs: Float
 }

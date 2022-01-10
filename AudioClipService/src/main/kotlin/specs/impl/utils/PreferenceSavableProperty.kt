@@ -21,6 +21,7 @@ interface PreferenceSavableProperty<T, U, V>: ReadWriteProperty<T, U> {
             is Float -> preferences.getFloat(key, defaultValueAsSupported) as V
             is Long -> preferences.getLong(key, defaultValueAsSupported) as V
             is String -> preferences.get(key, defaultValueAsSupported) as V
+            is ByteArray -> preferences.getByteArray(key, defaultValueAsSupported) as V
 
             else -> throw IllegalArgumentException(
                 "Unsupported property type ${defaultValueAsSupported!!::class.java}"
@@ -42,6 +43,7 @@ interface PreferenceSavableProperty<T, U, V>: ReadWriteProperty<T, U> {
             is Float -> preferences.putFloat(key, valueAsSupportedType as Float)
             is Long -> preferences.putLong(key, valueAsSupportedType as Long)
             is String -> preferences.put(key, valueAsSupportedType as String)
+            is ByteArray -> preferences.putByteArray(key, valueAsSupportedType as ByteArray)
 
             else -> throw IllegalArgumentException(
                 "Unsupported property type"

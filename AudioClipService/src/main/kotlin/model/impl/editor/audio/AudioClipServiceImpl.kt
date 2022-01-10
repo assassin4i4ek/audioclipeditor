@@ -33,14 +33,17 @@ class AudioClipServiceImpl(
     private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
 
     init {
+        /*
         val serializedPreprocessRoutinePath = resourceResolver.getResourceAbsolutePath(
-   "settings/preprocess_routine.json"
+            "settings/preprocess_routine.json"
         )
         val serializedPreprocessRoutineJson = File(serializedPreprocessRoutinePath).readText()
         val serializedPreprocessRoutineBuilder = AudioClipServiceProto.SerializedPreprocessRoutine.newBuilder()
         JsonFormat.parser().merge(serializedPreprocessRoutineJson, serializedPreprocessRoutineBuilder)
         val serializedPreprocessRoutine = serializedPreprocessRoutineBuilder.build()
-        println("Serialized Preprocess Routine\n$serializedPreprocessRoutineJson")
+        */
+        val serializedPreprocessRoutine = specs.serializedPreprocessRoutine
+//        println("Serialized Preprocess Routine\n$serializedPreprocessRoutine")
         serializedPreprocessRoutine.routinesList.forEach { routineType ->
             preprocessRoutine.then(
                 when (routineType) {

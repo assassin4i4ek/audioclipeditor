@@ -15,6 +15,8 @@ interface MutableAudioServiceSpecs: AudioServiceSpecs, MutableSpecs {
 
     override var lastFragmentSilenceDurationUs: Long
 
+    override var serializedPreprocessRoutine: AudioClipServiceProto.SerializedPreprocessRoutine
+
     override var normalizationRmsDb: Float
     override var normalizationCompressorThresholdDb: Float
     override var normalizationCompressorAttackTimeMs: Float

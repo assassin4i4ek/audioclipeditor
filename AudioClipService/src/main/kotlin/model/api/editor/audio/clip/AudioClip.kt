@@ -14,7 +14,8 @@ interface AudioClip: AudioPcm {
 
     override val numChannels: Int get() = channelsPcm.size
 
-    val fragments: SortedSet<MutableAudioClipFragment>
+    val fragments: Set<MutableAudioClipFragment>
+    val isMutated: Boolean
 
     fun readPcmBytes(startPosition: Int, size: Int, buffer: ByteArray)
     fun updatePcm(channelsPcm: List<FloatArray>, pcmBytes: ByteArray)

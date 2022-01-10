@@ -35,7 +35,7 @@ class AudioClipPlayerImpl(
                     dataLine.start()
 
                     while (currentPosition < endPosition) {
-                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
+//                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
                         val readSize = (currentPosition + dataLine.available()).coerceAtMost(endPosition) - currentPosition
                         audioClip.readPcmBytes(currentPosition.toInt(), readSize.toInt(), pcmBuffer)
                         currentPosition += dataLine.write(pcmBuffer, 0, readSize.toInt())
@@ -78,7 +78,7 @@ class AudioClipPlayerImpl(
                     dataLine.start()
 
                     while (currentPosition < rightImmutableAreaEndPosition) {
-                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
+//                        println("write start at pos $currentPosition, available = ${dataLine.available()}")
                         when {
                             currentPosition < mutableAreaStartPosition -> {
                                 val readSize = (currentPosition + dataLine.available())

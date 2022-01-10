@@ -1,6 +1,7 @@
 package specs.impl
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
+import serializedPreprocessRoutine
 import specs.api.mutable.MutableAudioServiceSpecs
 import specs.impl.utils.BasePreferenceSpecsImpl
 import java.util.prefs.Preferences
@@ -21,7 +22,8 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
     )
 
     override var defaultFragmentTransformerType: FragmentTransformer.Type by savableProperty(
-        FragmentTransformer.Type.SILENCE, ::defaultFragmentTransformerType, { it.name }, { FragmentTransformer.Type.valueOf(it) }
+        FragmentTransformer.Type.SILENCE, ::defaultFragmentTransformerType,
+        { it.name }, { FragmentTransformer.Type.valueOf(it) }
     )
 
     override var defaultSilenceTransformerSilenceDurationUs: Long by savableProperty(
@@ -34,6 +36,16 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
 
     override var lastFragmentSilenceDurationUs: Long by savableProperty(
         500e3.toLong(), ::lastFragmentSilenceDurationUs
+    )
+
+    override var serializedPreprocessRoutine: AudioClipServiceProto.SerializedPreprocessRoutine by savableProperty(
+        serializedPreprocessRoutine {
+//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS)
+        }, ::serializedPreprocessRoutine,
+        { it.toByteArray() }, { AudioClipServiceProto.SerializedPreprocessRoutine.parseFrom(it) }
     )
 
     override var normalizationRmsDb: Float by savableProperty(

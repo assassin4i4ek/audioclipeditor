@@ -13,7 +13,8 @@ class AudioClipFragmentImpl(
     rightImmutableAreaEndUs: Long,
     audioClipDurationUs: Long,
     private val specs: AudioServiceSpecs,
-    override var transformer: FragmentTransformer
+    transformer: FragmentTransformer,
+    private val onMutate: (AudioClipFragmentImpl) -> Unit
 ): MutableAudioClipFragment {
     override val maxRightBoundUs: Long = audioClipDurationUs
     override val minImmutableAreaDurationUs: Long get() = specs.minImmutableAreaDurationUs
@@ -52,6 +53,9 @@ class AudioClipFragmentImpl(
             }
 
             override fun setValue(thisRef: AudioClipFragmentImpl, property: KProperty<*>, value: T) {
+                if (currentValue != value) {
+                    onMutate(thisRef)
+                }
                 currentValue = value
                 validateBounds()
             }
@@ -65,6 +69,14 @@ class AudioClipFragmentImpl(
 
     override var leftBoundingFragment: MutableAudioClipFragment? by validatingProperty(null)
     override var rightBoundingFragment: MutableAudioClipFragment? by validatingProperty(null)
+
+    override var transformer: FragmentTransformer = transformer
+        set(value) {
+            if (field != value) {
+                onMutate(this)
+            }
+            field = value
+        }
 
     override fun toString(): String {
         return "Fragment(... ${leftBoundingFragment?.mutableAreaEndUs ?: 0} | ${leftBoundingFragment?.rightImmutableAreaEndUs ?: 0}] ... " +

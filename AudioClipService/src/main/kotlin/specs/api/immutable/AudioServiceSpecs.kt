@@ -15,6 +15,8 @@ interface AudioServiceSpecs {
 
     val lastFragmentSilenceDurationUs: Long
 
+    val serializedPreprocessRoutine: AudioClipServiceProto.SerializedPreprocessRoutine
+
     val normalizationRmsDb: Float
     val normalizationCompressorThresholdDb: Float
     val normalizationCompressorAttackTimeMs: Float

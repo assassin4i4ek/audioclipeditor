@@ -1,5 +1,6 @@
 package model.impl.editor.audio.clip
 
+import kotlinx.coroutines.flow.*
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
@@ -25,7 +26,10 @@ class AudioClipImpl(
 
     private val _fragments: TreeSet<MutableAudioClipFragment> = sortedSetOf()
 
-    override val fragments: SortedSet<MutableAudioClipFragment> get() = _fragments
+    override val fragments: Set<MutableAudioClipFragment> get() = _fragments
+
+    override var isMutated: Boolean = false
+        private set
 
     init {
         checkPcmValidity()
@@ -49,6 +53,7 @@ class AudioClipImpl(
     }
 
     override fun updatePcm(channelsPcm: List<FloatArray>, pcmBytes: ByteArray) {
+        isMutated = true
         this.channelsPcm = channelsPcm
         this.pcmBytes = pcmBytes
         checkPcmValidity()
@@ -85,7 +90,9 @@ class AudioClipImpl(
             mutableAreaStartUs, mutableAreaEndUs,
             mutableAreaStartUs + specs.minMutableAreaDurationUs + specs.minImmutableAreaDurationUs,
             durationUs, specs, newFragmentTransformer
-        )
+        ) {
+            isMutated = true
+        }
 
         val prevFragment = _fragments.floor(newFragment)
         val nextFragment = _fragments.ceiling(newFragment)
@@ -103,6 +110,7 @@ class AudioClipImpl(
         nextFragment?.leftBoundingFragment = newFragment
 
         _fragments.add(newFragment)
+        isMutated = true
 
         return newFragment
     }
@@ -136,6 +144,7 @@ class AudioClipImpl(
         fragment.rightBoundingFragment?.leftBoundingFragment = fragment.leftBoundingFragment
 
         _fragments.remove(fragment)
+        isMutated = true
     }
 
     override fun close() {

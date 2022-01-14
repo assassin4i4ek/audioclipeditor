@@ -1,4 +1,4 @@
-package model.impl.editor.audio.codecs
+package model.impl.editor.audio.readers
 
 import com.cloudburst.lame.lowlevel.LameDecoder
 import com.cloudburst.lame.lowlevel.LameEncoder
@@ -6,7 +6,7 @@ import com.cloudburst.lame.mp3.Lame
 import com.cloudburst.lame.mp3.MPEGMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import model.api.editor.audio.codecs.SoundCodec
+import model.api.editor.audio.io.SoundCodec
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.nio.ByteBuffer

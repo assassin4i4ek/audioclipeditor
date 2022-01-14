@@ -25,7 +25,6 @@ class SoundProcessorImpl(
 
                 while (true) {
                     val result = resampler.process(factor, srcSamplesBuffer, false, dstSamplesBuffer)
-                    println("process $result")
                     if (result)
                         break
                 }

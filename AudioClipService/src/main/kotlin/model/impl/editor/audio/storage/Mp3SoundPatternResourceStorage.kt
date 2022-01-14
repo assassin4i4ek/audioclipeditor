@@ -2,9 +2,9 @@ package model.impl.editor.audio.storage
 
 import kotlinx.coroutines.runBlocking
 import model.api.editor.audio.process.SoundProcessor
-import model.api.editor.audio.codecs.SoundCodec
+import model.api.editor.audio.io.SoundCodec
 import model.api.utils.ResourceResolver
-import model.impl.editor.audio.codecs.LameMp3Codec
+import model.impl.editor.audio.readers.LameMp3Codec
 
 class Mp3SoundPatternResourceStorage(
     private val processor: SoundProcessor,

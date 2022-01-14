@@ -57,7 +57,7 @@ class FragmentResolverImpl(
     @OptIn(ExperimentalTime::class)
     override suspend fun resolve(clip: AudioClip) {
         withContext(Dispatchers.Default) {
-            println("Resolving fragments for ${clip.filePath}")
+            println("Resolving fragments for $clip")
             val (resampledFirstChannelPcm, resampleTime) = measureTimedValue {
                 prepareResampledFirstChannelPcm(clip)
             }

@@ -4,9 +4,12 @@ import model.api.editor.audio.clip.AudioClip
 import java.io.File
 
 interface AudioClipService {
-    fun getAudioClipId(audioClipFile: File): String
-    suspend fun openAudioClip(audioClipFile: File): AudioClip
+    fun getAudioClipId(audioClipOrMetadataFile: File): String
+    fun isAudioClipFile(audioClipOrMetadataFile: File): Boolean
+    fun isAudioClipMetadataFile(audioClipOrMetadataFile: File): Boolean
+    suspend fun openAudioClipFromFile(audioClipFile: File, saveSrcFile: File?, saveDstFile: File?, saveMetadataFile: File?): AudioClip
+    suspend fun openAudioClipFromMetadataFile(audioClipOrMetadataFile: File): AudioClip
     fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer)
     fun createPlayer(audioClip: AudioClip): AudioClipPlayer
-    suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File, newAudioClipMetadataFile: File? = null)
+    suspend fun saveAudioClip(audioClip: AudioClip)
 }

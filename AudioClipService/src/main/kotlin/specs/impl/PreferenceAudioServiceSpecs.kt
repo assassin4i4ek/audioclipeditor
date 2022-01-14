@@ -40,10 +40,10 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
 
     override var serializedPreprocessRoutine: AudioClipServiceProto.SerializedPreprocessRoutine by savableProperty(
         serializedPreprocessRoutine {
-//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
-//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
-//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
-//            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS)
+            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE)
+            routines.add(AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS)
         }, ::serializedPreprocessRoutine,
         { it.toByteArray() }, { AudioClipServiceProto.SerializedPreprocessRoutine.parseFrom(it) }
     )

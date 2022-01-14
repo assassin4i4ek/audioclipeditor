@@ -1,32 +1,28 @@
-package model.impl.editor.audio.codecs
+package model.impl.editor.audio.readers
 
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.storage.SoundPatternStorage
-import model.api.editor.audio.codecs.AudioClipCodec
+import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.process.SoundProcessor
-import model.api.editor.audio.codecs.SoundCodec
+import model.api.editor.audio.io.SoundCodec
 import model.impl.editor.audio.clip.AudioClipImpl
 import specs.api.immutable.AudioServiceSpecs
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import javax.sound.sampled.AudioFormat
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
-open class AudioClipMp3CodecImpl(
+open class AudioClipMp3FileIOImpl(
     private val soundPatternStorage: SoundPatternStorage,
     private val processor: SoundProcessor,
     protected val specs: AudioServiceSpecs
-): AudioClipCodec {
+): AudioClipFileIO {
     private val mp3Codec: SoundCodec = LameMp3Codec()
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun read(audioClipFile: File): AudioClip {
+    override suspend fun readClip(
+        audioClipFile: File, saveSrcFile: File?, saveDstFile: File?, saveMetadataFile: File?
+    ): AudioClip {
         val (audioClip, decodingTime) = measureTimedValue {
             val decodedSound = mp3Codec.decode(audioClipFile.absolutePath)
 
@@ -40,16 +36,28 @@ open class AudioClipMp3CodecImpl(
                     * 1e6 / sampleRate).toLong()
 
             AudioClipImpl(
-                audioClipFile.absolutePath, durationUs, decodedSound.audioFormat,
+                audioClipFile.absolutePath, saveSrcFile?.absolutePath, saveDstFile?.absolutePath,
+                saveMetadataFile?.absolutePath, durationUs, decodedSound.audioFormat,
                 pcmByteArray, channelsPcm, soundPatternStorage, specs
             )
         }
-        println("${audioClip.filePath} decoded in $decodingTime ms")
+        println("${audioClipFile.absolutePath} decoded in $decodingTime ms")
 
         return audioClip
     }
 
-    override suspend fun write(audioClip: AudioClip, audioClipFile: File) {
+    override suspend fun writeSource(audioClip: AudioClip, audioClipFile: File) {
+        val clipEndPosition = audioClip.toPcmBytePosition(audioClip.durationUs)
+        val pcmBytes = ByteArray(clipEndPosition.toInt())
+        audioClip.readPcmBytes(0, clipEndPosition, pcmBytes)
+
+        mp3Codec.encode(
+            audioClipFile.absolutePath,
+            SoundCodec.Sound(audioClip.audioFormat, pcmBytes)
+        )
+    }
+
+    override suspend fun writeTransformed(audioClip: AudioClip, audioClipFile: File) {
         // prepare clip's transformed PCM
         val pcmBytesOutputStream = ByteArrayOutputStream()
         val firstFragmentMutableAreaStartPosition = audioClip.toPcmBytePosition(

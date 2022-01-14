@@ -1,4 +1,4 @@
-package model.api.editor.audio.codecs
+package model.api.editor.audio.io
 
 import model.api.editor.audio.clip.AudioPcm
 import javax.sound.sampled.AudioFormat

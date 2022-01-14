@@ -10,8 +10,8 @@ fun main() {
     val outFilepath = "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\АртГалереяВасиленко4.09_new.mp3"
     val service = AudioClipServiceImpl(ResourceResolverImpl(), PreferenceAudioServiceSpecs(), GlobalScope)
     runBlocking {
-        val audioClip = service.openAudioClip(File(inFilepath))
-        service.saveAudioClip(audioClip, File(outFilepath))
+        val audioClip = service.openAudioClipFromFile(File(inFilepath), null, File(outFilepath), null)
+        service.saveAudioClip(audioClip)
     }
     /*
     val filepath = "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_raw\\АлаДельта18.06.mp3"

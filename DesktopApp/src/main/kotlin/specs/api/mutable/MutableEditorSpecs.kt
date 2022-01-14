@@ -28,6 +28,7 @@ interface MutableEditorSpecs: EditorSpecs, MutableSpecs {
 
     override var silenceTransformerSilenceDurationUsIncrementStep: Long
 
-    override var defaultClipSavingDirPath: File
-    override var defaultClipMetadataSavingDirPath: File
+    override var defaultSrcClipSavingDir: File
+    override var defaultDstClipSavingDir: File
+    override var defaultClipMetadataSavingDir: File
 }

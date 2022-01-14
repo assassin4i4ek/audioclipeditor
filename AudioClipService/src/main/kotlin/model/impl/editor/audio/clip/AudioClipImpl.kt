@@ -12,7 +12,10 @@ import java.util.*
 import javax.sound.sampled.AudioFormat
 
 class AudioClipImpl(
-    override val filePath: String,
+    override val srcFilePath: String,
+    override val saveSrcFilePath: String?,
+    override val saveDstFilePath: String?,
+    override val saveMetadataFilePath: String?,
     override val durationUs: Long,
     override val audioFormat: AudioFormat,
     private var pcmBytes: ByteArray,
@@ -171,5 +174,9 @@ class AudioClipImpl(
 
     override fun close() {
         println("Clip closed")
+    }
+
+    override fun toString(): String {
+        return srcFilePath
     }
 }

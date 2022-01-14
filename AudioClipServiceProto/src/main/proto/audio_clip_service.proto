@@ -10,3 +10,32 @@ message SerializedPreprocessRoutine {
 
   repeated Type routines = 1;
 }
+
+message SerializedAudioClip {
+  message SerializedFragment {
+    message SerializedTransformer {
+      enum SerializedType {
+          SILENCE = 0;
+          BELL = 1;
+          K_SOUND = 2;
+          T_SOUND = 3;
+          D_SOUND = 4;
+          DELETE = 5;
+          IDLE = 6;
+      }
+
+      SerializedType type = 1;
+      optional int64 silenceDurationUs = 2;
+    }
+
+    int64 leftImmutableAreaStartUs = 1;
+    int64 mutableAreaStartUs = 2;
+    int64 mutableAreaEndUs = 3;
+    int64 rightImmutableAreaEndUs = 4;
+    SerializedTransformer transformer = 5;
+  }
+
+  optional string srcFilePath = 1;
+  optional string dstFilePath = 2;
+  repeated SerializedFragment fragments = 3;
+}

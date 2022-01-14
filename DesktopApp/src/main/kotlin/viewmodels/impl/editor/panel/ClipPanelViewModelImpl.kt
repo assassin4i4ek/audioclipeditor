@@ -284,7 +284,19 @@ class ClipPanelViewModelImpl(
     /* Methods */
     init {
         coroutineScope.launch {
-            audioClip = audioClipService.openAudioClip(clipFile)
+            val saveSrcFile = specs.defaultSrcClipSavingDir.resolve(clipFile.name)
+            val saveDstFile = specs.defaultDstClipSavingDir.resolve(clipFile.name)
+            val saveMetadataFile = specs.defaultClipMetadataSavingDir.resolve(clipFile.nameWithoutExtension + ".json")
+            audioClip = if (audioClipService.isAudioClipFile(clipFile)) {
+                audioClipService.openAudioClipFromFile(clipFile, saveSrcFile, saveDstFile, saveMetadataFile)
+            }
+            else if (audioClipService.isAudioClipMetadataFile(clipFile)) {
+                audioClipService.openAudioClipFromMetadataFile(clipFile)
+            }
+            else {
+                throw IllegalArgumentException("Trying to open clip of unsupported format")
+            }
+
             player = audioClipService.createPlayer(audioClip)
             editableClipViewModel.submitClip(audioClip)
             globalClipViewModel.submitClip(audioClip)
@@ -292,9 +304,12 @@ class ClipPanelViewModelImpl(
                 editableFragmentSetViewModel.submitFragment(it)
                 globalFragmentSetViewModel.submitFragment(it)
             }
-            _isMutated = audioClip.isMutated
             audioClip.onMutate {
                 _isMutated = audioClip.isMutated
+                parentViewModel.notifyMutated(clipId)
+            }
+            _isMutated = audioClip.isMutated
+            if (isMutated) {
                 parentViewModel.notifyMutated(clipId)
             }
 
@@ -476,9 +491,9 @@ class ClipPanelViewModelImpl(
 
     override suspend fun save() {
         _isLoading = true
-        val audioClipFilename = File(audioClip.filePath).name
-        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
-        audioClipService.saveAudioClip(audioClip, newAudioClipFile)
+//        val audioClipFilename = File(audioClip.filePath).name
+//        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
+        audioClipService.saveAudioClip(audioClip)
         _isLoading = false
     }
 

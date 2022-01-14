@@ -48,6 +48,7 @@ fun OpenedClipsTab(
                                 onExit = clipTabViewModel::onHoverCloseButtonExit
                             )
                         ) {
+                            println("clipTabViewModel.isMutated ${clipTabViewModel.isMutated}")
                             if (clipTabViewModel.isMutated && !clipTabViewModel.isMouseHoverCloseButton) {
                                 Box(modifier = Modifier
                                     .padding(3.dp)

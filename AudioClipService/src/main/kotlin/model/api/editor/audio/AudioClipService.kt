@@ -8,5 +8,5 @@ interface AudioClipService {
     suspend fun openAudioClip(audioClipFile: File): AudioClip
     fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer)
     fun createPlayer(audioClip: AudioClip): AudioClipPlayer
-    suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File)
+    suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File, newAudioClipMetadataFile: File? = null)
 }

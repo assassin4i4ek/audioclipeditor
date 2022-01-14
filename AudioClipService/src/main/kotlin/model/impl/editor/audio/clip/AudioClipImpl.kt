@@ -1,6 +1,5 @@
 package model.impl.editor.audio.clip
 
-import kotlinx.coroutines.flow.*
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
@@ -8,6 +7,7 @@ import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import model.impl.editor.audio.clip.fragment.transformer.*
 import model.impl.editor.audio.clip.fragment.AudioClipFragmentImpl
 import specs.api.immutable.AudioServiceSpecs
+import java.io.OutputStream
 import java.util.*
 import javax.sound.sampled.AudioFormat
 
@@ -28,8 +28,16 @@ class AudioClipImpl(
 
     override val fragments: Set<MutableAudioClipFragment> get() = _fragments
 
+    private val mutationCallbacks: MutableList<() -> Unit> = mutableListOf()
+
     override var isMutated: Boolean = false
-        private set
+        private set(newValue) {
+            val notifyChange = newValue != field
+            field = newValue
+            if (notifyChange) {
+                mutationCallbacks.forEach { it() }
+            }
+        }
 
     init {
         checkPcmValidity()
@@ -48,8 +56,14 @@ class AudioClipImpl(
         }
     }
 
-    override fun readPcmBytes(startPosition: Int, size: Int, buffer: ByteArray) {
-        System.arraycopy(pcmBytes, startPosition, buffer, 0, size)
+    override fun readPcmBytes(startPosition: Long, size: Long, buffer: ByteArray) {
+        System.arraycopy(pcmBytes, startPosition.toInt(), buffer, 0, size.toInt())
+    }
+
+    override fun readPcmBytes(startPosition: Long, size: Long, outputStream: OutputStream) {
+        for (pcmBytePosition in startPosition until startPosition + size) {
+            outputStream.write(pcmBytes[pcmBytePosition.toInt()].toInt())
+        }
     }
 
     override fun updatePcm(channelsPcm: List<FloatArray>, pcmBytes: ByteArray) {
@@ -147,7 +161,15 @@ class AudioClipImpl(
         isMutated = true
     }
 
-    override fun close() {
+    override fun onMutate(callback: () -> Unit) {
+        mutationCallbacks.add(callback)
+    }
 
+    override fun notifySaved() {
+        isMutated = false
+    }
+
+    override fun close() {
+        println("Clip closed")
     }
 }

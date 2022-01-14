@@ -37,9 +37,12 @@ interface ClipPanelViewModel: BaseViewModel {
     val inputDevice: InputDevice
 
     val isLoading: Boolean
+    val isMutated: Boolean
     val canPlayClip: Boolean
     val canPauseClip: Boolean
     val canStopClip: Boolean
+    val canZoom: Boolean
+    val canSaveClip: Boolean
 
     /* Callbacks */
     fun onOpenClips()
@@ -61,9 +64,13 @@ interface ClipPanelViewModel: BaseViewModel {
     fun onPlayClicked()
     fun onPauseClicked()
     fun onStopClicked()
+
+    fun onSaveClick()
+
     @ExperimentalComposeUiApi
     fun onKeyEvent(event: KeyEvent): Boolean
 
     /* Methods */
+    suspend fun save()
     fun close()
 }

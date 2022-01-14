@@ -2,36 +2,27 @@ package views.editor
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalDrawer
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.AwtWindow
 import viewmodels.api.editor.ClipEditorViewModel
 import views.editor.panel.ClipPanel
-import views.utils.WithoutTouchSlop
 import java.awt.FileDialog
-import java.awt.Frame
 import java.io.FilenameFilter
 
+@ExperimentalMaterialApi
 @Composable
 @ExperimentalComposeUiApi
 fun ClipEditor(
@@ -82,21 +73,15 @@ fun ClipEditor(
         )
     }
 
-//        if (clipEditorViewModel.showCloseConfirmDialog) {
-//            ModalDrawer(
-//                drawerContent = {
-//                    Text("Hello")
-//                }
-//            ) {
-//
-//            }
-//        }
+    if (clipEditorViewModel.showCloseConfirmDialog) {
+        CloseConfirmDialog(clipEditorViewModel)
+    }
 
     if (clipEditorViewModel.selectedPanel != null) {
         Column {
-            OpenedClipsTab(clipEditorViewModel.openedClipsTabViewModel)
-            ClipPanel(clipEditorViewModel.selectedPanel!!)
-        }
+                OpenedClipsTab(clipEditorViewModel.openedClipsTabViewModel)
+                ClipPanel(clipEditorViewModel.selectedPanel!!)
+            }
     } else {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(60.dp), contentAlignment = Alignment.Center) {
             Box(modifier = Modifier

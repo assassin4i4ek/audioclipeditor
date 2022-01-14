@@ -1,4 +1,4 @@
-import kotlinx.coroutines.GlobalScope
+ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
 import model.impl.editor.audio.AudioClipServiceImpl
 import model.impl.utils.ResourceResolverImpl

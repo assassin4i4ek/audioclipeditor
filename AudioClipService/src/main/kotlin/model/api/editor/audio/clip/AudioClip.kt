@@ -2,6 +2,7 @@ package model.api.editor.audio.clip
 
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
+import java.io.OutputStream
 import java.util.*
 import javax.sound.sampled.AudioFormat
 
@@ -17,11 +18,14 @@ interface AudioClip: AudioPcm {
     val fragments: Set<MutableAudioClipFragment>
     val isMutated: Boolean
 
-    fun readPcmBytes(startPosition: Int, size: Int, buffer: ByteArray)
+    fun readPcmBytes(startPosition: Long, size: Long, buffer: ByteArray)
+    fun readPcmBytes(startPosition: Long, size: Long, byteOutputStream: OutputStream)
     fun updatePcm(channelsPcm: List<FloatArray>, pcmBytes: ByteArray)
     fun createMinDurationFragmentAtStart(mutableAreaStartUs: Long): MutableAudioClipFragment
     fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment
     fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer
     fun removeFragment(fragment: MutableAudioClipFragment)
+    fun onMutate(callback: () -> Unit)
+    fun notifySaved()
     fun close()
 }

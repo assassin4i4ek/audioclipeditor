@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import specs.api.immutable.InputDevice
 import specs.api.mutable.MutableEditorSpecs
 import specs.impl.utils.BaseStatefulPreferenceSpecsImpl
+import java.io.File
 import java.util.prefs.Preferences
 
 class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpecs {
@@ -66,5 +67,15 @@ class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpe
 
     override var silenceTransformerSilenceDurationUsIncrementStep: Long by savableProperty(
         50e3.toLong(), ::silenceTransformerSilenceDurationUsIncrementStep
+    )
+
+    override var defaultClipSavingDirPath: File by savableProperty(
+        File(System.getProperty("user.dir")).resolve("Processed Clips"),
+        ::defaultClipSavingDirPath, { it.absolutePath }, { File(it) }
+    )
+
+    override var defaultClipMetadataSavingDirPath: File by savableProperty(
+        File(System.getProperty("user.dir")).resolve("Processed Clips Metadata"),
+        ::defaultClipMetadataSavingDirPath, { it.absolutePath }, { File(it) }
     )
 }

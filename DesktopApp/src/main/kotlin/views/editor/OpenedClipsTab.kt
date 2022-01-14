@@ -1,24 +1,24 @@
 package views.editor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Icon
-import androidx.compose.material.ScrollableTabRow
-import androidx.compose.material.Tab
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import viewmodels.api.editor.OpenedClipsTabViewModel
+import viewmodels.api.editor.tab.OpenedClipsTabViewModel
 
+@ExperimentalComposeUiApi
 @Composable
 fun OpenedClipsTab(
     openedClipsTabViewModel: OpenedClipsTabViewModel
@@ -27,7 +27,7 @@ fun OpenedClipsTab(
         openedClipsTabViewModel.selectedClipIndex,
         modifier = Modifier.zIndex(1f)
     ) {
-        openedClipsTabViewModel.openedClips.forEach { (clipId, clipName) ->
+        openedClipsTabViewModel.openedClips.forEach { (clipId, clipTabViewModel) ->
             Tab(
                 selected = clipId == openedClipsTabViewModel.selectedClipId,
                 onClick = {
@@ -35,20 +35,36 @@ fun OpenedClipsTab(
                 },
                 text = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(clipName)
-                        Icon(
-                            painter = useResource("icons/close_black_24dp.svg") {
-                                loadSvgPainter(it, LocalDensity.current)
-                            },
-                            contentDescription = "close",
-                            modifier = Modifier
-                                .padding(start = 6.dp)
-                                .clip(CircleShape)
-                                .clickable {
-                                    openedClipsTabViewModel.onRemoveClip(clipId)
-                                }
-                                .padding(2.dp)
-                        )
+                        Text(clipTabViewModel.name)
+                        Box(modifier = Modifier
+                            .padding(start = 6.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                openedClipsTabViewModel.onRemoveClip(clipId)
+                            }
+                            .padding(2.dp)
+                            .pointerMoveFilter(
+                                onEnter = clipTabViewModel::onHoverCloseButtonEnter,
+                                onExit = clipTabViewModel::onHoverCloseButtonExit
+                            )
+                        ) {
+                            if (clipTabViewModel.isMutated && !clipTabViewModel.isMouseHoverCloseButton) {
+                                Box(modifier = Modifier
+                                    .padding(3.dp)
+                                    .size(12.dp)
+                                    .background(MaterialTheme.colors.surface.copy(alpha = 0.4f), CircleShape)
+                                )
+                            }
+                            else {
+                                Icon(
+                                    painter = useResource("icons/close_black_24dp.svg") {
+                                        loadSvgPainter(it, LocalDensity.current)
+                                    },
+                                    contentDescription = "close",
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                        }
                     }
                 }
             )

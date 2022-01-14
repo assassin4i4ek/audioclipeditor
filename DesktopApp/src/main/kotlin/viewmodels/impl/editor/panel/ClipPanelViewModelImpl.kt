@@ -11,11 +11,8 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.AudioClipPlayer
 import model.api.editor.audio.AudioClipService
@@ -44,6 +41,7 @@ import java.io.File
 
 class ClipPanelViewModelImpl(
     clipFile: File,
+    private val clipId: String,
     private val parentViewModel: Parent,
     private val audioClipService: AudioClipService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
@@ -55,6 +53,7 @@ class ClipPanelViewModelImpl(
     interface Parent {
         val canOpenClips: Boolean
         fun openClips()
+        fun notifyMutated(clipId: String)
     }
 
     /* Child ViewModels */
@@ -96,6 +95,12 @@ class ClipPanelViewModelImpl(
     override val canPlayClip: Boolean get() = !_isLoading && !isClipPlaying
     override val canPauseClip: Boolean get() = !_isLoading && isClipPlaying
     override val canStopClip: Boolean get() = !_isLoading && isClipPlaying
+
+    private var _isMutated: Boolean by mutableStateOf(false)
+    override val isMutated: Boolean get() = _isMutated
+
+    override val canZoom: Boolean get() = !_isLoading
+    override val canSaveClip: Boolean get() = !_isLoading
 
     /* Callbacks */
     override fun onOpenClips() {
@@ -216,6 +221,12 @@ class ClipPanelViewModelImpl(
         stopPlayClip(true)
     }
 
+    override fun onSaveClick() {
+        coroutineScope.launch {
+            save()
+        }
+    }
+
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val isEventHandled = if (event.type == KeyEventType.KeyDown) {
@@ -281,6 +292,11 @@ class ClipPanelViewModelImpl(
                 editableFragmentSetViewModel.submitFragment(it)
                 globalFragmentSetViewModel.submitFragment(it)
             }
+            _isMutated = audioClip.isMutated
+            audioClip.onMutate {
+                _isMutated = audioClip.isMutated
+                parentViewModel.notifyMutated(clipId)
+            }
 
             _isLoading = false
         }
@@ -298,10 +314,6 @@ class ClipPanelViewModelImpl(
                 globalWindowClipViewModel.updateXOffsetAbsPx(editableXOffsetAbsPx)
             }
         }
-    }
-
-    override fun close() {
-        audioClipService.closeAudioClip(audioClip, player)
     }
 
     private fun startPlayClip() {
@@ -460,5 +472,17 @@ class ClipPanelViewModelImpl(
         (fragment as MutableAudioClipFragment).transformer = audioClip.createTransformerForType(type)
         editableFragmentSetViewModel.fragmentViewModels[fragment]!!.updateToMatchFragment()
         globalFragmentSetViewModel.fragmentViewModels[fragment]!!.updateToMatchFragment()
+    }
+
+    override suspend fun save() {
+        _isLoading = true
+        val audioClipFilename = File(audioClip.filePath).name
+        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
+        audioClipService.saveAudioClip(audioClip, newAudioClipFile)
+        _isLoading = false
+    }
+
+    override fun close() {
+        audioClipService.closeAudioClip(audioClip, player)
     }
 }

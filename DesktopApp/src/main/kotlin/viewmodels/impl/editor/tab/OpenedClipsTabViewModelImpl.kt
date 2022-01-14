@@ -1,17 +1,18 @@
-package viewmodels.impl.editor
+package viewmodels.impl.editor.tab
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import viewmodels.api.editor.OpenedClipsTabViewModel
+import viewmodels.api.editor.tab.ClipTabViewModel
+import viewmodels.api.editor.tab.OpenedClipsTabViewModel
 
 class OpenedClipsTabViewModelImpl(
     private val parentViewModel: Parent,
 ): OpenedClipsTabViewModel {
     /* Parent ViewModels */
     interface Parent {
-        fun removeClip(clipId: String)
+        fun tryRemoveClip(clipId: String)
     }
 
     /* Child ViewModels */
@@ -19,8 +20,8 @@ class OpenedClipsTabViewModelImpl(
     /* Simple properties */
 
     /* Stateful properties */
-    private var _openedClips: MutableMap<String, String> by mutableStateOf(LinkedHashMap())
-    override val openedClips: Map<String, String> get() = _openedClips
+    private var _openedClips: MutableMap<String, ClipTabViewModel> by mutableStateOf(LinkedHashMap())
+    override val openedClips: Map<String, ClipTabViewModel> get() = _openedClips
 
     private var _selectedClipId: String? by mutableStateOf(null)
     override val selectedClipId: String? get() = _selectedClipId
@@ -39,11 +40,11 @@ class OpenedClipsTabViewModelImpl(
     }
 
     override fun onRemoveClip(clipId: String) {
-        parentViewModel.removeClip(clipId)
+        parentViewModel.tryRemoveClip(clipId)
     }
 
     /* Methods */
-    override fun submitClips(clipNames: Map<String, String>) {
+    override fun submitClips(clipNames: Map<String, ClipTabViewModel>) {
         val newOpenedClips = LinkedHashMap(openedClips)
 
         clipNames.forEach{ (clipId, clipName) ->
@@ -58,6 +59,10 @@ class OpenedClipsTabViewModelImpl(
         if (selectedClipId == null && openedClips.isNotEmpty()) {
             _selectedClipId = openedClips.keys.first()
         }
+    }
+
+    override fun notifyMutated(clipId: String, isMutated: Boolean) {
+        openedClips[clipId]!!.updateMutated(isMutated)
     }
 
     override fun removeClip(clipId: String) {

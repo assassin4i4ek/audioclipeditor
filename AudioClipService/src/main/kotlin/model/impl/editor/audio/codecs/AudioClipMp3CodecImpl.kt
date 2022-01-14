@@ -7,7 +7,11 @@ import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.codecs.SoundCodec
 import model.impl.editor.audio.clip.AudioClipImpl
 import specs.api.immutable.AudioServiceSpecs
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.sound.sampled.AudioFormat
 import kotlin.system.measureTimeMillis
@@ -47,9 +51,37 @@ open class AudioClipMp3CodecImpl(
 
     override suspend fun write(audioClip: AudioClip, audioClipFile: File) {
         // prepare clip's transformed PCM
-        val pcmBytes = ByteArray(audioClip.toPcmBytePosition(audioClip.durationUs).toInt())
-        audioClip.readPcmBytes(0, pcmBytes.size, pcmBytes)
+        val pcmBytesOutputStream = ByteArrayOutputStream()
+        val firstFragmentMutableAreaStartPosition = audioClip.toPcmBytePosition(
+            audioClip.fragments.firstOrNull()?.mutableAreaStartUs ?: audioClip.durationUs
+        )
 
-        mp3Codec.encode(audioClipFile.absolutePath, SoundCodec.Sound(audioClip.audioFormat, pcmBytes))
+        audioClip.readPcmBytes(0, firstFragmentMutableAreaStartPosition, pcmBytesOutputStream)
+
+        for (fragment in audioClip.fragments) {
+            val inMutableAreaStartPosition = audioClip.toPcmBytePosition(fragment.mutableAreaStartUs)
+            val inMutableAreaEndPosition = audioClip.toPcmBytePosition(fragment.mutableAreaEndUs)
+            val inMutableAreaPcmBytes = ByteArray((inMutableAreaEndPosition - inMutableAreaStartPosition).toInt())
+                .also {
+                    audioClip.readPcmBytes(inMutableAreaStartPosition, it.size.toLong(), it)
+                }
+
+            val outMutableAreaPcmBytes = fragment.transformer.transform(inMutableAreaPcmBytes)
+            pcmBytesOutputStream.writeBytes(outMutableAreaPcmBytes)
+
+            val nextFragmentMutableAreaStartPosition = audioClip.toPcmBytePosition(
+                fragment.rightBoundingFragment?.mutableAreaStartUs ?: audioClip.durationUs
+            )
+            audioClip.readPcmBytes(
+                inMutableAreaEndPosition,
+                nextFragmentMutableAreaStartPosition - inMutableAreaEndPosition,
+                pcmBytesOutputStream
+            )
+        }
+
+        mp3Codec.encode(
+            audioClipFile.absolutePath,
+            SoundCodec.Sound(audioClip.audioFormat, pcmBytesOutputStream.toByteArray())
+        )
     }
 }

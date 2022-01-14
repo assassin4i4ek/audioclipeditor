@@ -24,7 +24,7 @@ class LameMp3Codec: SoundCodec {
             while (decoder.decode(buffer)) {
                 kotlin.runCatching {
                     pcmByteStream.write(buffer.array())
-                }
+                }.getOrThrow()
             }
 
             val sampleRate = decoder.sampleRate
@@ -46,25 +46,34 @@ class LameMp3Codec: SoundCodec {
 
     override suspend fun encode(soundPath: String, sound: SoundCodec.Sound) {
         return withContext(Dispatchers.IO) {
+            val pcmBytes = sound.pcmBytes
+            val numOfSamples = pcmBytes.size
+
+            val encoder = LameEncoder(sound.audioFormat, 256, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, false)
+            val inBufferSize = encoder.pcmBufferSize
+            val outBufferSize = encoder.mP3BufferSize
+            val outBuffer = ByteArray(outBufferSize)
+            val mp3FileOutputStream = kotlin.runCatching {
+                FileOutputStream(soundPath)
+            }.getOrThrow()
+
+            var inputPosition = 0
+
             kotlin.runCatching {
-                val pcmBytes = sound.pcmBytes
-                val numOfSamples = pcmBytes.size
-
-                val encoder = LameEncoder(sound.audioFormat, 256, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, false)
-                val inBufferSize = encoder.pcmBufferSize
-                val outBufferSize = encoder.mP3BufferSize
-                val outBuffer = ByteArray(outBufferSize)
-                val outFile = FileOutputStream(soundPath)
-
-                var inputPosition = 0
-
                 while (inputPosition < numOfSamples) {
                     val inSampleCount = (inputPosition + inBufferSize).coerceAtMost(numOfSamples) - inputPosition
                     val outSampleCount = encoder.encodeBuffer(pcmBytes, inputPosition, inSampleCount, outBuffer)
 
-                    outFile.write(outBuffer, 0, outSampleCount)
+                    mp3FileOutputStream.write(outBuffer, 0, outSampleCount)
                     inputPosition += inSampleCount
                 }
+
+                mp3FileOutputStream.close()
+            }.getOrElse {
+                kotlin.runCatching {
+                    mp3FileOutputStream.close()
+                }.getOrThrow()
+                throw it
             }
         }
     }

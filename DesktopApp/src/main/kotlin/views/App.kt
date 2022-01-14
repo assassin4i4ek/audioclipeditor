@@ -2,6 +2,7 @@ package views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import model.impl.editor.audio.AudioClipServiceImpl
 import androidx.compose.material.MaterialTheme
@@ -24,6 +25,7 @@ import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
 import views.editor.ClipEditor
 import views.utils.WithoutTouchSlop
 
+@ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 fun App() {
     singleWindowApplication(

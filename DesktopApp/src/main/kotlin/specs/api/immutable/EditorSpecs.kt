@@ -1,6 +1,7 @@
 package specs.api.immutable
 
 import androidx.compose.ui.unit.Dp
+import java.io.File
 
 interface EditorSpecs {
     val inputDevice: InputDevice
@@ -24,4 +25,7 @@ interface EditorSpecs {
     val preferredImmutableAreaWidthWinDp: Dp
 
     val silenceTransformerSilenceDurationUsIncrementStep: Long
+
+    val defaultClipSavingDirPath: File
+    val defaultClipMetadataSavingDirPath: File
 }

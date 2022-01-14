@@ -3,6 +3,7 @@ package specs.api.mutable
 import androidx.compose.ui.unit.Dp
 import specs.api.immutable.EditorSpecs
 import specs.api.immutable.InputDevice
+import java.io.File
 
 interface MutableEditorSpecs: EditorSpecs, MutableSpecs {
     override var inputDevice: InputDevice
@@ -26,4 +27,7 @@ interface MutableEditorSpecs: EditorSpecs, MutableSpecs {
     override var preferredImmutableAreaWidthWinDp: Dp
 
     override var silenceTransformerSilenceDurationUsIncrementStep: Long
+
+    override var defaultClipSavingDirPath: File
+    override var defaultClipMetadataSavingDirPath: File
 }

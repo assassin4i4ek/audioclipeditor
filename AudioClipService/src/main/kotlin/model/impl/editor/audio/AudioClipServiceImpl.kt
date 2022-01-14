@@ -1,6 +1,5 @@
 package model.impl.editor.audio
 
-import com.google.protobuf.util.JsonFormat
 import kotlinx.coroutines.CoroutineScope
 import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
@@ -30,22 +29,12 @@ class AudioClipServiceImpl(
     private val audioClipMp3Codec: AudioClipCodec = AudioClipMp3CodecImpl(soundPatternStorage, processor, specs)
     private val audioClipJsonCodec: AudioClipMetaCodec = AudioClipJsonCodecImpl(soundPatternStorage, processor, specs)
     private val fragmentResolver: FragmentResolver = FragmentResolverImpl(resourceResolver, processor, specs, coroutineScope)
-    private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
+    private val defaultPreprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
 
     init {
-        /*
-        val serializedPreprocessRoutinePath = resourceResolver.getResourceAbsolutePath(
-            "settings/preprocess_routine.json"
-        )
-        val serializedPreprocessRoutineJson = File(serializedPreprocessRoutinePath).readText()
-        val serializedPreprocessRoutineBuilder = AudioClipServiceProto.SerializedPreprocessRoutine.newBuilder()
-        JsonFormat.parser().merge(serializedPreprocessRoutineJson, serializedPreprocessRoutineBuilder)
-        val serializedPreprocessRoutine = serializedPreprocessRoutineBuilder.build()
-        */
         val serializedPreprocessRoutine = specs.serializedPreprocessRoutine
-//        println("Serialized Preprocess Routine\n$serializedPreprocessRoutine")
         serializedPreprocessRoutine.routinesList.forEach { routineType ->
-            preprocessRoutine.then(
+            defaultPreprocessRoutine.then(
                 when (routineType) {
                     AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> this::normalizeClip
                     AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> this::resolveFragments
@@ -76,7 +65,7 @@ class AudioClipServiceImpl(
             )
         }
 
-        preprocessRoutine.apply(clip)
+        defaultPreprocessRoutine.apply(clip)
         return clip
     }
 
@@ -89,7 +78,13 @@ class AudioClipServiceImpl(
         return AudioClipPlayerImpl(audioClip, specs.dataLineMaxBufferDesolation)
     }
 
-    override suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File) {
+    override suspend fun saveAudioClip(audioClip: AudioClip, newAudioClipFile: File, newAudioClipMetadataFile: File?) {
+//        val audioClipSaveFormat = newAudioClipFile.extension.lowercase()
+
+//        require(audioClipSaveFormat in arrayOf("mp3"))
+
+        newAudioClipFile.parentFile.mkdirs()
+
         when (newAudioClipFile.extension.lowercase()) {
             "mp3" -> audioClipMp3Codec.write(audioClip, newAudioClipFile)
             "json" -> audioClipJsonCodec.write(audioClip, newAudioClipFile)
@@ -97,6 +92,8 @@ class AudioClipServiceImpl(
                 "Trying to save file with unsupported extension (not in [mp3, json])"
             )
         }
+        println("Saved clip at ${newAudioClipFile.absolutePath}")
+        audioClip.notifySaved()
     }
 
     private suspend fun resolveFragments(audioClip: AudioClip) {

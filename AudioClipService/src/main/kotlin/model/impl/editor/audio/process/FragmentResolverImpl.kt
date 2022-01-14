@@ -49,9 +49,7 @@ class FragmentResolverImpl(
                     kotlin.runCatching {
                         val config = FragmentResolverProto.FragmentResolverModelConfig.parseFrom(configProtoBytes)
                         model to config
-                    }.getOrElse {
-                        throw it
-                    }
+                    }.getOrThrow()
                 }
         }
     }
@@ -120,9 +118,7 @@ class FragmentResolverImpl(
         val encodedResponse = (encodedResponsesTensor as TString).asBytes().getObject(0, 0)
         return kotlin.runCatching {
             FragmentResolverProto.FragmentResolverModelResponse.parseFrom(encodedResponse)
-        }.getOrElse {
-            throw it
-        }
+        }.getOrThrow()
     }
 
     private fun appendFragmentsToClip(

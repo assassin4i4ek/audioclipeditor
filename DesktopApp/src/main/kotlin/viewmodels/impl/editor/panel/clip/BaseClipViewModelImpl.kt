@@ -25,7 +25,8 @@ abstract class BaseClipViewModelImpl(
     /* Child ViewModels */
 
     /* Simple properties */
-    private lateinit var audioClip: AudioClip
+    private var _audioClip: AudioClip? = null
+    private val audioClip: AudioClip get() = _audioClip!!
 
     /* Stateful properties */
     protected abstract val pathBuilderXStep: Int
@@ -53,10 +54,10 @@ abstract class BaseClipViewModelImpl(
 
     /* Methods */
     override fun submitClip(audioClip: AudioClip) {
-        check (!this::audioClip.isInitialized) {
+        check (_audioClip == null) {
             "Cannot assign audio clip twice: new clip $audioClip, previous clip $audioClip"
         }
-        this.audioClip = audioClip
+        _audioClip = audioClip
         _sampleRate = audioClip.sampleRate
         _numChannels = audioClip.numChannels
 
@@ -65,13 +66,17 @@ abstract class BaseClipViewModelImpl(
 
         coroutineScope.launch {
             snapshotFlow {
-                audioClip to pathBuilderXStep
-            }.map { (audioClip, pathBuilderXStep) ->
-                audioClip.channelsPcm.map {
-                    pcmPathBuilder.build(it, pathBuilderXStep)
-                }
-            }.collect { channelPcmPaths ->
-                _channelPcmPaths = channelPcmPaths
+                _audioClip!! to pathBuilderXStep
+            }.collect {
+                notifyClipUpdated()
+            }
+        }
+    }
+
+    override fun notifyClipUpdated() {
+        coroutineScope.launch {
+            _channelPcmPaths = audioClip.channelsPcm.map {
+                pcmPathBuilder.build(it, pathBuilderXStep)
             }
         }
     }

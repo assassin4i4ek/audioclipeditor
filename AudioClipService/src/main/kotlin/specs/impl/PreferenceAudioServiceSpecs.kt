@@ -14,11 +14,11 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
     )
 
     override var minImmutableAreaDurationUs: Long by savableProperty(
-        1000, ::minImmutableAreaDurationUs
+        1000L, ::minImmutableAreaDurationUs
     )
 
     override var minMutableAreaDurationUs: Long by savableProperty(
-        2000, ::minMutableAreaDurationUs
+        2000L, ::minMutableAreaDurationUs
     )
 
     override var defaultFragmentTransformerType: FragmentTransformer.Type by savableProperty(
@@ -62,5 +62,9 @@ class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServic
 
     override var normalizationCompressorReleaseTimeMs: Float by savableProperty(
         100f, ::normalizationCompressorReleaseTimeMs
+    )
+
+    override var saveMp3bitRate: Int by savableProperty(
+        256, ::saveMp3bitRate
     )
 }

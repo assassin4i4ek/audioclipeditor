@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import model.api.editor.audio.AudioClipService
+import model.api.editor.audio.AudioClipEditingService
 import specs.api.mutable.MutableEditorSpecs
 import viewmodels.api.editor.ClipEditorViewModel
 import viewmodels.api.editor.tab.OpenedClipsTabViewModel
@@ -19,7 +19,7 @@ import viewmodels.impl.editor.tab.OpenedClipsTabViewModelImpl
 import java.io.File
 
 class ClipEditorViewModelImpl(
-    private val audioClipService: AudioClipService,
+    private val audioClipEditingService: AudioClipEditingService,
     private val pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     private val density: Density,
@@ -114,7 +114,7 @@ class ClipEditorViewModelImpl(
 
     override fun submitClips(audioClipFiles: List<File>) {
         val clipFilesToAppend = audioClipFiles
-            .associateBy { audioClipFile -> audioClipService.getAudioClipId(audioClipFile) }
+            .associateBy { audioClipFile -> audioClipEditingService.getAudioClipId(audioClipFile) }
             .filter { (id, _) -> !_panelViewModels.containsKey(id) }
 
         val clipViewModelsToAppend = clipFilesToAppend
@@ -123,7 +123,7 @@ class ClipEditorViewModelImpl(
                     clipFile = clipFile,
                     clipId = clipId,
                     parentViewModel = this,
-                    audioClipService = audioClipService,
+                    audioClipEditingService = audioClipEditingService,
                     pcmPathBuilder = pcmPathBuilder,
                     coroutineScope = coroutineScope,
                     density = density,

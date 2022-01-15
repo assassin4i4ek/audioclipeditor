@@ -70,17 +70,17 @@ class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpe
     )
 
     override var defaultSrcClipSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Source Clips"),
-        ::defaultSrcClipSavingDir, { it.absolutePath }, { File(it) }
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Source Clips"),
+        ::defaultSrcClipSavingDir
     )
 
     override var defaultDstClipSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Processed Clips"),
-        ::defaultDstClipSavingDir, { it.absolutePath }, { File(it) }
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Processed Clips"),
+        ::defaultDstClipSavingDir
     )
 
     override var defaultClipMetadataSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Processed Clips Metadata"),
-        ::defaultClipMetadataSavingDir, { it.absolutePath }, { File(it) }
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Processed Clips Metadata"),
+        ::defaultClipMetadataSavingDir
     )
 }

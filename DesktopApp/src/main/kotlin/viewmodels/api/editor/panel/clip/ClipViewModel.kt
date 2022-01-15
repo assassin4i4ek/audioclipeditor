@@ -29,6 +29,7 @@ interface ClipViewModel: BaseViewModel, ClipUnitConverter {
 
     /* Methods */
     fun submitClip(audioClip: AudioClip)
+    fun notifyClipUpdated()
 
     override fun toAbsSize(winPx: Float): Float {
         return winPx / zoom

@@ -48,7 +48,6 @@ fun OpenedClipsTab(
                                 onExit = clipTabViewModel::onHoverCloseButtonExit
                             )
                         ) {
-                            println("clipTabViewModel.isMutated ${clipTabViewModel.isMutated}")
                             if (clipTabViewModel.isMutated && !clipTabViewModel.isMouseHoverCloseButton) {
                                 Box(modifier = Modifier
                                     .padding(3.dp)
@@ -61,7 +60,7 @@ fun OpenedClipsTab(
                                     painter = useResource("icons/close_black_24dp.svg") {
                                         loadSvgPainter(it, LocalDensity.current)
                                     },
-                                    contentDescription = "close",
+                                    contentDescription = "Close",
                                     modifier = Modifier.size(18.dp),
                                 )
                             }

@@ -28,6 +28,7 @@ interface AudioClip: AudioPcm {
     fun createMinDurationFragmentAtEnd(mutableAreaEndUs: Long): MutableAudioClipFragment
     fun createTransformerForType(type: FragmentTransformer.Type): FragmentTransformer
     fun removeFragment(fragment: MutableAudioClipFragment)
+    fun removeAllFragments()
     fun onMutate(callback: () -> Unit)
     fun notifySaved()
     fun close()

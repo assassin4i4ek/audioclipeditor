@@ -29,6 +29,10 @@ interface BasePreferenceSpecs: MutableSpecs {
             PreferenceSavableProperty<BasePreferenceSpecs, Boolean, Boolean> =
         savableProperty(defaultValue, property, { it }, { it })
 
+    fun savableProperty(defaultValue: Int, property: KProperty<*>):
+            PreferenceSavableProperty<BasePreferenceSpecs, Int, Int> =
+        savableProperty(defaultValue, property, { it }, { it })
+
     override fun reset() {
         preferences.clear()
     }

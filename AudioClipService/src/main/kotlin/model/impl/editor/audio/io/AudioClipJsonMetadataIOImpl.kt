@@ -1,4 +1,4 @@
-package model.impl.editor.audio.readers
+package model.impl.editor.audio.io
 
 import AudioClipServiceProto
 import AudioClipServiceProto.SerializedAudioClip.SerializedFragment.SerializedTransformer.SerializedType
@@ -61,6 +61,8 @@ class AudioClipJsonMetadataIOImpl(
                 }
                 fragment.transformer = transformer
             }
+
+            restoredAudioClip.notifySaved()
 
             restoredAudioClip
         }

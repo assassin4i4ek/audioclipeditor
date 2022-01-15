@@ -21,4 +21,6 @@ interface AudioServiceSpecs {
     val normalizationCompressorThresholdDb: Float
     val normalizationCompressorAttackTimeMs: Float
     val normalizationCompressorReleaseTimeMs: Float
+
+    val saveMp3bitRate: Int
 }

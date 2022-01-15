@@ -107,7 +107,7 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel<*>) {
                 ) {
                     Icon(useResource("icons/play_arrow_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "play")
+                    }, "Play")
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Button(
@@ -116,7 +116,7 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel<*>) {
                 ) {
                     Icon(useResource("icons/stop_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "stop")
+                    }, "Stop")
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
@@ -125,7 +125,7 @@ private fun SelectedFragmentPanel(fragmentViewModel: FragmentViewModel<*>) {
                 ) {
                     Icon(useResource("icons/delete_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "remove")
+                    }, "Remove")
                 }
             }
         }
@@ -174,7 +174,7 @@ private fun SelectedSilenceTransformerPanel(fragmentViewModel: FragmentViewModel
                 painter = useResource("icons/add_black_24dp.svg") {
                     loadSvgPainter(it, density)
                 },
-                contentDescription = "increment",
+                contentDescription = "Increment Silence",
                 modifier = Modifier.clickable(onClick = fragmentViewModel::onIncreaseSilenceDurationMs),
                 tint = MaterialTheme.colors.surface
             )
@@ -186,7 +186,7 @@ private fun SelectedSilenceTransformerPanel(fragmentViewModel: FragmentViewModel
                 painter = useResource("icons/remove_black_24dp.svg") {
                     loadSvgPainter(it, density)
                 },
-                contentDescription = "decrement",
+                contentDescription = "Decrement Silence",
                 modifier = Modifier.clickable(onClick = fragmentViewModel::onDecreaseSilenceDurationMs),
                 tint = MaterialTheme.colors.surface
             )

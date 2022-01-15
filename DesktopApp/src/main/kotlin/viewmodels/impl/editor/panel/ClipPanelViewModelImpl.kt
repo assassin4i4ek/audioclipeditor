@@ -15,7 +15,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.AudioClipPlayer
-import model.api.editor.audio.AudioClipService
+import model.api.editor.audio.AudioClipEditingService
 import model.api.editor.audio.clip.fragment.AudioClipFragment
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
@@ -43,7 +43,7 @@ class ClipPanelViewModelImpl(
     clipFile: File,
     private val clipId: String,
     private val parentViewModel: Parent,
-    private val audioClipService: AudioClipService,
+    private val audioClipEditingService: AudioClipEditingService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     density: Density,
@@ -227,6 +227,30 @@ class ClipPanelViewModelImpl(
         }
     }
 
+    override fun onNormalizeClick() {
+        coroutineScope.launch {
+            _isLoading = true
+            audioClipEditingService.normalize(audioClip)
+            editableClipViewModel.notifyClipUpdated()
+            globalClipViewModel.notifyClipUpdated()
+            _isLoading = false
+        }
+    }
+
+    override fun onResolveFragmentsClick() {
+        coroutineScope.launch {
+            _isLoading = true
+            editableFragmentSetViewModel.removeAllFragments()
+            globalFragmentSetViewModel.removeAllFragments()
+            audioClipEditingService.resolveFragments(audioClip)
+            audioClip.fragments.forEach {
+                editableFragmentSetViewModel.submitFragment(it)
+                globalFragmentSetViewModel.submitFragment(it)
+            }
+            _isLoading = false
+        }
+    }
+
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val isEventHandled = if (event.type == KeyEventType.KeyDown) {
@@ -269,6 +293,13 @@ class ClipPanelViewModelImpl(
                         true
                     } ?: false
                 }
+                Key.S -> {
+                    if (event.isCtrlPressed) {
+                        onSaveClick()
+                        true
+                    }
+                    else false
+                }
                 else -> false
             }
         }
@@ -287,17 +318,17 @@ class ClipPanelViewModelImpl(
             val saveSrcFile = specs.defaultSrcClipSavingDir.resolve(clipFile.name)
             val saveDstFile = specs.defaultDstClipSavingDir.resolve(clipFile.name)
             val saveMetadataFile = specs.defaultClipMetadataSavingDir.resolve(clipFile.nameWithoutExtension + ".json")
-            audioClip = if (audioClipService.isAudioClipFile(clipFile)) {
-                audioClipService.openAudioClipFromFile(clipFile, saveSrcFile, saveDstFile, saveMetadataFile)
+            audioClip = if (audioClipEditingService.isAudioClipFile(clipFile)) {
+                audioClipEditingService.openAudioClipFromFile(clipFile, saveSrcFile, saveDstFile, saveMetadataFile)
             }
-            else if (audioClipService.isAudioClipMetadataFile(clipFile)) {
-                audioClipService.openAudioClipFromMetadataFile(clipFile)
+            else if (audioClipEditingService.isAudioClipMetadataFile(clipFile)) {
+                audioClipEditingService.openAudioClipFromMetadataFile(clipFile)
             }
             else {
                 throw IllegalArgumentException("Trying to open clip of unsupported format")
             }
 
-            player = audioClipService.createPlayer(audioClip)
+            player = audioClipEditingService.createPlayer(audioClip)
             editableClipViewModel.submitClip(audioClip)
             globalClipViewModel.submitClip(audioClip)
             audioClip.fragments.forEach {
@@ -493,11 +524,11 @@ class ClipPanelViewModelImpl(
         _isLoading = true
 //        val audioClipFilename = File(audioClip.filePath).name
 //        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
-        audioClipService.saveAudioClip(audioClip)
+        audioClipEditingService.saveAudioClip(audioClip)
         _isLoading = false
     }
 
     override fun close() {
-        audioClipService.closeAudioClip(audioClip, player)
+        audioClipEditingService.closeAudioClip(audioClip, player)
     }
 }

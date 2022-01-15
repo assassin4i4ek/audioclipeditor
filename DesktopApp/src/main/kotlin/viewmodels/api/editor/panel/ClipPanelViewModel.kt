@@ -51,6 +51,9 @@ interface ClipPanelViewModel: BaseViewModel {
     fun onIncreaseZoomClick()
     fun onDecreaseZoomClick()
 
+    fun onNormalizeClick()
+    fun onResolveFragmentsClick()
+
     fun onEditableClipViewHorizontalScroll(delta: Float): Float
     fun onEditableClipViewVerticalScroll(delta: Float): Float
     fun onEditableClipViewPress(press: Offset)

@@ -95,7 +95,7 @@ fun ClipEditor(
                 Icon(
                     useResource("icons/folder_open_black_24dp.svg") {
                         loadSvgPainter(it, LocalDensity.current)
-                    }, "open",
+                    }, "Open",
                     modifier = Modifier.matchParentSize().padding(40.dp),
                     tint = MaterialTheme.colors.primary
                 )

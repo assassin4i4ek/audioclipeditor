@@ -13,5 +13,5 @@ interface SoundCodec {
     }
 
     suspend fun decode(soundPath: String): Sound
-    suspend fun encode(soundPath: String, sound: Sound)
+    suspend fun encode(soundPath: String, sound: Sound, bitRate: Int)
 }

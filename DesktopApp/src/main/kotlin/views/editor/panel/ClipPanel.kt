@@ -136,12 +136,12 @@ fun ClipPanel(
                 Button(enabled = clipPanelViewModel.canOpenClips, onClick = clipPanelViewModel::onOpenClips) {
                     Icon(useResource("icons/folder_open_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "open")
+                    }, "Open")
                 }
                 Button(enabled = clipPanelViewModel.canSaveClip, onClick = clipPanelViewModel::onSaveClick) {
                     Icon(useResource("icons/save_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "save")
+                    }, "Save")
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -151,7 +151,7 @@ fun ClipPanel(
                 ) {
                     Icon(useResource("icons/play_arrow_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "play")
+                    }, "Play")
                 }
                 Button(
                     enabled = clipPanelViewModel.canPauseClip,
@@ -159,7 +159,7 @@ fun ClipPanel(
                 ) {
                     Icon(useResource("icons/pause_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "pause")
+                    }, "Pause")
                 }
                 Button(
                     enabled = clipPanelViewModel.canStopClip,
@@ -167,28 +167,38 @@ fun ClipPanel(
                 ) {
                     Icon(useResource("icons/stop_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "stop")
+                    }, "Stop")
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(enabled = clipPanelViewModel.canZoom, onClick = clipPanelViewModel::onIncreaseZoomClick) {
                     Icon(useResource("icons/zoom_in_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "zoom_in")
+                    }, "Zoom In")
                 }
                 Button(enabled = clipPanelViewModel.canZoom, onClick = clipPanelViewModel::onDecreaseZoomClick) {
                     Icon(useResource("icons/zoom_out_black_24dp.svg") {
                         loadSvgPainter(it, density)
-                    }, "zoom_out")
+                    }, "Zoom Out")
+                }
+                Button(onClick = clipPanelViewModel::onNormalizeClick) {
+                    Icon(useResource("icons/upgrade_black_24dp.svg") {
+                        loadSvgPainter(it, density)
+                    }, "Normalize")
+                }
+                Button(onClick = clipPanelViewModel::onResolveFragmentsClick) {
+                    Icon(useResource("icons/analytics_black_24dp.svg") {
+                        loadSvgPainter(it, density)
+                    }, "Resolve Fragments")
                 }
                 Button(onClick = clipPanelViewModel::onSwitchInputDevice) {
                     when (clipPanelViewModel.inputDevice) {
                         InputDevice.Touchpad -> Icon(useResource("icons/touch_app_black_24dp.svg") {
                             loadSvgPainter(it, density)
-                        }, "touchpad")
+                        }, "Current Input: Touchpad")
                         InputDevice.Mouse -> Icon(useResource("icons/mouse_black_24dp.svg") {
                             loadSvgPainter(it, density)
-                        }, "mouse")
+                        }, "Current Input: Mouse")
                     }
                 }
             }

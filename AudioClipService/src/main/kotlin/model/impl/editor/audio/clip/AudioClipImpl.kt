@@ -164,6 +164,11 @@ class AudioClipImpl(
         isMutated = true
     }
 
+    override fun removeAllFragments() {
+        _fragments.clear()
+        isMutated = true
+    }
+
     override fun onMutate(callback: () -> Unit) {
         mutationCallbacks.add(callback)
     }

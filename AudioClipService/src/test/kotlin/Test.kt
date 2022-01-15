@@ -1,6 +1,6 @@
  import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
-import model.impl.editor.audio.AudioClipServiceImpl
+import model.impl.editor.audio.AudioClipEditingServiceImpl
 import model.impl.utils.ResourceResolverImpl
 import specs.impl.PreferenceAudioServiceSpecs
 import java.io.File
@@ -8,7 +8,7 @@ import java.io.File
 fun main() {
     val inFilepath = "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\test2\\data_raw\\АртГалереяВасиленко4.09.mp3"
     val outFilepath = "C:\\Users\\Admin\\MyProjects\\AudioClipsEditor\\АртГалереяВасиленко4.09_new.mp3"
-    val service = AudioClipServiceImpl(ResourceResolverImpl(), PreferenceAudioServiceSpecs(), GlobalScope)
+    val service = AudioClipEditingServiceImpl(ResourceResolverImpl(), PreferenceAudioServiceSpecs(), GlobalScope)
     runBlocking {
         val audioClip = service.openAudioClipFromFile(File(inFilepath), null, File(outFilepath), null)
         service.saveAudioClip(audioClip)

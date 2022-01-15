@@ -1,22 +1,11 @@
 package views
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import model.impl.editor.audio.AudioClipServiceImpl
+import model.impl.editor.audio.AudioClipEditingServiceImpl
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.loadSvgPainter
-import androidx.compose.ui.res.useResource
 import androidx.compose.ui.window.singleWindowApplication
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import model.impl.utils.ResourceResolverImpl
 import specs.impl.PreferenceAudioServiceSpecs
 import specs.impl.PreferenceEditorSpecs
 import utils.ComposeResourceResolverImpl
@@ -38,7 +27,7 @@ fun App() {
             preferenceEditorSpecs.reset()
 
             ClipEditorViewModelImpl(
-                audioClipService = AudioClipServiceImpl(
+                audioClipEditingService = AudioClipEditingServiceImpl(
                     ComposeResourceResolverImpl(), preferenceAudioServiceSpecs, coroutineScope//GlobalScope
                 ),
                 pcmPathBuilder = AdvancedPcmPathBuilderImpl(),

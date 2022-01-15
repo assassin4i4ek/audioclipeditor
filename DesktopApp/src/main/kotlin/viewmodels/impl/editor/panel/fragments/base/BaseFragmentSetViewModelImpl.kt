@@ -72,4 +72,9 @@ abstract class BaseFragmentSetViewModelImpl<K: AudioClipFragment, V: FragmentVie
             remove(fragment)
         }
     }
+
+    override fun removeAllFragments() {
+        _selectedFragment = null
+        fragmentViewModelsMap = TreeMap()
+    }
 }

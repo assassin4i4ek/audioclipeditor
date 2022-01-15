@@ -21,4 +21,6 @@ interface MutableAudioServiceSpecs: AudioServiceSpecs, MutableSpecs {
     override var normalizationCompressorThresholdDb: Float
     override var normalizationCompressorAttackTimeMs: Float
     override var normalizationCompressorReleaseTimeMs: Float
+
+    override var saveMp3bitRate: Int
 }

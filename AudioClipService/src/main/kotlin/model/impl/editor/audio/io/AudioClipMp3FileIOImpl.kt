@@ -1,4 +1,4 @@
-package model.impl.editor.audio.readers
+package model.impl.editor.audio.io
 
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.storage.SoundPatternStorage
@@ -53,7 +53,8 @@ open class AudioClipMp3FileIOImpl(
 
         mp3Codec.encode(
             audioClipFile.absolutePath,
-            SoundCodec.Sound(audioClip.audioFormat, pcmBytes)
+            SoundCodec.Sound(audioClip.audioFormat, pcmBytes),
+            specs.saveMp3bitRate
         )
     }
 
@@ -89,7 +90,8 @@ open class AudioClipMp3FileIOImpl(
 
         mp3Codec.encode(
             audioClipFile.absolutePath,
-            SoundCodec.Sound(audioClip.audioFormat, pcmBytesOutputStream.toByteArray())
+            SoundCodec.Sound(audioClip.audioFormat, pcmBytesOutputStream.toByteArray()),
+            specs.saveMp3bitRate
         )
     }
 }

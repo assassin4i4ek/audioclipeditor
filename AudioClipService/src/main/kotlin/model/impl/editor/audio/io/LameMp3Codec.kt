@@ -1,4 +1,4 @@
-package model.impl.editor.audio.readers
+package model.impl.editor.audio.io
 
 import com.cloudburst.lame.lowlevel.LameDecoder
 import com.cloudburst.lame.lowlevel.LameEncoder
@@ -20,12 +20,18 @@ class LameMp3Codec: SoundCodec {
             val bufferSize = decoder.frameSize * decoder.channels * 2 /* Short.SIZE_BYTES */
             val buffer = ByteBuffer.allocate(bufferSize)
             val pcmByteStream = ByteArrayOutputStream()
+            val skipPosition = 1105 /* Standard LAME codec delay */ * decoder.channels * 2 /* Short.SIZE_BYTES */
 
-            while (decoder.decode(buffer)) {
-                kotlin.runCatching {
-                    pcmByteStream.write(buffer.array())
-                }.getOrThrow()
-            }
+            var currentPosition = 0
+            kotlin.runCatching {
+                // skip first 1105 samples
+                while (decoder.decode(buffer)) {
+                    val outSampleCount = (currentPosition + bufferSize - skipPosition).coerceIn(0, bufferSize)
+                    val outSampleOffset = bufferSize - outSampleCount
+                    pcmByteStream.write(buffer.array(), outSampleOffset, outSampleCount)
+                    currentPosition += bufferSize
+                }
+            }.getOrThrow()
 
             val sampleRate = decoder.sampleRate
             val pcmBytes = pcmByteStream.toByteArray()
@@ -35,21 +41,25 @@ class LameMp3Codec: SoundCodec {
                 sampleRate.toFloat(),
                 16,
                 decoder.channels,
-                4,
+                4 /*2 bytes per sample * 2 channels*/,
                 sampleRate.toFloat(),//AudioSystem.NOT_SPECIFIED.toFloat(),
                 false
             )
 
+            decoder.close()
+
+            println("${pcmBytes.size} bytes read")
             SoundCodec.Sound(audioFormat, pcmBytes)
         }
     }
 
-    override suspend fun encode(soundPath: String, sound: SoundCodec.Sound) {
-        return withContext(Dispatchers.IO) {
+    override suspend fun encode(soundPath: String, sound: SoundCodec.Sound, bitRate: Int) {
+        withContext(Dispatchers.IO) {
             val pcmBytes = sound.pcmBytes
             val numOfSamples = pcmBytes.size
+            val audioFormat = sound.audioFormat
 
-            val encoder = LameEncoder(sound.audioFormat, 256, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, false)
+            val encoder = LameEncoder(audioFormat, bitRate, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, true)
             val inBufferSize = encoder.pcmBufferSize
             val outBufferSize = encoder.mP3BufferSize
             val outBuffer = ByteArray(outBufferSize)
@@ -57,19 +67,25 @@ class LameMp3Codec: SoundCodec {
                 FileOutputStream(soundPath)
             }.getOrThrow()
 
-            var inputPosition = 0
+            var inputPosition = 1105 /* Standard LAME codec delay */ * audioFormat.channels * 2 /* Short.SIZE_BYTES */
+
 
             kotlin.runCatching {
                 while (inputPosition < numOfSamples) {
                     val inSampleCount = (inputPosition + inBufferSize).coerceAtMost(numOfSamples) - inputPosition
                     val outSampleCount = encoder.encodeBuffer(pcmBytes, inputPosition, inSampleCount, outBuffer)
-
                     mp3FileOutputStream.write(outBuffer, 0, outSampleCount)
                     inputPosition += inSampleCount
                 }
 
+                val outSampleCount = encoder.encodeFinish(outBuffer)
+                mp3FileOutputStream.write(outBuffer,0, outSampleCount)
+                println("${pcmBytes.size} bytes written")
+
+                encoder.close()
                 mp3FileOutputStream.close()
             }.getOrElse {
+                encoder.close()
                 kotlin.runCatching {
                     mp3FileOutputStream.close()
                 }.getOrThrow()

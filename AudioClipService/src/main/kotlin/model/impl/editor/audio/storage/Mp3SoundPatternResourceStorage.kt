@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.io.SoundCodec
 import model.api.utils.ResourceResolver
-import model.impl.editor.audio.readers.LameMp3Codec
+import model.impl.editor.audio.io.LameMp3Codec
 
 class Mp3SoundPatternResourceStorage(
     private val processor: SoundProcessor,

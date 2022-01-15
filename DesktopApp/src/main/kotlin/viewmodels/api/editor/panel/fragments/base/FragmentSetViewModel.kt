@@ -26,4 +26,5 @@ interface FragmentSetViewModel<K: AudioClipFragment, V: FragmentViewModel<K>>: B
     fun trySelectFragmentAt(positionUs: Long)
     fun deselectFragment()
     fun removeFragment(fragment: AudioClipFragment)
+    fun removeAllFragments()
 }

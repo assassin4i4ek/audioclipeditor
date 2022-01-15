@@ -27,7 +27,7 @@ class AudioClipServiceImpl(
     private val processor: SoundProcessor = SoundProcessorImpl(specs)
     private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage(processor, resourceResolver)
     private val fragmentResolver: FragmentResolver = FragmentResolverImpl(resourceResolver, processor, specs, coroutineScope)
-    private val defaultPreprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
+    private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
 
     private val supportedAudioReaders: Map<String, AudioClipFileIO> = mapOf(
         "mp3" to AudioClipMp3FileIOImpl(soundPatternStorage, processor, specs)
@@ -39,7 +39,7 @@ class AudioClipServiceImpl(
     init {
         val serializedPreprocessRoutine = specs.serializedPreprocessRoutine
         serializedPreprocessRoutine.routinesList.forEach { routineType ->
-            defaultPreprocessRoutine.then(
+            preprocessRoutine.then(
                 when (routineType) {
                     AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> this::normalizeClip
                     AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> this::resolveFragments
@@ -90,8 +90,7 @@ class AudioClipServiceImpl(
         require(isAudioClipFile(audioClipFormat)) {
             if (isAudioClipMetadataFile(audioClipFormat)) {
                 "Trying to open file with metadata format, consider using openAudioClipFromMetadata() method"
-            }
-            else {
+            } else {
                 "Trying to open file of unsupported format (extension not in ${supportedAudioReaders.keys})"
             }
         }
@@ -114,10 +113,9 @@ class AudioClipServiceImpl(
             }
         }
 
-        val openedAudioClip = supportedAudioReaders[audioClipFormat]!!.readClip(audioClipFile, saveSrcFile, saveDstFile, saveMetadataFile)
-        defaultPreprocessRoutine.apply(openedAudioClip)
-
-        return openedAudioClip
+        return supportedAudioReaders[audioClipFormat]!!.readClip(
+            audioClipFile, saveSrcFile, saveDstFile, saveMetadataFile
+        )
     }
 
     override suspend fun openAudioClipFromMetadataFile(audioClipOrMetadataFile: File): AudioClip {
@@ -133,6 +131,10 @@ class AudioClipServiceImpl(
         }
 
         return supportedMetadataReaders[metadataFormat]!!.readClip(audioClipOrMetadataFile)
+    }
+
+    override suspend fun preprocess(audioClip: AudioClip) {
+        preprocessRoutine.apply(audioClip)
     }
 
     override fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {

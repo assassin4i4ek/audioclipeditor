@@ -32,8 +32,8 @@ import views.editor.panel.fragments.DraggableFragmentSetView
 import views.editor.panel.fragments.FragmentSetFramesView
 import views.editor.panel.fragments.FragmentSetView
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-@ExperimentalComposeUiApi
 fun ClipPanel(
     clipPanelViewModel: ClipPanelViewModel
 ) {

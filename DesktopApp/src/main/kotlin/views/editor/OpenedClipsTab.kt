@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import viewmodels.api.editor.tab.OpenedClipsTabViewModel
 
-@ExperimentalComposeUiApi
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun OpenedClipsTab(
     openedClipsTabViewModel: OpenedClipsTabViewModel

@@ -27,4 +27,5 @@ interface ClipEditorViewModel: BaseViewModel {
     fun onDeclineCloseClip()
 
     /* Methods */
+    fun submitClips(audioClipFiles: List<File>)
 }

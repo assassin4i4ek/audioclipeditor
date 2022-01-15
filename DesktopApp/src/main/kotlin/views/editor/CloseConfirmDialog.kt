@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import viewmodels.api.editor.ClipEditorViewModel
 
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CloseConfirmDialog(clipEditorViewModel: ClipEditorViewModel) {
     Box(modifier = Modifier.fillMaxSize().zIndex(1f).background(Color.Transparent.copy(alpha = 0.32f))) {

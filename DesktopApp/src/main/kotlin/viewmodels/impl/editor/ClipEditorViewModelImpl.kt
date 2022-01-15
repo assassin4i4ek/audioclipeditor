@@ -54,31 +54,8 @@ class ClipEditorViewModelImpl(
     }
 
     override fun onSubmitClips(audioClipFiles: List<File>) {
-        val clipFilesToAppend = audioClipFiles
-            .associateBy { audioClipFile -> audioClipService.getAudioClipId(audioClipFile) }
-            .filter { (id, _) -> !_panelViewModels.containsKey(id) }
-
-        val clipViewModelsToAppend = clipFilesToAppend
-            .mapValues { (clipId, clipFile) ->
-                ClipPanelViewModelImpl(
-                    clipFile = clipFile,
-                    clipId = clipId,
-                    parentViewModel = this,
-                    audioClipService = audioClipService,
-                    pcmPathBuilder = pcmPathBuilder,
-                    coroutineScope = coroutineScope,
-                    density = density,
-                    specs = specs
-                )
-            }
-
         _showFileChooser = false
-        _panelViewModels = HashMap(_panelViewModels + clipViewModelsToAppend)
-        openedClipsTabViewModel.submitClips(
-            clipFilesToAppend.mapValues { (clipId, clipFile) ->
-                ClipTabViewModelImpl(clipFile.nameWithoutExtension, clipViewModelsToAppend[clipId]!!.isMutated)
-            }
-        )
+        submitClips(audioClipFiles)
     }
 
     override fun onConfirmSaveAndCloseClip() {
@@ -133,5 +110,32 @@ class ClipEditorViewModelImpl(
 
     override fun notifyMutated(clipId: String) {
         openedClipsTabViewModel.notifyMutated(clipId, _panelViewModels[clipId]!!.isMutated)
+    }
+
+    override fun submitClips(audioClipFiles: List<File>) {
+        val clipFilesToAppend = audioClipFiles
+            .associateBy { audioClipFile -> audioClipService.getAudioClipId(audioClipFile) }
+            .filter { (id, _) -> !_panelViewModels.containsKey(id) }
+
+        val clipViewModelsToAppend = clipFilesToAppend
+            .mapValues { (clipId, clipFile) ->
+                ClipPanelViewModelImpl(
+                    clipFile = clipFile,
+                    clipId = clipId,
+                    parentViewModel = this,
+                    audioClipService = audioClipService,
+                    pcmPathBuilder = pcmPathBuilder,
+                    coroutineScope = coroutineScope,
+                    density = density,
+                    specs = specs
+                )
+            }
+
+        _panelViewModels = HashMap(_panelViewModels + clipViewModelsToAppend)
+        openedClipsTabViewModel.submitClips(
+            clipFilesToAppend.mapValues { (clipId, clipFile) ->
+                ClipTabViewModelImpl(clipFile.nameWithoutExtension, clipViewModelsToAppend[clipId]!!.isMutated)
+            }
+        )
     }
 }

@@ -25,8 +25,6 @@ import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
 import views.editor.ClipEditor
 import views.utils.WithoutTouchSlop
 
-@ExperimentalMaterialApi
-@ExperimentalComposeUiApi
 fun App() {
     singleWindowApplication(
         title = "Clip Editor"

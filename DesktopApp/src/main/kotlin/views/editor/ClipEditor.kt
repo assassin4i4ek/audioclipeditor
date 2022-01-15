@@ -22,9 +22,7 @@ import views.editor.panel.ClipPanel
 import java.awt.FileDialog
 import java.io.FilenameFilter
 
-@ExperimentalMaterialApi
 @Composable
-@ExperimentalComposeUiApi
 fun ClipEditor(
     clipEditorViewModel: ClipEditorViewModel,
     window: ComposeWindow

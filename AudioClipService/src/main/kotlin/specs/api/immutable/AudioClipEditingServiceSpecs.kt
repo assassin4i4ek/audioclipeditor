@@ -2,7 +2,7 @@ package specs.api.immutable
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 
-interface AudioServiceSpecs {
+interface AudioClipEditingServiceSpecs {
     val dataLineMaxBufferDesolation: Float
 
     val minImmutableAreaDurationUs: Long

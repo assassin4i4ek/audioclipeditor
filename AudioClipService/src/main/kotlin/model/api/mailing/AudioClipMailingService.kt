@@ -1,7 +1,8 @@
 package model.api.mailing
 
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface AudioClipMailingService {
-    suspend fun fetchAudioClipFromMailBox(): List<File>
+    fun fetchAudioClipFromMailBox(): Flow<File>
 }

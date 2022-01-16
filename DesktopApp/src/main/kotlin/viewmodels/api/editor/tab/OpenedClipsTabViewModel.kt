@@ -15,6 +15,7 @@ interface OpenedClipsTabViewModel: BaseViewModel {
     val selectedClipIndex: Int
 
     /* Callbacks */
+    fun onHomeButtonClick()
     fun onSelectClip(clipId: String)
     fun onRemoveClip(clipId: String)
 

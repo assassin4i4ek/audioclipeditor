@@ -32,6 +32,10 @@ class OpenedClipsTabViewModelImpl(
 
 
     /* Callbacks */
+    override fun onHomeButtonClick() {
+        _selectedClipId = null
+    }
+
     override fun onSelectClip(clipId: String) {
         require(openedClips.containsKey(clipId)) {
             "Trying to select clip with id $clipId which is absent in $openedClips"
@@ -56,7 +60,7 @@ class OpenedClipsTabViewModelImpl(
 
         _openedClips = newOpenedClips
 
-        if (selectedClipId == null && openedClips.isNotEmpty()) {
+        if (selectedClipId == null && openedClips.size == 1) {
             _selectedClipId = openedClips.keys.first()
         }
     }

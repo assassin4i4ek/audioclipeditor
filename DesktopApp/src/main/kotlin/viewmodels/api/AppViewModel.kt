@@ -1,15 +1,17 @@
-package viewmodels.api.editor
+package viewmodels.api
 
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import viewmodels.api.editor.tab.OpenedClipsTabViewModel
+import viewmodels.api.home.HomePageViewModel
 import java.io.File
 
-interface ClipEditorViewModel: BaseViewModel {
+interface AppViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
     val openedClipsTabViewModel: OpenedClipsTabViewModel
+    val homePageViewModel: HomePageViewModel
 
     /* Simple properties */
 

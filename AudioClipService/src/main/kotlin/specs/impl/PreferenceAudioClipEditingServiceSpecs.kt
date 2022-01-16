@@ -2,11 +2,11 @@ package specs.impl
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import serializedPreprocessRoutine
-import specs.api.mutable.MutableAudioServiceSpecs
+import specs.api.mutable.MutableAudioClipEditingServiceSpecs
 import specs.impl.utils.BasePreferenceSpecsImpl
 import java.util.prefs.Preferences
 
-class PreferenceAudioServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioServiceSpecs {
+class PreferenceAudioClipEditingServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioClipEditingServiceSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
 
     override var dataLineMaxBufferDesolation: Float by savableProperty(

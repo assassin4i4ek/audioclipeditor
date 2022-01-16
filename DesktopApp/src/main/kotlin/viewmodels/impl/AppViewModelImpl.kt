@@ -1,4 +1,4 @@
-package viewmodels.impl.editor
+package viewmodels.impl
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -8,27 +8,37 @@ import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.api.editor.audio.AudioClipEditingService
+import model.api.mailing.AudioClipMailingService
+import model.impl.mailing.AudioClipMailingServiceImpl
 import specs.api.mutable.MutableEditorSpecs
-import viewmodels.api.editor.ClipEditorViewModel
+import viewmodels.api.AppViewModel
 import viewmodels.api.editor.tab.OpenedClipsTabViewModel
 import viewmodels.api.editor.panel.ClipPanelViewModel
+import viewmodels.api.home.HomePageViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.editor.panel.ClipPanelViewModelImpl
 import viewmodels.impl.editor.tab.ClipTabViewModelImpl
 import viewmodels.impl.editor.tab.OpenedClipsTabViewModelImpl
+import viewmodels.impl.home.HomePageViewModelImpl
 import java.io.File
 
-class ClipEditorViewModelImpl(
+class AppViewModelImpl(
     private val audioClipEditingService: AudioClipEditingService,
+    audioClipMailingService: AudioClipMailingService,
     private val pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     private val density: Density,
     private val specs: MutableEditorSpecs
-): ClipEditorViewModel, OpenedClipsTabViewModelImpl.Parent, ClipPanelViewModelImpl.Parent {
+): AppViewModel, OpenedClipsTabViewModelImpl.Parent, ClipPanelViewModelImpl.Parent, HomePageViewModelImpl.ParentViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
-    override val openedClipsTabViewModel: OpenedClipsTabViewModel = OpenedClipsTabViewModelImpl(this)
+    override val openedClipsTabViewModel: OpenedClipsTabViewModel = OpenedClipsTabViewModelImpl(
+        this
+    )
+    override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
+        audioClipMailingService, this, coroutineScope
+    )
 
     /* Simple properties */
     private var pendingToCloseClipId: String? = null

@@ -1,24 +1,19 @@
 package views.editor
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import viewmodels.api.editor.ClipEditorViewModel
+import viewmodels.api.AppViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CloseConfirmDialog(clipEditorViewModel: ClipEditorViewModel) {
+fun CloseConfirmDialog(appViewModel: AppViewModel) {
     Box(modifier = Modifier.fillMaxSize().zIndex(1f).background(Color.Transparent.copy(alpha = 0.32f))) {
         AlertDialog(
             onDismissRequest = {},
@@ -28,18 +23,17 @@ fun CloseConfirmDialog(clipEditorViewModel: ClipEditorViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                 ) {
                     Button(
-                        onClick = clipEditorViewModel::onConfirmSaveAndCloseClip
+                        onClick = appViewModel::onConfirmSaveAndCloseClip
                     ) {
                         Text("Save and close")
                     }
-                    Button(
-                        onClick = clipEditorViewModel::onConfirmCloseClip,
-                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)
+                    TextButton(
+                        onClick = appViewModel::onConfirmCloseClip,
                     ) {
-                        Text("Close without saving")
+                        Text("Close without saving", color = MaterialTheme.colors.error)
                     }
-                    Button(
-                        onClick = clipEditorViewModel::onDeclineCloseClip
+                    TextButton(
+                        onClick = appViewModel::onDeclineCloseClip
                     ) {
                         Text("Cancel")
                     }

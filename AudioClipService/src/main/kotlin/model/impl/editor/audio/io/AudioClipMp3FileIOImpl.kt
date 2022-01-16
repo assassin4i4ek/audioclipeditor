@@ -6,7 +6,7 @@ import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.io.SoundCodec
 import model.impl.editor.audio.clip.AudioClipImpl
-import specs.api.immutable.AudioServiceSpecs
+import specs.api.immutable.AudioClipEditingServiceSpecs
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.time.ExperimentalTime
@@ -15,7 +15,7 @@ import kotlin.time.measureTimedValue
 open class AudioClipMp3FileIOImpl(
     private val soundPatternStorage: SoundPatternStorage,
     private val processor: SoundProcessor,
-    protected val specs: AudioServiceSpecs
+    protected val specs: AudioClipEditingServiceSpecs
 ): AudioClipFileIO {
     private val mp3Codec: SoundCodec = LameMp3Codec()
 

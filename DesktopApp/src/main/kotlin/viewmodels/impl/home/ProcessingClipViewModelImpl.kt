@@ -2,12 +2,19 @@ package viewmodels.impl.home
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import viewmodels.api.home.HomePageClipViewModel
+import viewmodels.api.home.ProcessingClipViewModel
 import java.io.File
 
-class HomePageClipViewModelImpl(clipFile: File): HomePageClipViewModel {
+class ProcessingClipViewModelImpl(
+    private val clipId: String,
+    private val clipFile: File,
+    private val parentViewModel: Parent
+): ProcessingClipViewModel {
     /* Parent ViewModels */
+    interface Parent {
+        fun openClipInEditor(clipId: String, clipFile: File)
+        fun removeClipFromProcessing(clipId: String)
+    }
 
     /* Child ViewModels */
 
@@ -17,6 +24,13 @@ class HomePageClipViewModelImpl(clipFile: File): HomePageClipViewModel {
     override val name: String by mutableStateOf(clipFile.name)
 
     /* Callbacks */
+    override fun onOpenInEditorClick() {
+        parentViewModel.openClipInEditor(clipId, clipFile)
+    }
+
+    override fun onRemoveClick() {
+        parentViewModel.removeClipFromProcessing(clipId)
+    }
 
     /* Methods */
 

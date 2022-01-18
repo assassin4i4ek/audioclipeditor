@@ -48,7 +48,6 @@ class LameMp3Codec: SoundCodec {
 
             decoder.close()
 
-            println("${pcmBytes.size} bytes read")
             SoundCodec.Sound(audioFormat, pcmBytes)
         }
     }
@@ -80,7 +79,6 @@ class LameMp3Codec: SoundCodec {
 
                 val outSampleCount = encoder.encodeFinish(outBuffer)
                 mp3FileOutputStream.write(outBuffer,0, outSampleCount)
-                println("${pcmBytes.size} bytes written")
 
                 encoder.close()
                 mp3FileOutputStream.close()

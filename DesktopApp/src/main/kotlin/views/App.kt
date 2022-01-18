@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.window.AwtWindow
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
 import model.impl.mailing.AudioClipMailingServiceImpl
 import specs.impl.PreferenceAudioClipEditingServiceSpecs
@@ -19,15 +19,13 @@ import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
 import views.dialogs.AudioClipFileChooser
 import views.dialogs.CloseConfirmDialog
 import views.editor.EditorView
-import views.editor.OpenedClipsTabRow
+import views.tab.OpenedClipsTabRow
 import views.home.HomePage
 import views.utils.WithoutTouchSlop
-import java.awt.FileDialog
-import java.io.FilenameFilter
 
 fun App() {
     singleWindowApplication(
-        title = "Audio Clip Editor"
+        title = "Audio Clip Editor",
     ) {
         val coroutineScope = rememberCoroutineScope()
         val density = LocalDensity.current

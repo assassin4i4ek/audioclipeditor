@@ -20,6 +20,7 @@ interface OpenedClipsTabRowViewModel: BaseViewModel {
 
     /* Methods */
     fun submitClip(clipId: String, clipFile: File)
+    fun selectClip(clipId: String)
     fun removeClip(clipId: String)
     fun notifyMutated(clipId: String, mutated: Boolean)
     fun notifySaving(clipId: String, saving: Boolean)

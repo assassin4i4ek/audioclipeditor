@@ -2,10 +2,7 @@ package views.tab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -13,11 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import viewmodels.api.tab.OpenedClipTabViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -29,15 +29,19 @@ fun OpenedClipTabView(openedClipTabViewModel: OpenedClipTabViewModel) {
         text = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(openedClipTabViewModel.name)
-                Box(modifier = Modifier
-                    .padding(start = 6.dp)
-                    .clip(CircleShape)
-                    .clickable(enabled = openedClipTabViewModel.canRemoveClip, onClick = openedClipTabViewModel::onRemoveClipClick)
-                    .padding(2.dp)
-                    .pointerMoveFilter(
-                        onEnter = openedClipTabViewModel::onHoverCloseButtonEnter,
-                        onExit = openedClipTabViewModel::onHoverCloseButtonExit
-                    )
+                Box(
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            enabled = openedClipTabViewModel.canRemoveClip,
+                            onClick = openedClipTabViewModel::onRemoveClipClick
+                        )
+                        .padding(2.dp)
+                        .pointerMoveFilter(
+                            onEnter = openedClipTabViewModel::onHoverCloseButtonEnter,
+                            onExit = openedClipTabViewModel::onHoverCloseButtonExit
+                        )
                 ) {
                     if (openedClipTabViewModel.canRemoveClip) {
 
@@ -47,9 +51,7 @@ fun OpenedClipTabView(openedClipTabViewModel: OpenedClipTabViewModel) {
                                     .padding(3.dp)
                                     .size(12.dp)
                                     .background(MaterialTheme.colors.surface.copy(alpha = 0.4f), CircleShape)
-                            ) {
-
-                            }
+                            )
                         } else {
                             Icon(
                                 painter = useResource("icons/close_black_24dp.svg") {
@@ -59,8 +61,7 @@ fun OpenedClipTabView(openedClipTabViewModel: OpenedClipTabViewModel) {
                                 modifier = Modifier.size(18.dp),
                             )
                         }
-                    }
-                    else {
+                    } else {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             color = MaterialTheme.colors.onPrimary,
@@ -69,6 +70,9 @@ fun OpenedClipTabView(openedClipTabViewModel: OpenedClipTabViewModel) {
                     }
                 }
             }
-        }
+        },
+        modifier = if (openedClipTabViewModel.isSelected)
+            Modifier.background(MaterialTheme.colors.primarySurface)
+        else Modifier
     )
 }

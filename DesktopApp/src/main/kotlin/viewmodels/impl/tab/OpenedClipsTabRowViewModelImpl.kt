@@ -12,7 +12,7 @@ class OpenedClipsTabRowViewModelImpl(
 ): OpenedClipsTabRowViewModel, OpenedClipTabViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
-        fun tryRemoveClip(clipId: String)
+        fun tryRemoveClipFromEditor(clipId: String)
     }
 
     /* Child ViewModels */
@@ -68,7 +68,7 @@ class OpenedClipsTabRowViewModelImpl(
     }
 
     override fun tryRemoveClip(clipId: String) {
-        parentViewModel.tryRemoveClip(clipId)
+        parentViewModel.tryRemoveClipFromEditor(clipId)
     }
 
     override fun notifyMutated(clipId: String, mutated: Boolean) {

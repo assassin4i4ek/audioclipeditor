@@ -10,8 +10,8 @@ class CloseConfirmDialogViewModelImpl(
 ) : CloseConfirmDialogViewModel {
     /* Parent ViewModels */
     interface Parent {
-        fun confirmClose(clipId: String)
-        fun confirmSaveAndClose(clipId: String)
+        fun confirmCloseEditorClip(clipId: String)
+        fun confirmSaveAndCloseEditorClip(clipId: String)
     }
 
     /* Child ViewModels */
@@ -25,13 +25,13 @@ class CloseConfirmDialogViewModelImpl(
 
     /* Callbacks */
     override fun onConfirmSaveAndCloseClip() {
-        parentViewModel.confirmSaveAndClose(pendingToCloseClipId!!)
+        parentViewModel.confirmSaveAndCloseEditorClip(pendingToCloseClipId!!)
         pendingToCloseClipId = null
         _showDialog = false
     }
 
     override fun onConfirmCloseClip() {
-        parentViewModel.confirmClose(pendingToCloseClipId!!)
+        parentViewModel.confirmCloseEditorClip(pendingToCloseClipId!!)
         pendingToCloseClipId = null
 
         _showDialog = false

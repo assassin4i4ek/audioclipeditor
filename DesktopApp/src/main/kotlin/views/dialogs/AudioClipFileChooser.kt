@@ -12,25 +12,31 @@ import java.io.FilenameFilter
 fun AudioClipFileChooser(audioClipFileChooserViewModel: AudioClipFileChooserViewModel, window: Frame) {
     if (audioClipFileChooserViewModel.showFileChooser) {
         AwtWindow(
-                create = {
-                        object : FileDialog(window, "Choose audio clips to open", LOAD) {
-            init {
-                isMultipleMode = true
-                file = "*.mp3;*.json"
-                filenameFilter = FilenameFilter { _, name ->
-                        name.endsWith(".mp3") || name.endsWith(".json")
-                }
-            }
+            create = { AudioClipFileDialog(
+                audioClipFileChooserViewModel, window,
+                "Choose audio clips to open", FileDialog.LOAD
+            ) },
+            dispose = AudioClipFileDialog::dispose,
+        )
+    }
+}
 
-            override fun setVisible(isVisible: Boolean) {
-                if (!isVisible) {
-                    audioClipFileChooserViewModel.onSubmitClips(files.toList())
-                }
-                super.setVisible(isVisible)
-            }
+class AudioClipFileDialog(
+    private val audioClipFileChooserViewModel: AudioClipFileChooserViewModel,
+    window: Frame, title: String, mode: Int
+): FileDialog(window, title, mode) {
+    init {
+        isMultipleMode = true
+        file = "*.mp3;*.json"
+        filenameFilter = FilenameFilter { _, name ->
+            name.endsWith(".mp3") || name.endsWith(".json")
         }
-                        },
-        dispose = FileDialog::dispose,
-                    )
+    }
+
+    override fun setVisible(isVisible: Boolean) {
+        if (!isVisible) {
+            audioClipFileChooserViewModel.onSubmitClips(files.toList())
+        }
+        super.setVisible(isVisible)
     }
 }

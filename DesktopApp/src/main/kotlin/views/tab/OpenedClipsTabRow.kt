@@ -1,4 +1,4 @@
-package views.editor
+package views.tab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.useResource
@@ -21,16 +22,47 @@ fun OpenedClipsTabRow(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colors.primarySurface,
+        color = MaterialTheme.colors.primaryVariant,
         contentColor = MaterialTheme.colors.onPrimary
     ) {
+        Row {
+            Row(modifier = Modifier.height(IntrinsicSize.Min).wrapContentWidth(unbounded = true)) {
+                Tab(
+                    selected = openedClipsTabRowViewModel.onHomePage,
+                    onClick = openedClipsTabRowViewModel::onHomeButtonClick,
+                    modifier = if (openedClipsTabRowViewModel.onHomePage)
+                        Modifier.background(MaterialTheme.colors.primarySurface)
+                    else Modifier,
+                    text = {
+                        Icon(useResource("icons/home_black_24dp.svg") {
+                            loadSvgPainter(it, LocalDensity.current)
+                        }, "Home")
+                    }
+                )
+                Divider(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 2.dp)
+                        .background(MaterialTheme.colors.onPrimary)
+                        .fillMaxHeight()
+                        .width(1.dp)
+                )
+            }
+            LazyRow {
+                items(openedClipsTabRowViewModel.openedClips) { clipTabViewModel ->
+                    OpenedClipTabView(clipTabViewModel)
+                }
+            }
+        }
+        /*
         LazyRow {
             stickyHeader {
                 Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                     Tab(
                         selected = openedClipsTabRowViewModel.onHomePage,
                         onClick = openedClipsTabRowViewModel::onHomeButtonClick,
-                        modifier = Modifier.background(MaterialTheme.colors.primarySurface),
+                        modifier = if (openedClipsTabRowViewModel.onHomePage)
+                            Modifier.background(MaterialTheme.colors.primarySurface)
+                        else Modifier,
                         text = {
                             Icon(useResource("icons/home_black_24dp.svg") {
                                 loadSvgPainter(it, LocalDensity.current)
@@ -49,5 +81,7 @@ fun OpenedClipsTabRow(
                 OpenedClipTabView(clipTabViewModel)
             }
         }
+
+         */
     }
 }

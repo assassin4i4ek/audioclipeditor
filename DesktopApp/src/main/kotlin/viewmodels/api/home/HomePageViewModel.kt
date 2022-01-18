@@ -1,7 +1,6 @@
 package viewmodels.api.home
 
 import viewmodels.api.BaseViewModel
-import viewmodels.api.tab.OpenedClipTabViewModel
 import java.io.File
 
 interface HomePageViewModel: BaseViewModel {
@@ -11,9 +10,12 @@ interface HomePageViewModel: BaseViewModel {
 
     /* Simple properties */
 
+
     /* Stateful properties */
     val canOpenClips: Boolean
-    val openedClips: List<HomePageClipViewModel>
+    val isFetchingClips: Boolean
+    val canFetchClips: Boolean
+    val processingClips: List<ProcessingClipViewModel>
 
     /* Callbacks */
     fun onOpenClipsClick()

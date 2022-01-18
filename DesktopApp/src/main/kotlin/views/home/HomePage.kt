@@ -5,18 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.loadSvgPainter
-import androidx.compose.ui.res.useResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import viewmodels.api.home.HomePageViewModel
 
 @Composable
@@ -27,40 +21,60 @@ fun HomePage(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background).padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Card(modifier = Modifier.weight(2f).fillMaxHeight()) {
+        Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Downloaded clips:", fontStyle = MaterialTheme.typography.h2.fontStyle)
+                ProvideTextStyle(MaterialTheme.typography.h6) {
+                    Text("Downloaded clips:")
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
                     val scrollState = rememberLazyListState()
-                    LazyColumn(state = scrollState, modifier = Modifier.weight(1f)) {
-                        item {
-                            Divider()
-                        }
-                        items(homePageViewModel.openedClips) { clipViewModel ->
-                            HomePageClipView(clipViewModel)
-                            Divider()
+                    LazyColumn(
+                        state = scrollState,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .border(Dp.Hairline, Color.LightGray)
+                            .weight(1f)
+                    ) {
+//                        item {
+//                            Divider()
+//                        }
+                        items(homePageViewModel.processingClips) { clipViewModel ->
+                            ProcessingClipView(clipViewModel)
+                            Divider(color = Color.LightGray)
                         }
                     }
                     VerticalScrollbar(rememberScrollbarAdapter(scrollState))
                 }
-                Row {
+                Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
                         enabled = homePageViewModel.canOpenClips,
-                        onClick = homePageViewModel::onOpenClipsClick
+                        onClick = homePageViewModel::onOpenClipsClick,
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text("Open")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        enabled = homePageViewModel.canFetchClips,
+                        onClick = homePageViewModel::onFetchClipsClick,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Fetch")
+                        if (homePageViewModel.isFetchingClips) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colors.onBackground,
+                                strokeWidth = 2.dp
+                            )
+                        }
                     }
                 }
             }
         }
-        Card(modifier = Modifier.weight(3f).fillMaxHeight()) {
+        Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Button(
-                    onClick = homePageViewModel::onFetchClipsClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Fetch")
-                }
+
             }
         }
     }

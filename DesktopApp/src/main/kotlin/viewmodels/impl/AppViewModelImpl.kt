@@ -44,7 +44,7 @@ class AppViewModelImpl(
         audioClipMailingService, this, coroutineScope
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
-        audioClipEditingService, pcmPathBuilder,this, coroutineScope, density, specs
+        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, specs
     )
     override val clipFileChooserViewModel: AudioClipFileChooserViewModel = AudioClipFileChooserViewModelImpl(
         this
@@ -76,11 +76,14 @@ class AppViewModelImpl(
         editorViewModel.submitClip(clipId, clipFile)
     }
 
-    override fun tryRemoveClip(clipId: String) {
+    override fun selectClip(clipId: String) {
+        openedClipsTabRowViewModel.selectClip(clipId)
+    }
+
+    override fun tryRemoveClipFromEditor(clipId: String) {
         if (editorViewModel.isMutated(clipId)) {
             closeConfirmDialogViewModel.confirmClose(clipId)
-        }
-        else {
+        } else {
             coroutineScope.launch {
                 editorViewModel.removeClip(clipId)
                 openedClipsTabRowViewModel.removeClip(clipId)
@@ -92,14 +95,14 @@ class AppViewModelImpl(
         openedClipsTabRowViewModel.notifyMutated(clipId, mutated)
     }
 
-    override fun confirmClose(clipId: String) {
+    override fun confirmCloseEditorClip(clipId: String) {
         coroutineScope.launch {
             editorViewModel.removeClip(clipId)
             openedClipsTabRowViewModel.removeClip(clipId)
         }
     }
 
-    override fun confirmSaveAndClose(clipId: String) {
+    override fun confirmSaveAndCloseEditorClip(clipId: String) {
         coroutineScope.launch {
             editorViewModel.saveClip(clipId)
             editorViewModel.removeClip(clipId)
@@ -111,148 +114,3 @@ class AppViewModelImpl(
         openedClipsTabRowViewModel.notifySaving(clipId, saving)
     }
 }
-/*
-class AppViewModelImpl(
-    private val audioClipEditingService: AudioClipEditingService,
-    audioClipMailingService: AudioClipMailingService,
-    pcmPathBuilder: AdvancedPcmPathBuilder,
-    coroutineScope: CoroutineScope,
-    density: Density,
-    specs: MutableEditorSpecs
-): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.ParentViewModel, EditorViewModelImpl.Parent {
-    /* Parent ViewModels */
-
-    /* Child ViewModels */
-    override val openedClipsTabRowViewModel: OpenedClipsTabRowViewModel = OpenedClipsTabRowViewModelImpl(
-        this
-    )
-    override val editorViewModel: EditorViewModel = EditorViewModelImpl(
-        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, specs
-    )
-    override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
-        audioClipMailingService, this, coroutineScope
-    )
-
-    /* Simple properties */
-    private var pendingToCloseClipId: String? = null
-
-    /* Stateful Properties */
-    override val onHomePage: Boolean get() = openedClipsTabRowViewModel.onHomePage
-
-    // File chooser
-    private var _showFileChooser by mutableStateOf(false)
-    override val canShowFileChooser: Boolean get() = !_showFileChooser
-    override val showFileChooser: Boolean get() = _showFileChooser
-    override val canOpenClips: Boolean get() = canShowFileChooser
-
-    override val selectedClipId: String? get() = openedClipsTabRowViewModel.selectedClipId
-
-    private var _showCloseConfirmDialog: Boolean by mutableStateOf(false)
-    override val showCloseConfirmDialog: Boolean get() = _showCloseConfirmDialog
-
-    /* Callbacks */
-    override fun onOpenClips() {
-        openClips()
-    }
-
-    override fun onSubmitClips(audioClipFiles: List<File>) {
-        _showFileChooser = false
-        audioClipFiles.forEach(this::submitClip)
-    }
-
-    override fun onConfirmSaveAndCloseClip() {
-        /*
-        val saveAndRemoveClipId = pendingToCloseClipId!!
-        _showCloseConfirmDialog = false
-        pendingToCloseClipId = null
-
-        coroutineScope.launch {
-            _panelViewModels[saveAndRemoveClipId]!!.save()
-            removeClip(saveAndRemoveClipId)
-        }
-         */
-    }
-
-    override fun onConfirmCloseClip() {
-        removeClip(pendingToCloseClipId!!)
-        _showCloseConfirmDialog = false
-        pendingToCloseClipId = null
-    }
-
-    override fun onDeclineCloseClip() {
-        _showCloseConfirmDialog = false
-        pendingToCloseClipId = null
-    }
-
-    /* Methods */
-    override fun submitClip(audioClipFile: File) {
-        val clipId = audioClipEditingService.getAudioClipId(audioClipFile)
-        homePageViewModel.submitClip(clipId, audioClipFile)
-        openedClipsTabRowViewModel.submitClip(clipId, audioClipFile)
-        editorViewModel.submitClip(clipId, audioClipFile)
-    }
-
-    override fun tryRemoveClip(clipId: String) {
-        /*
-        require(_panelViewModels.containsKey(clipId)) {
-            "Trying to remove panel view model with id $clipId which is absent if $_panelViewModels"
-        }
-
-        if (_panelViewModels[clipId]!!.isMutated) {
-            pendingToCloseClipId = clipId
-            _showCloseConfirmDialog = true
-        }
-        else {
-            removeClip(clipId)
-        }
-         */
-    }
-
-    private fun removeClip(clipId: String) {
-        /*
-        _panelViewModels = HashMap(_panelViewModels).apply {
-            remove(clipId)!!.close()
-        }
-        openedClipsTabViewModel.removeClip(clipId)
-
-         */
-    }
-
-    override fun openClips() {
-        _showFileChooser = true
-    }
-
-    override fun notifyMutated(clipId: String, isMutated: Boolean) {
-        openedClipsTabRowViewModel.notifyMutated(clipId, isMutated)
-    }
-
-//    override fun submitClips(audioClipFiles: List<File>) {
-        /*
-        val clipFilesToAppend = audioClipFiles
-            .associateBy { audioClipFile -> audioClipEditingService.getAudioClipId(audioClipFile) }
-            .filter { (id, _) -> !_panelViewModels.containsKey(id) }
-
-        val clipViewModelsToAppend = clipFilesToAppend
-            .mapValues { (clipId, clipFile) ->
-                ClipPanelViewModelImpl(
-                    clipFile = clipFile,
-                    clipId = clipId,
-                    parentViewModel = this,
-                    audioClipEditingService = audioClipEditingService,
-                    pcmPathBuilder = pcmPathBuilder,
-                    coroutineScope = coroutineScope,
-                    density = density,
-                    specs = specs
-                )
-            }
-
-        _panelViewModels = HashMap(_panelViewModels + clipViewModelsToAppend)
-        openedClipsTabViewModel.submitClips(
-            clipFilesToAppend.mapValues { (clipId, clipFile) ->
-                ClipTabViewModelImpl(clipFile.nameWithoutExtension, clipViewModelsToAppend[clipId]!!.isMutated)
-            }
-        )
-         */
-//    }
-}
- */

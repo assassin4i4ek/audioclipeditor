@@ -2,7 +2,7 @@ package viewmodels.api.home
 
 import viewmodels.api.BaseViewModel
 
-interface HomePageClipViewModel: BaseViewModel {
+interface ProcessingClipViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -13,6 +13,8 @@ interface HomePageClipViewModel: BaseViewModel {
     val name: String
 
     /* Callbacks */
+    fun onOpenInEditorClick()
+    fun onRemoveClick()
 
     /* Methods */
 

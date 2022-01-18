@@ -1,6 +1,7 @@
 package viewmodels.api.home
 
 import viewmodels.api.BaseViewModel
+import viewmodels.api.tab.OpenedClipTabViewModel
 import java.io.File
 
 interface HomePageViewModel: BaseViewModel {
@@ -11,12 +12,14 @@ interface HomePageViewModel: BaseViewModel {
     /* Simple properties */
 
     /* Stateful properties */
-    val canFetchAudioClips: Boolean
-    val downloadedFiles: List<File>
+    val canOpenClips: Boolean
+    val openedClips: List<HomePageClipViewModel>
 
     /* Callbacks */
-    fun onFetchAudioClipsClick()
+    fun onOpenClipsClick()
+    fun onFetchClipsClick()
 
     /* Methods */
+    fun submitClip(clipId: String, clipFile: File)
 
 }

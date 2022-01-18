@@ -1,6 +1,8 @@
 package model.impl.editor.audio
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.io.AudioClipFileIO
@@ -16,6 +18,7 @@ import model.impl.editor.audio.process.SoundProcessorImpl
 import model.impl.editor.audio.storage.Mp3SoundPatternResourceStorage
 import specs.api.immutable.AudioClipEditingServiceSpecs
 import java.io.File
+import java.util.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -35,6 +38,8 @@ class AudioClipEditingServiceImpl(
     private val supportedMetadataReaders: Map<String, AudioClipMetadataIO> = mapOf(
         "json" to AudioClipJsonMetadataIOImpl(supportedAudioReaders)
     )
+
+    private val audioClipSavingMutexes: MutableMap<AudioClip, Mutex> = mutableMapOf()
 
     init {
         /*
@@ -135,50 +140,52 @@ class AudioClipEditingServiceImpl(
         return supportedMetadataReaders[metadataFormat]!!.readClip(audioClipOrMetadataFile)
     }
 
-//    override suspend fun preprocess(audioClip: AudioClip) {
-//        preprocessRoutine.apply(audioClip)
-//    }
-
-    override fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {
-        audioClip.close()
-        player.close()
-    }
-
     override fun createPlayer(audioClip: AudioClip): AudioClipPlayer {
         return AudioClipPlayerImpl(audioClip, specs.dataLineMaxBufferDesolation)
     }
 
     @OptIn(ExperimentalTime::class)
     override suspend fun saveAudioClip(audioClip: AudioClip) {
-        audioClip.saveSrcFilePath?.let { saveSrcFilePath ->
-            val saveSrcFile = File(saveSrcFilePath)
-            val saveSrcFileFormat = saveSrcFile.extension.lowercase()
-            saveSrcFile.parentFile.mkdirs()
-            val saveTime = measureTime {
-                supportedAudioReaders[saveSrcFileFormat]!!.writeSource(audioClip, saveSrcFile)
+        audioClipSavingMutexes.getOrPut(audioClip) { Mutex() }.withLock {
+            audioClip.saveSrcFilePath?.let { saveSrcFilePath ->
+                val saveSrcFile = File(saveSrcFilePath)
+                val saveSrcFileFormat = saveSrcFile.extension.lowercase()
+                saveSrcFile.parentFile.mkdirs()
+                val saveTime = measureTime {
+                    supportedAudioReaders[saveSrcFileFormat]!!.writeSource(audioClip, saveSrcFile)
+                }
+                println("Saved source clip in $saveTime at $saveSrcFilePath")
             }
-            println("Saved source clip in $saveTime at $saveSrcFilePath")
-        }
-        audioClip.saveDstFilePath?.let { saveDstFilePath ->
-            val saveDstFile = File(saveDstFilePath)
-            val saveDstFileFormat = saveDstFile.extension.lowercase()
-            saveDstFile.parentFile.mkdirs()
-            val saveTime = measureTime {
-                supportedAudioReaders[saveDstFileFormat]!!.writeTransformed(audioClip, saveDstFile)
+            audioClip.saveDstFilePath?.let { saveDstFilePath ->
+                val saveDstFile = File(saveDstFilePath)
+                val saveDstFileFormat = saveDstFile.extension.lowercase()
+                saveDstFile.parentFile.mkdirs()
+                val saveTime = measureTime {
+                    supportedAudioReaders[saveDstFileFormat]!!.writeTransformed(audioClip, saveDstFile)
+                }
+                println("Saved transformed clip in $saveTime at $saveDstFilePath")
             }
-            println("Saved transformed clip in $saveTime at $saveDstFilePath")
-        }
-        audioClip.saveMetadataFilePath?.let { saveMetadataFilePath ->
-            val saveMetadataFile = File(saveMetadataFilePath)
-            val saveMetadataFileFormat = saveMetadataFile.extension.lowercase()
-            saveMetadataFile.parentFile.mkdirs()
-            val saveTime = measureTime {
-                supportedMetadataReaders[saveMetadataFileFormat]!!.writeMetadata(audioClip, saveMetadataFile)
+            audioClip.saveMetadataFilePath?.let { saveMetadataFilePath ->
+                val saveMetadataFile = File(saveMetadataFilePath)
+                val saveMetadataFileFormat = saveMetadataFile.extension.lowercase()
+                saveMetadataFile.parentFile.mkdirs()
+                val saveTime = measureTime {
+                    supportedMetadataReaders[saveMetadataFileFormat]!!.writeMetadata(audioClip, saveMetadataFile)
+                }
+                println("Saved clip metadata in $saveTime at $saveMetadataFilePath")
             }
-            println("Saved clip metadata in $saveTime at $saveMetadataFilePath")
-        }
 
-        audioClip.notifySaved()
+            audioClip.notifySaved()
+        }
+        audioClipSavingMutexes.remove(audioClip)
+    }
+
+    override suspend fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {
+        audioClipSavingMutexes.getOrPut(audioClip) { Mutex() }.withLock {
+            audioClip.close()
+            player.close()
+        }
+        audioClipSavingMutexes.remove(audioClip)
     }
 
     override suspend fun resolveFragments(audioClip: AudioClip) {

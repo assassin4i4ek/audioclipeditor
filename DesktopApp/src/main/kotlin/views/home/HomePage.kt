@@ -36,17 +36,18 @@ fun HomePage(
                         item {
                             Divider()
                         }
-                        items(homePageViewModel.downloadedFiles) { clipFile ->
-                            Row(modifier = Modifier.padding(16.dp, 12.dp)) {
-                                Text(clipFile.name)
-                            }
+                        items(homePageViewModel.openedClips) { clipViewModel ->
+                            HomePageClipView(clipViewModel)
                             Divider()
                         }
                     }
                     VerticalScrollbar(rememberScrollbarAdapter(scrollState))
                 }
                 Row {
-                    Button(onClick = {}) {
+                    Button(
+                        enabled = homePageViewModel.canOpenClips,
+                        onClick = homePageViewModel::onOpenClipsClick
+                    ) {
                         Text("Open")
                     }
                 }
@@ -55,7 +56,7 @@ fun HomePage(
         Card(modifier = Modifier.weight(3f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Button(
-                    onClick = homePageViewModel::onFetchAudioClipsClick,
+                    onClick = homePageViewModel::onFetchClipsClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Fetch")
@@ -63,48 +64,4 @@ fun HomePage(
             }
         }
     }
-
-    /*
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        items(homePageViewModel.downloadedFiles) { clipFile ->
-            Box(modifier = Modifier.padding(8.dp, 12.dp)) {
-                Text(clipFile.name)
-            }
-        }
-    }
-
-    Button(
-        enabled = homePageViewModel.canFetchAudioClips,
-        onClick = homePageViewModel::onFetchAudioClipsClick
-    ) {
-        Icon(
-            useResource("icons/folder_open_black_24dp.svg") {
-                loadSvgPainter(it, LocalDensity.current)
-            }, "Open",
-        )
-    }
-     */
-
-    /*
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(60.dp), contentAlignment = Alignment.Center) {
-        Box(modifier = Modifier
-            .size(min(minWidth, minHeight))
-            .clip(CircleShape)
-//            .clickable(clipEditorViewModel.canShowFileChooser) {
-//                clipEditorViewModel.onOpenClips()
-//            }
-            .border(
-                8.dp, MaterialTheme.colors.primary, CircleShape
-            )
-        ) {
-            Icon(
-                useResource("icons/folder_open_black_24dp.svg") {
-                    loadSvgPainter(it, LocalDensity.current)
-                }, "Open",
-                modifier = Modifier.matchParentSize().padding(40.dp),
-                tint = MaterialTheme.colors.primary
-            )
-        }
-    }
-     */
 }

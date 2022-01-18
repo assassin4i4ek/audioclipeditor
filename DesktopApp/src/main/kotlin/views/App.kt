@@ -13,11 +13,13 @@ import model.impl.mailing.AudioClipMailingServiceImpl
 import specs.impl.PreferenceAudioClipEditingServiceSpecs
 import specs.impl.PreferenceEditorSpecs
 import utils.ComposeResourceResolverImpl
+import viewmodels.api.AppViewModel
 import viewmodels.impl.AppViewModelImpl
 import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
-import views.editor.CloseConfirmDialog
-import views.editor.OpenedClipsTab
-import views.editor.panel.ClipPanel
+import views.dialogs.AudioClipFileChooser
+import views.dialogs.CloseConfirmDialog
+import views.editor.EditorView
+import views.editor.OpenedClipsTabRow
 import views.home.HomePage
 import views.utils.WithoutTouchSlop
 import java.awt.FileDialog
@@ -29,7 +31,7 @@ fun App() {
     ) {
         val coroutineScope = rememberCoroutineScope()
         val density = LocalDensity.current
-        val appViewModel = remember {
+        val appViewModel: AppViewModel = remember {
             val preferenceAudioServiceSpecs = PreferenceAudioClipEditingServiceSpecs()
             val preferenceEditorSpecs = PreferenceEditorSpecs()
             preferenceAudioServiceSpecs.reset()
@@ -53,8 +55,8 @@ fun App() {
                     background = Color(0xFFF5F5F5),
                 )
             ) {
-                // Fix touchSlope in ViewConfiguration
                 /*
+                // Fix touchSlope in ViewConfiguration
                 with(LocalViewConfiguration.current) {
                     val densityField = this.javaClass.getDeclaredField("density")
                     val isDensityFieldAccessible = densityField.canAccess(this)
@@ -67,46 +69,15 @@ fun App() {
                     densityField.isAccessible = isDensityFieldAccessible
                 }
                  */
-                //
-
-                if (appViewModel.showFileChooser) {
-                    AwtWindow(
-                        create = {
-                            object : FileDialog(window, "Choose audio clips to open", LOAD) {
-                                init {
-                                    isMultipleMode = true
-                                    file = "*.mp3;*.json"
-                                    filenameFilter = FilenameFilter { _, name ->
-                                        name.endsWith(".mp3") || name.endsWith(".json")
-                                    }
-                                }
-
-                                override fun setVisible(isVisible: Boolean) {
-                                    if (!isVisible) {
-                                        appViewModel.onSubmitClips(
-                                            files.filter {
-                                                filenameFilter.accept(it.parentFile, it.name)
-                                            }
-                                        )
-                                    }
-                                    super.setVisible(isVisible)
-                                }
-                            }
-                        },
-                        dispose = FileDialog::dispose,
-                    )
-                }
-
-                if (appViewModel.showCloseConfirmDialog) {
-                    CloseConfirmDialog(appViewModel)
-                }
+                AudioClipFileChooser(appViewModel.clipFileChooserViewModel, window)
+                CloseConfirmDialog(appViewModel.closeConfirmDialogViewModel)
 
                 Column {
-                    OpenedClipsTab(appViewModel.openedClipsTabViewModel)
-                    if (appViewModel.selectedPanel != null) {
-                        ClipPanel(appViewModel.selectedPanel!!)
-                    } else {
+                    OpenedClipsTabRow(appViewModel.openedClipsTabRowViewModel)
+                    if (appViewModel.onHomePage) {
                         HomePage(appViewModel.homePageViewModel)
+                    } else {
+                        EditorView(appViewModel.editorViewModel)
                     }
                 }
             }

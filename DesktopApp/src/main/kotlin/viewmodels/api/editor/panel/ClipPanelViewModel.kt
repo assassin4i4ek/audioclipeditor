@@ -75,5 +75,5 @@ interface ClipPanelViewModel: BaseViewModel {
 
     /* Methods */
     suspend fun save()
-    fun close()
+    suspend fun close()
 }

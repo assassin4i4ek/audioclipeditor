@@ -1,8 +1,9 @@
 package viewmodels.api
 
-import viewmodels.api.BaseViewModel
-import viewmodels.api.editor.panel.ClipPanelViewModel
-import viewmodels.api.editor.tab.OpenedClipsTabViewModel
+import viewmodels.api.dialogs.AudioClipFileChooserViewModel
+import viewmodels.api.dialogs.CloseConfirmDialogViewModel
+import viewmodels.api.editor.EditorViewModel
+import viewmodels.api.tab.OpenedClipsTabRowViewModel
 import viewmodels.api.home.HomePageViewModel
 import java.io.File
 
@@ -10,24 +11,18 @@ interface AppViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
-    val openedClipsTabViewModel: OpenedClipsTabViewModel
+    val openedClipsTabRowViewModel: OpenedClipsTabRowViewModel
+    val editorViewModel: EditorViewModel
     val homePageViewModel: HomePageViewModel
+    val clipFileChooserViewModel: AudioClipFileChooserViewModel
+    val closeConfirmDialogViewModel: CloseConfirmDialogViewModel
 
     /* Simple properties */
 
     /* Stateful properties */
-    val canShowFileChooser: Boolean
-    val showFileChooser: Boolean
-    val selectedPanel: ClipPanelViewModel?
-    val showCloseConfirmDialog: Boolean
+    val onHomePage: Boolean
 
     /* Callbacks */
-    fun onOpenClips()
-    fun onSubmitClips(audioClipFiles: List<File>)
-    fun onConfirmSaveAndCloseClip()
-    fun onConfirmCloseClip()
-    fun onDeclineCloseClip()
 
     /* Methods */
-    fun submitClips(audioClipFiles: List<File>)
 }

@@ -17,5 +17,5 @@ interface AudioClipEditingService {
     suspend fun resolveFragments(audioClip: AudioClip)
 
     suspend fun saveAudioClip(audioClip: AudioClip)
-    fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer)
+    suspend fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer)
 }

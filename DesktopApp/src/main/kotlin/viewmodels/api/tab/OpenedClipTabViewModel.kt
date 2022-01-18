@@ -1,8 +1,8 @@
-package viewmodels.api.editor.tab
+package viewmodels.api.tab
 
 import viewmodels.api.BaseViewModel
 
-interface ClipTabViewModel: BaseViewModel {
+interface OpenedClipTabViewModel: BaseViewModel {
     /* Parent ViewModels */
 
     /* Child ViewModels */
@@ -11,13 +11,18 @@ interface ClipTabViewModel: BaseViewModel {
 
     /* Stateful properties */
     val name: String
+    val isSelected: Boolean
+    val canRemoveClip: Boolean
     val isMutated: Boolean
     val isMouseHoverCloseButton: Boolean
 
     /* Callbacks */
+    fun onSelectClipClick()
+    fun onRemoveClipClick()
     fun onHoverCloseButtonEnter(): Boolean
     fun onHoverCloseButtonExit(): Boolean
 
     /* Methods */
-    fun updateMutated(isMutated: Boolean)
+    fun notifyMutated(mutated: Boolean)
+    fun notifySaving(saving: Boolean)
 }

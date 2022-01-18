@@ -40,8 +40,8 @@ import viewmodels.impl.utils.FragmentEasing
 import java.io.File
 
 class ClipPanelViewModelImpl(
-    clipFile: File,
     private val clipId: String,
+    clipFile: File,
     private val parentViewModel: Parent,
     private val audioClipEditingService: AudioClipEditingService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
@@ -53,7 +53,8 @@ class ClipPanelViewModelImpl(
     interface Parent {
         val canOpenClips: Boolean
         fun openClips()
-        fun notifyMutated(clipId: String)
+        fun notifyMutated(clipId: String, mutated: Boolean)
+        fun notifySaving(clipId: String, saving: Boolean)
     }
 
     /* Child ViewModels */
@@ -335,13 +336,12 @@ class ClipPanelViewModelImpl(
                 editableFragmentSetViewModel.submitFragment(it)
                 globalFragmentSetViewModel.submitFragment(it)
             }
+            // handle mutation notification
+            _isMutated = audioClip.isMutated
+            parentViewModel.notifyMutated(clipId, isMutated)
             audioClip.onMutate {
                 _isMutated = audioClip.isMutated
-                parentViewModel.notifyMutated(clipId)
-            }
-            _isMutated = audioClip.isMutated
-            if (isMutated) {
-                parentViewModel.notifyMutated(clipId)
+                parentViewModel.notifyMutated(clipId, isMutated)
             }
 
             _isLoading = false
@@ -522,13 +522,15 @@ class ClipPanelViewModelImpl(
 
     override suspend fun save() {
         _isLoading = true
+        parentViewModel.notifySaving(clipId, true)
 //        val audioClipFilename = File(audioClip.filePath).name
 //        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
         audioClipEditingService.saveAudioClip(audioClip)
+        parentViewModel.notifySaving(clipId, false)
         _isLoading = false
     }
 
-    override fun close() {
+    override suspend fun close() {
         audioClipEditingService.closeAudioClip(audioClip, player)
     }
 }

@@ -74,7 +74,20 @@ fun HomePage(
         }
         Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp)) {
-
+                Button(
+                    enabled = homePageViewModel.canProcessClips,
+                    onClick = homePageViewModel::onProcessClipsClick
+                ) {
+                    Text("Process")
+                    if (homePageViewModel.isProcessingClips) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = MaterialTheme.colors.onBackground,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
             }
         }
     }

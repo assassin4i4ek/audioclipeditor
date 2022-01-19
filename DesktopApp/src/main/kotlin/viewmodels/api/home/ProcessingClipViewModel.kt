@@ -11,6 +11,8 @@ interface ProcessingClipViewModel: BaseViewModel {
 
     /* Stateful properties */
     val name: String
+    val canOpenInEditorClip: Boolean
+    val canRemoveClip: Boolean
 
     /* Callbacks */
     fun onOpenInEditorClick()

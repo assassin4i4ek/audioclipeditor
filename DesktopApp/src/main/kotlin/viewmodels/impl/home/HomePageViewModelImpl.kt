@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.api.mailing.AudioClipMailingService
+import specs.api.immutable.ProcessingSpecs
 import viewmodels.api.home.HomePageViewModel
 import viewmodels.api.home.ProcessingClipViewModel
 import java.io.File
@@ -14,7 +16,8 @@ import java.io.File
 class HomePageViewModelImpl(
     private val audioClipMailingService: AudioClipMailingService,
     private val parentViewModel: Parent,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    private val specs: ProcessingSpecs
 ): HomePageViewModel, ProcessingClipViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
@@ -31,9 +34,13 @@ class HomePageViewModelImpl(
     /* Stateful properties */
     private var _isFetching: Boolean by mutableStateOf(false)
     override val isFetchingClips: Boolean get() = _isFetching
-    override val canFetchClips: Boolean get() = !_isFetching
+    override val canFetchClips: Boolean get() = !_isFetching && !_isProcessing
 
-    override val canOpenClips: Boolean get() = parentViewModel.canOpenClips
+    override val canOpenClips: Boolean get() = parentViewModel.canOpenClips && !_isProcessing
+
+    private var _isProcessing: Boolean by mutableStateOf(false)
+    override val canProcessClips: Boolean get() = !_isFetching && !_isProcessing && _processingClips.isNotEmpty()
+    override val isProcessingClips: Boolean get() = _isProcessing
 
     private var _processingClips: Map<String, ProcessingClipViewModel> by mutableStateOf(LinkedHashMap())
     override val processingClips: List<ProcessingClipViewModel> get() = _processingClips.values.toList()
@@ -44,16 +51,20 @@ class HomePageViewModelImpl(
     }
 
     override fun onFetchClipsClick() {
-        coroutineScope.launch {
-            _isFetching = true
-            audioClipMailingService.fetchAudioClipFromMailBox().collect { clipFile ->
-                parentViewModel.submitClip(clipFile)
-            }
-            _isFetching = false
-        }
+        fetchClips()
+    }
+
+    override fun onProcessClipsClick() {
+        processClips()
     }
 
     /* Methods */
+    init {
+        if (specs.fetchClipsOnAppStart) {
+            fetchClips()
+        }
+    }
+
     override fun submitClip(clipId: String, clipFile: File) {
         if (!_processingClips.containsKey(clipId)) {
             _processingClips = LinkedHashMap(_processingClips) + (clipId to ProcessingClipViewModelImpl(clipId, clipFile, this))
@@ -63,6 +74,36 @@ class HomePageViewModelImpl(
     override fun openClipInEditor(clipId: String, clipFile: File) {
         parentViewModel.submitClip(clipFile)
         parentViewModel.selectClip(clipId)
+    }
+
+    private fun fetchClips() {
+        coroutineScope.launch {
+            _isFetching = true
+            audioClipMailingService.fetchAudioClipFromMailBox().collect { clipFile ->
+                parentViewModel.submitClip(clipFile)
+            }
+            _isFetching = false
+        }
+    }
+
+    private fun processClips() {
+        coroutineScope.launch {
+            _isProcessing = true
+            // save
+            // send
+            // account
+            // remove
+            delay(5000)
+            _isProcessing = false
+        }
+    }
+
+    override fun canOpenInEditorClip(clipId: String): Boolean {
+        return !_isProcessing
+    }
+
+    override fun canRemoveClip(clipId: String): Boolean {
+        return !_isProcessing
     }
 
     override fun removeClipFromProcessing(clipId: String) {

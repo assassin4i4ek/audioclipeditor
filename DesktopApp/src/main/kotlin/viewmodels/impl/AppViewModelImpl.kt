@@ -1,15 +1,11 @@
 package viewmodels.impl
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.api.editor.audio.AudioClipEditingService
 import model.api.mailing.AudioClipMailingService
+import specs.api.immutable.ProcessingSpecs
 import specs.api.mutable.MutableEditorSpecs
 import viewmodels.api.AppViewModel
 import viewmodels.api.dialogs.AudioClipFileChooserViewModel
@@ -31,7 +27,8 @@ class AppViewModelImpl(
     pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     density: Density,
-    specs: MutableEditorSpecs
+    editorSpecs: MutableEditorSpecs,
+    processingSpecs: ProcessingSpecs,
 ): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.Parent, EditorViewModelImpl.Parent,
     CloseConfirmDialogViewModelImpl.Parent, AudioClipFileChooserViewModelImpl.Parent {
     /* Parent ViewModels */
@@ -41,10 +38,10 @@ class AppViewModelImpl(
         this
     )
     override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
-        audioClipMailingService, this, coroutineScope
+        audioClipMailingService, this, coroutineScope, processingSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
-        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, specs
+        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs
     )
     override val clipFileChooserViewModel: AudioClipFileChooserViewModel = AudioClipFileChooserViewModelImpl(
         this

@@ -316,8 +316,8 @@ class ClipPanelViewModelImpl(
     /* Methods */
     init {
         coroutineScope.launch {
-            val saveSrcFile = specs.defaultSrcClipSavingDir.resolve(clipFile.name)
-            val saveDstFile = specs.defaultDstClipSavingDir.resolve(clipFile.name)
+            val saveSrcFile = specs.defaultDstPreprocessedClipSavingDir.resolve(clipFile.name)
+            val saveDstFile = specs.defaultDstTransformedClipSavingDir.resolve(clipFile.name)
             val saveMetadataFile = specs.defaultClipMetadataSavingDir.resolve(clipFile.nameWithoutExtension + ".json")
             audioClip = if (audioClipEditingService.isAudioClipFile(clipFile)) {
                 audioClipEditingService.openAudioClipFromFile(clipFile, saveSrcFile, saveDstFile, saveMetadataFile)

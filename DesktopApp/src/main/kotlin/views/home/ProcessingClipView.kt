@@ -29,9 +29,14 @@ fun ProcessingClipView(processingClipViewModel: ProcessingClipViewModel) {
                 loadSvgPainter(it, LocalDensity.current)
             },
             "Open In Editor",
-            Modifier.clip(MaterialTheme.shapes.small)
-                .clickable(onClick = processingClipViewModel::onOpenInEditorClick),
-            MaterialTheme.colors.primary
+            Modifier.clip(MaterialTheme.shapes.small).clickable(
+                enabled = processingClipViewModel.canOpenInEditorClip,
+                onClick = processingClipViewModel::onOpenInEditorClick
+            ),
+            if (processingClipViewModel.canOpenInEditorClip)
+                MaterialTheme.colors.primary
+            else
+                Color.Gray
         )
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
@@ -39,8 +44,14 @@ fun ProcessingClipView(processingClipViewModel: ProcessingClipViewModel) {
                 loadSvgPainter(it, LocalDensity.current)
             },
             "Remove From Processing",
-            Modifier.clip(MaterialTheme.shapes.small).clickable(onClick = processingClipViewModel::onRemoveClick),
-            MaterialTheme.colors.error
+            Modifier.clip(MaterialTheme.shapes.small).clickable(
+                enabled = processingClipViewModel.canRemoveClip,
+                onClick = processingClipViewModel::onRemoveClick
+            ),
+            if (processingClipViewModel.canRemoveClip)
+                MaterialTheme.colors.error
+            else
+                Color.Gray
         )
     }
 }

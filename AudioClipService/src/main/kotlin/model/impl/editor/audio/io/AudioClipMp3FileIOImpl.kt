@@ -1,6 +1,7 @@
 package model.impl.editor.audio.io
 
 import model.api.editor.audio.clip.AudioClip
+import model.api.editor.audio.clip.AudioClipSaveInfo
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.process.SoundProcessor
@@ -20,9 +21,7 @@ open class AudioClipMp3FileIOImpl(
     private val mp3Codec: SoundCodec = LameMp3Codec()
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun readClip(
-        audioClipFile: File, saveSrcFile: File?, saveDstFile: File?, saveMetadataFile: File?
-    ): AudioClip {
+    override suspend fun readClip(audioClipFile: File, audioClipSaveInfo: AudioClipSaveInfo): AudioClip {
         val (audioClip, decodingTime) = measureTimedValue {
             val decodedSound = mp3Codec.decode(audioClipFile.absolutePath)
 
@@ -36,8 +35,7 @@ open class AudioClipMp3FileIOImpl(
                     * 1e6 / sampleRate).toLong()
 
             AudioClipImpl(
-                audioClipFile.absolutePath, saveSrcFile?.absolutePath, saveDstFile?.absolutePath,
-                saveMetadataFile?.absolutePath, durationUs, decodedSound.audioFormat,
+                audioClipFile.absolutePath, audioClipSaveInfo, durationUs, decodedSound.audioFormat,
                 pcmByteArray, channelsPcm, soundPatternStorage, specs
             )
         }
@@ -46,7 +44,7 @@ open class AudioClipMp3FileIOImpl(
         return audioClip
     }
 
-    override suspend fun writeSource(audioClip: AudioClip, audioClipFile: File) {
+    override suspend fun writePreprocessed(audioClip: AudioClip, audioClipFile: File) {
         val clipEndPosition = audioClip.toPcmBytePosition(audioClip.durationUs)
         val pcmBytes = ByteArray(clipEndPosition.toInt())
         audioClip.readPcmBytes(0, clipEndPosition, pcmBytes)

@@ -8,7 +8,10 @@ interface AudioClipEditingService {
     fun isAudioClipMetadataFile(audioClipOrMetadataFile: File): Boolean
 
     fun getAudioClipId(audioClipOrMetadataFile: File): String
-    suspend fun openAudioClipFromFile(audioClipFile: File, saveSrcFile: File?, saveDstFile: File?, saveMetadataFile: File?): AudioClip
+    suspend fun openAudioClipFromFile(
+        audioClipSrcRawFile: File, saveDstPreprocessedFile: File,
+        saveDstTransformedFile: File, saveDstMetadataFile: File
+    ): AudioClip
     suspend fun openAudioClipFromMetadataFile(audioClipOrMetadataFile: File): AudioClip
 
     fun createPlayer(audioClip: AudioClip): AudioClipPlayer

@@ -7,11 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
 import model.impl.mailing.AudioClipMailingServiceImpl
 import specs.impl.PreferenceAudioClipEditingServiceSpecs
 import specs.impl.PreferenceEditorSpecs
+import specs.impl.PreferenceProcessingSpecs
 import utils.ComposeResourceResolverImpl
 import viewmodels.api.AppViewModel
 import viewmodels.impl.AppViewModelImpl
@@ -32,7 +32,11 @@ fun App() {
         val appViewModel: AppViewModel = remember {
             val preferenceAudioServiceSpecs = PreferenceAudioClipEditingServiceSpecs()
             val preferenceEditorSpecs = PreferenceEditorSpecs()
+            val preferenceProcessingSpecs = PreferenceProcessingSpecs()
+
+            // TODO remove reset() call
             preferenceAudioServiceSpecs.reset()
+            preferenceEditorSpecs.reset()
             preferenceEditorSpecs.reset()
 
             AppViewModelImpl(
@@ -43,7 +47,8 @@ fun App() {
                 pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
                 coroutineScope = coroutineScope,
                 density = density,
-                specs = preferenceEditorSpecs
+                editorSpecs = preferenceEditorSpecs,
+                processingSpecs = preferenceProcessingSpecs
             )
         }
 

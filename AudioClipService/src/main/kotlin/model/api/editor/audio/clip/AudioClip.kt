@@ -2,6 +2,7 @@ package model.api.editor.audio.clip
 
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
+import java.io.File
 import java.io.OutputStream
 import java.util.*
 import javax.sound.sampled.AudioFormat
@@ -16,10 +17,8 @@ interface AudioClip: AudioPcm {
     val fragments: Set<MutableAudioClipFragment>
     val isMutated: Boolean
 
-    val srcFilePath: String
-    val saveSrcFilePath: String?
-    val saveDstFilePath: String?
-    val saveMetadataFilePath: String?
+    val srcRawClipFilePath: String
+    val saveInfo: AudioClipSaveInfo
 
     fun readPcmBytes(startPosition: Long, size: Long, buffer: ByteArray)
     fun readPcmBytes(startPosition: Long, size: Long, outputStream: OutputStream)

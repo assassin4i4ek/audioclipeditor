@@ -13,6 +13,8 @@ class ProcessingClipViewModelImpl(
     /* Parent ViewModels */
     interface Parent {
         fun openClipInEditor(clipId: String, clipFile: File)
+        fun canOpenInEditorClip(clipId: String): Boolean
+        fun canRemoveClip(clipId: String): Boolean
         fun removeClipFromProcessing(clipId: String)
     }
 
@@ -22,6 +24,9 @@ class ProcessingClipViewModelImpl(
 
     /* Stateful properties */
     override val name: String by mutableStateOf(clipFile.name)
+
+    override val canOpenInEditorClip: Boolean get() = parentViewModel.canOpenInEditorClip(clipId)
+    override val canRemoveClip: Boolean get() = parentViewModel.canRemoveClip(clipId)
 
     /* Callbacks */
     override fun onOpenInEditorClick() {

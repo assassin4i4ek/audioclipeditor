@@ -69,18 +69,18 @@ class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpe
         50e3.toLong(), ::silenceTransformerSilenceDurationUsIncrementStep
     )
 
-    override var defaultSrcClipSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Clips").resolve("Source Clips"),
-        ::defaultSrcClipSavingDir
+    override var defaultDstPreprocessedClipSavingDir: File by savableProperty(
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Preprocessed Clips"),
+        ::defaultDstPreprocessedClipSavingDir
     )
 
-    override var defaultDstClipSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Clips").resolve("Processed Clips"),
-        ::defaultDstClipSavingDir
+    override var defaultDstTransformedClipSavingDir: File by savableProperty(
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Transformed Clips"),
+        ::defaultDstTransformedClipSavingDir
     )
 
     override var defaultClipMetadataSavingDir: File by savableProperty(
-        File(System.getProperty("user.dir")).resolve("Clips").resolve("Processed Clips Metadata"),
+        File(System.getProperty("user.dir")).resolve("Clips").resolve("Transformed Clips Metadata"),
         ::defaultClipMetadataSavingDir
     )
 }

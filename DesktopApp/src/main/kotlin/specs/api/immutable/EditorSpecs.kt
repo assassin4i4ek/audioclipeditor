@@ -26,7 +26,7 @@ interface EditorSpecs {
 
     val silenceTransformerSilenceDurationUsIncrementStep: Long
 
-    val defaultSrcClipSavingDir: File
-    val defaultDstClipSavingDir: File
+    val defaultDstPreprocessedClipSavingDir: File
+    val defaultDstTransformedClipSavingDir: File
     val defaultClipMetadataSavingDir: File
 }

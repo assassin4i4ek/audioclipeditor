@@ -35,7 +35,7 @@ message SerializedAudioClip {
     SerializedTransformer transformer = 5;
   }
 
-  optional string srcFilePath = 1;
-  optional string dstFilePath = 2;
+  string preprocessedFilePath = 1;
+  string transformedFilePath = 2;
   repeated SerializedFragment fragments = 3;
 }

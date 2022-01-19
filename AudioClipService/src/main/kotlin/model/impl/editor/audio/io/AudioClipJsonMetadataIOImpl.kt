@@ -8,6 +8,7 @@ import com.google.protobuf.util.JsonFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.api.editor.audio.clip.AudioClip
+import model.api.editor.audio.clip.AudioClipSaveInfo
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.io.AudioClipMetadataIO
@@ -19,22 +20,19 @@ class AudioClipJsonMetadataIOImpl(
 ): AudioClipMetadataIO {
     override fun getSrcFilePath(metadataFile: File): String {
         val serializedAudioClip = readSerializedAudioClip(metadataFile)
-        return serializedAudioClip.srcFilePath
+        return serializedAudioClip.preprocessedFilePath
     }
 
     override suspend fun readClip(metadataFile: File): AudioClip {
         return withContext(Dispatchers.IO) {
             val serializedAudioClip = readSerializedAudioClip(metadataFile)
             // read source audio clip
-            val srcAudioClipFile = File(serializedAudioClip.srcFilePath)
-
-            val dstAudioClipFile = if (serializedAudioClip.hasDstFilePath()) {
-                File(serializedAudioClip.dstFilePath)
-            }
-            else null
-
-            val restoredAudioClip = supportedAudioReaders[srcAudioClipFile.extension.lowercase()]!!
-                .readClip(srcAudioClipFile, srcAudioClipFile, dstAudioClipFile, metadataFile)
+            val preprocessedAudioClipFile = File(serializedAudioClip.preprocessedFilePath)
+            val saveInfo = AudioClipSaveInfo(
+                serializedAudioClip.preprocessedFilePath, serializedAudioClip.transformedFilePath, metadataFile.absolutePath
+            )
+            val restoredAudioClip = supportedAudioReaders[preprocessedAudioClipFile.extension.lowercase()]!!
+                .readClip(preprocessedAudioClipFile, saveInfo)
             // handle fragments
             for (serializedFragment in serializedAudioClip.fragmentsList) {
                 val fragment = restoredAudioClip.createMinDurationFragmentAtStart(serializedFragment.mutableAreaStartUs)
@@ -77,8 +75,8 @@ class AudioClipJsonMetadataIOImpl(
     override suspend fun writeMetadata(audioClip: AudioClip, metadataFile: File) {
         withContext(Dispatchers.IO) {
             val serializedAudioClip = serializedAudioClip {
-                srcFilePath = audioClip.saveSrcFilePath ?: audioClip.srcFilePath
-                audioClip.saveDstFilePath?.let { dstFilePath = it }
+                preprocessedFilePath = audioClip.saveInfo.dstPreprocessedClipFilePath
+                transformedFilePath = audioClip.saveInfo.dstTransformedClipFilePath
                 // prepare fragments
                 val serializedFragments = audioClip.fragments.map { fragment ->
                     val fragmentTransformer = fragment.transformer

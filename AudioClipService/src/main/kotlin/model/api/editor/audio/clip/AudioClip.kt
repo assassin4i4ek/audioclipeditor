@@ -8,6 +8,7 @@ import java.util.*
 import javax.sound.sampled.AudioFormat
 
 interface AudioClip: AudioPcm {
+    val fileName: String
     val durationUs: Long
     val audioFormat: AudioFormat
     val channelsPcm: List<FloatArray>
@@ -16,9 +17,6 @@ interface AudioClip: AudioPcm {
 
     val fragments: Set<MutableAudioClipFragment>
     val isMutated: Boolean
-
-    val srcRawClipFilePath: String
-    val saveInfo: AudioClipSaveInfo
 
     fun readPcmBytes(startPosition: Long, size: Long, buffer: ByteArray)
     fun readPcmBytes(startPosition: Long, size: Long, outputStream: OutputStream)

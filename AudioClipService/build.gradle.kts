@@ -25,6 +25,9 @@ dependencies {
 
     implementation("com.laszlosystems:libresample4j:1.0")
 
+    implementation("org.apache.poi:poi:4.1.2")
+    implementation("org.apache.poi:poi-ooxml:4.1.2")
+
     implementation(project(":FragmentResolverModelProto"))
     implementation(project(":AudioClipServiceProto"))
 }

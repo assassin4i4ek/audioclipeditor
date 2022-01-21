@@ -8,7 +8,7 @@ import com.google.protobuf.util.JsonFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.api.editor.audio.clip.AudioClip
-import model.api.editor.audio.clip.AudioClipSaveInfo
+import model.api.editor.audio.AudioClipSaveInfo
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.io.AudioClipMetadataIO
@@ -28,11 +28,9 @@ class AudioClipJsonMetadataIOImpl(
             val serializedAudioClip = readSerializedAudioClip(metadataFile)
             // read source audio clip
             val preprocessedAudioClipFile = File(serializedAudioClip.preprocessedFilePath)
-            val saveInfo = AudioClipSaveInfo(
-                serializedAudioClip.preprocessedFilePath, serializedAudioClip.transformedFilePath, metadataFile.absolutePath
-            )
+
             val restoredAudioClip = supportedAudioReaders[preprocessedAudioClipFile.extension.lowercase()]!!
-                .readClip(preprocessedAudioClipFile, saveInfo)
+                .readClip(preprocessedAudioClipFile)
             // handle fragments
             for (serializedFragment in serializedAudioClip.fragmentsList) {
                 val fragment = restoredAudioClip.createMinDurationFragmentAtStart(serializedFragment.mutableAreaStartUs)
@@ -72,11 +70,10 @@ class AudioClipJsonMetadataIOImpl(
         return serializedAudioClipBuilder.build()
     }
 
-    override suspend fun writeMetadata(audioClip: AudioClip, metadataFile: File) {
+    override suspend fun writeMetadata(audioClip: AudioClip, metadataFile: File, preprocessedClipSaveFile: File) {
         withContext(Dispatchers.IO) {
             val serializedAudioClip = serializedAudioClip {
-                preprocessedFilePath = audioClip.saveInfo.dstPreprocessedClipFilePath
-                transformedFilePath = audioClip.saveInfo.dstTransformedClipFilePath
+                preprocessedFilePath = preprocessedClipSaveFile.absolutePath
                 // prepare fragments
                 val serializedFragments = audioClip.fragments.map { fragment ->
                     val fragmentTransformer = fragment.transformer

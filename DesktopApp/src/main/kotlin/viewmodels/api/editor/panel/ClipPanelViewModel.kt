@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.unit.Dp
+import model.api.editor.audio.AudioClipSaveInfo
 import specs.api.immutable.InputDevice
 import viewmodels.api.BaseViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel

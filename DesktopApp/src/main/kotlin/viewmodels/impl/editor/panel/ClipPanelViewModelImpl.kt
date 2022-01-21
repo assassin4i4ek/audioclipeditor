@@ -16,10 +16,12 @@ import kotlinx.coroutines.flow.collect
 import model.api.editor.audio.clip.AudioClip
 import model.api.editor.audio.AudioClipPlayer
 import model.api.editor.audio.AudioClipEditingService
+import model.api.editor.audio.AudioClipSaveInfo
 import model.api.editor.audio.clip.fragment.AudioClipFragment
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import specs.api.immutable.InputDevice
+import specs.api.immutable.SavingSpecs
 import specs.api.mutable.MutableEditorSpecs
 import viewmodels.api.editor.panel.ClipPanelViewModel
 import viewmodels.api.editor.panel.clip.EditableClipViewModel
@@ -47,7 +49,8 @@ class ClipPanelViewModelImpl(
     pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     density: Density,
-    private val specs: MutableEditorSpecs
+    private val editorSpecs: MutableEditorSpecs,
+    private val savingSpecs: SavingSpecs
 ): ClipPanelViewModel, DraggableFragmentSetViewModelImpl.Parent, GlobalFragmentSetViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
@@ -59,20 +62,20 @@ class ClipPanelViewModelImpl(
 
     /* Child ViewModels */
     override val editableClipViewModel: EditableClipViewModel = EditableClipViewModelImpl(
-        pcmPathBuilder, coroutineScope, density, specs
+        pcmPathBuilder, coroutineScope, density, editorSpecs
     )
     override val globalClipViewModel: GlobalClipViewModel = GlobalClipViewModelImpl(
-        pcmPathBuilder, coroutineScope, density, specs
+        pcmPathBuilder, coroutineScope, density, editorSpecs
     )
 
     override val editableCursorViewModel: CursorViewModel = CursorViewModelImpl(editableClipViewModel)
     override val globalCursorViewModel: CursorViewModel = CursorViewModelImpl(globalClipViewModel)
     override val globalWindowClipViewModel: GlobalWindowClipViewModel = GlobalWindowClipViewModelImpl(globalClipViewModel)
     override val editableFragmentSetViewModel: DraggableFragmentSetViewModel = DraggableFragmentSetViewModelImpl(
-        this, editableClipViewModel, density, specs
+        this, editableClipViewModel, density, editorSpecs
     )
     override val globalFragmentSetViewModel: GlobalFragmentSetViewModel = GlobalFragmentSetViewModelImpl(
-        this, globalClipViewModel, specs
+        this, globalClipViewModel, editorSpecs
     )
 
     /* Simple properties */
@@ -84,10 +87,10 @@ class ClipPanelViewModelImpl(
     /* Stateful properties */
     override val canOpenClips: Boolean get() = parentViewModel.canOpenClips
 
-    override val maxPanelViewHeightDp: Dp get() = specs.maxPanelViewHeightDp
-    override val minPanelViewHeightDp: Dp get() = specs.minPanelViewHeightDp
+    override val maxPanelViewHeightDp: Dp get() = editorSpecs.maxPanelViewHeightDp
+    override val minPanelViewHeightDp: Dp get() = editorSpecs.minPanelViewHeightDp
 
-    override val inputDevice: InputDevice get() = specs.inputDevice
+    override val inputDevice: InputDevice get() = editorSpecs.inputDevice
 
     private var _isLoading: Boolean by mutableStateOf(true)
     override val isLoading: Boolean get() = _isLoading
@@ -111,16 +114,16 @@ class ClipPanelViewModelImpl(
     }
 
     override fun onSwitchInputDevice() {
-        val currentInputDeviceIndex = InputDevice.values().indexOf(specs.inputDevice)
-        specs.inputDevice = InputDevice.values()[(currentInputDeviceIndex + 1) % InputDevice.values().size]
+        val currentInputDeviceIndex = InputDevice.values().indexOf(editorSpecs.inputDevice)
+        editorSpecs.inputDevice = InputDevice.values()[(currentInputDeviceIndex + 1) % InputDevice.values().size]
     }
 
     override fun onIncreaseZoomClick() {
-        editableClipViewModel.run { updateZoom(zoom * specs.transformZoomClickCoef) }
+        editableClipViewModel.run { updateZoom(zoom * editorSpecs.transformZoomClickCoef) }
     }
 
     override fun onDecreaseZoomClick() {
-        editableClipViewModel.run { updateZoom(zoom / specs.transformZoomClickCoef) }
+        editableClipViewModel.run { updateZoom(zoom / editorSpecs.transformZoomClickCoef) }
     }
 
 
@@ -316,11 +319,8 @@ class ClipPanelViewModelImpl(
     /* Methods */
     init {
         coroutineScope.launch {
-            val saveSrcFile = specs.defaultDstPreprocessedClipSavingDir.resolve(clipFile.name)
-            val saveDstFile = specs.defaultDstTransformedClipSavingDir.resolve(clipFile.name)
-            val saveMetadataFile = specs.defaultClipMetadataSavingDir.resolve(clipFile.nameWithoutExtension + ".json")
             audioClip = if (audioClipEditingService.isAudioClipFile(clipFile)) {
-                audioClipEditingService.openAudioClipFromFile(clipFile, saveSrcFile, saveDstFile, saveMetadataFile)
+                audioClipEditingService.openAudioClipFromFile(clipFile)
             }
             else if (audioClipEditingService.isAudioClipMetadataFile(clipFile)) {
                 audioClipEditingService.openAudioClipFromMetadataFile(clipFile)
@@ -523,9 +523,12 @@ class ClipPanelViewModelImpl(
     override suspend fun save() {
         _isLoading = true
         parentViewModel.notifySaving(clipId, true)
-//        val audioClipFilename = File(audioClip.filePath).name
-//        val newAudioClipFile = specs.defaultClipSavingDirPath.resolve(audioClipFilename)
-        audioClipEditingService.saveAudioClip(audioClip)
+        val saveInfo = AudioClipSaveInfo(
+            savingSpecs.defaultPreprocessedClipSavingDir.resolve(audioClip.fileName),
+            savingSpecs.defaultTransformedClipSavingDir.resolve(audioClip.fileName),
+            savingSpecs.defaultClipMetadataSavingDir.resolve(File(audioClip.fileName).nameWithoutExtension + ".json")
+        )
+        audioClipEditingService.saveAudioClip(audioClip, saveInfo)
         parentViewModel.notifySaving(clipId, false)
         _isLoading = false
     }

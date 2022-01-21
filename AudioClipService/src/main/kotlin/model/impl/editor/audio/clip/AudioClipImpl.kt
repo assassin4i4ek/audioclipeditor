@@ -1,7 +1,6 @@
 package model.impl.editor.audio.clip
 
 import model.api.editor.audio.clip.AudioClip
-import model.api.editor.audio.clip.AudioClipSaveInfo
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
@@ -13,8 +12,7 @@ import java.util.*
 import javax.sound.sampled.AudioFormat
 
 class AudioClipImpl(
-    override val srcRawClipFilePath: String,
-    override val saveInfo: AudioClipSaveInfo,
+    override val fileName: String,
     override val durationUs: Long,
     override val audioFormat: AudioFormat,
     private var pcmBytes: ByteArray,
@@ -177,10 +175,6 @@ class AudioClipImpl(
     }
 
     override fun close() {
-        println("Clip closed")
-    }
-
-    override fun toString(): String {
-        return srcRawClipFilePath
+        println("Clip $fileName closed")
     }
 }

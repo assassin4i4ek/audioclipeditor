@@ -27,8 +27,4 @@ interface MutableEditorSpecs: EditorSpecs, MutableSpecs {
     override var preferredImmutableAreaWidthWinDp: Dp
 
     override var silenceTransformerSilenceDurationUsIncrementStep: Long
-
-    override var defaultDstPreprocessedClipSavingDir: File
-    override var defaultDstTransformedClipSavingDir: File
-    override var defaultClipMetadataSavingDir: File
 }

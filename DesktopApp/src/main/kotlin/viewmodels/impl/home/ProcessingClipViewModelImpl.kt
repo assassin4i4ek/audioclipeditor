@@ -2,6 +2,9 @@ package viewmodels.impl.home
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import viewmodels.api.home.ProcessingClipViewModel
 import java.io.File
 
@@ -21,12 +24,19 @@ class ProcessingClipViewModelImpl(
     /* Child ViewModels */
 
     /* Simple properties */
+    private val saveMutex: Mutex by lazy { Mutex() }
 
     /* Stateful properties */
     override val name: String by mutableStateOf(clipFile.name)
 
     override val canOpenInEditorClip: Boolean get() = parentViewModel.canOpenInEditorClip(clipId)
     override val canRemoveClip: Boolean get() = parentViewModel.canRemoveClip(clipId)
+
+    private var _isMutated: Boolean by mutableStateOf(false)
+    override val isMutated: Boolean get() = _isMutated
+
+    private var _isSaving: Boolean by mutableStateOf(false)
+    override val isSaving: Boolean get() = _isSaving
 
     /* Callbacks */
     override fun onOpenInEditorClick() {
@@ -38,33 +48,33 @@ class ProcessingClipViewModelImpl(
     }
 
     /* Methods */
-
-}
-
-/*
-class HomePageClipViewModelImpl(
-    private val clipId: String,
-    clipFile: File
-) : HomePageClipViewModel {
-    /* Parent ViewModels */
-    interface Parent {
-
+    override fun notifyMutated(mutated: Boolean) {
+        _isMutated = mutated
     }
 
-    /* Child ViewModels */
+    override fun notifySaving(saving: Boolean) {
+        if (saving) {
+            // notified that saving started
+            if (!isSaving) {
+                // saving hasn't been started (in case notifySaved was called multiple times
+                check(saveMutex.tryLock()) {
+                    "Save mutex expected to be unlocked when saving started"
+                }
+            }
+        }
+        else {
 
-    /* Simple properties */
-
-    /* Stateful properties */
-    private var _name: String by mutableStateOf(clipFile.name)
-    override val name: String get() = _name
-
-    /* Callbacks */
-    override fun onRemoveClipClick() {
-        TODO("Not yet implemented")
+            if (isSaving) {
+                check(saveMutex.isLocked) {
+                    "Save mutex expected to be locked when until saving finishes"
+                }
+                saveMutex.unlock()
+            }
+        }
+        _isSaving = saving
     }
 
-    /* Methods */
-
+    override suspend fun waitOnSaved() {
+        saveMutex.withLock {}
+    }
 }
- */

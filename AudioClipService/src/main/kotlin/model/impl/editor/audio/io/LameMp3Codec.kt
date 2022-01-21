@@ -63,11 +63,10 @@ class LameMp3Codec: SoundCodec {
             val outBufferSize = encoder.mP3BufferSize
             val outBuffer = ByteArray(outBufferSize)
             val mp3FileOutputStream = kotlin.runCatching {
-                FileOutputStream(soundPath)
+                FileOutputStream(soundPath).buffered()
             }.getOrThrow()
 
             var inputPosition = 1105 /* Standard LAME codec delay */ * audioFormat.channels * 2 /* Short.SIZE_BYTES */
-
 
             kotlin.runCatching {
                 while (inputPosition < numOfSamples) {

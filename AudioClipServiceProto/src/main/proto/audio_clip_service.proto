@@ -36,6 +36,5 @@ message SerializedAudioClip {
   }
 
   string preprocessedFilePath = 1;
-  string transformedFilePath = 2;
-  repeated SerializedFragment fragments = 3;
+  repeated SerializedFragment fragments = 2;
 }

@@ -10,4 +10,8 @@ class PreferenceProcessingSpecs: BaseStatefulPreferenceSpecsImpl(), MutableProce
     override var fetchClipsOnAppStart: Boolean by savableProperty(
         true, ::fetchClipsOnAppStart
     )
+
+    override var closeAppOnProcessingFinish: Boolean by savableProperty(
+        true, ::closeAppOnProcessingFinish
+    )
 }

@@ -25,8 +25,4 @@ interface EditorSpecs {
     val preferredImmutableAreaWidthWinDp: Dp
 
     val silenceTransformerSilenceDurationUsIncrementStep: Long
-
-    val defaultDstPreprocessedClipSavingDir: File
-    val defaultDstTransformedClipSavingDir: File
-    val defaultClipMetadataSavingDir: File
 }

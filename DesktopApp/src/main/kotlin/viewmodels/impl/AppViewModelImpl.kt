@@ -3,9 +3,11 @@ package viewmodels.impl
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import model.api.accounting.AudioClipAccountingService
 import model.api.editor.audio.AudioClipEditingService
 import model.api.mailing.AudioClipMailingService
 import specs.api.immutable.ProcessingSpecs
+import specs.api.immutable.SavingSpecs
 import specs.api.mutable.MutableEditorSpecs
 import viewmodels.api.AppViewModel
 import viewmodels.api.dialogs.AudioClipFileChooserViewModel
@@ -24,11 +26,14 @@ import java.io.File
 class AppViewModelImpl(
     private val audioClipEditingService: AudioClipEditingService,
     audioClipMailingService: AudioClipMailingService,
+    audioClipAccountingService: AudioClipAccountingService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
     density: Density,
     editorSpecs: MutableEditorSpecs,
+    savingSpecs: SavingSpecs,
     processingSpecs: ProcessingSpecs,
+    private val exitApplication: () -> Unit
 ): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.Parent, EditorViewModelImpl.Parent,
     CloseConfirmDialogViewModelImpl.Parent, AudioClipFileChooserViewModelImpl.Parent {
     /* Parent ViewModels */
@@ -38,10 +43,11 @@ class AppViewModelImpl(
         this
     )
     override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
-        audioClipMailingService, this, coroutineScope, processingSpecs
+        audioClipMailingService, audioClipAccountingService,
+        this, coroutineScope, processingSpecs, savingSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
-        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs
+        audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs, savingSpecs
     )
     override val clipFileChooserViewModel: AudioClipFileChooserViewModel = AudioClipFileChooserViewModelImpl(
         this
@@ -64,6 +70,10 @@ class AppViewModelImpl(
     /* Methods */
     override fun openClips() {
         clipFileChooserViewModel.openClips()
+    }
+
+    override fun isClipOpened(clipId: String): Boolean {
+        return editorViewModel.isClipOpened(clipId)
     }
 
     override fun submitClip(clipFile: File) {
@@ -90,6 +100,7 @@ class AppViewModelImpl(
 
     override fun notifyMutated(clipId: String, mutated: Boolean) {
         openedClipsTabRowViewModel.notifyMutated(clipId, mutated)
+        homePageViewModel.notifyMutated(clipId, mutated)
     }
 
     override fun confirmCloseEditorClip(clipId: String) {
@@ -107,7 +118,18 @@ class AppViewModelImpl(
         }
     }
 
+    override suspend fun saveClip(clipId: String) {
+        editorViewModel.saveClip(clipId)
+    }
+
     override fun notifySaving(clipId: String, saving: Boolean) {
         openedClipsTabRowViewModel.notifySaving(clipId, saving)
+        homePageViewModel.notifySaving(clipId, saving)
+    }
+
+    override fun requestCloseApplication() {
+        if (editorViewModel.canCloseEditor()) {
+            exitApplication()
+        }
     }
 }

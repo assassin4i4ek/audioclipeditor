@@ -13,7 +13,7 @@ class ComposeResourceResolverImpl: ResourceResolver {
             val adjustedResource = resource.substringAfter("common/").ifEmpty { resource }
             localResourceDir.resolve(adjustedResource).absolutePath
         } else {
-            Paths.get(Unit.javaClass.classLoader.getResource(resource)!!.toURI()).absolutePathString()
+            Paths.get(this.javaClass.classLoader.getResource(resource)!!.toURI()).absolutePathString()
         }
     }
 }

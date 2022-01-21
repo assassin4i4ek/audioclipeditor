@@ -28,5 +28,6 @@ interface HomePageViewModel: BaseViewModel {
 
     /* Methods */
     fun submitClip(clipId: String, clipFile: File)
-
+    fun notifyMutated(clipId: String, mutated: Boolean)
+    fun notifySaving(clipId: String, saving: Boolean)
 }

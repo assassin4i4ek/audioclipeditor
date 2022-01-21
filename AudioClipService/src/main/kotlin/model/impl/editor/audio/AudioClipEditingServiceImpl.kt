@@ -1,11 +1,12 @@
 package model.impl.editor.audio
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import model.api.editor.audio.*
 import model.api.editor.audio.clip.AudioClip
-import model.api.editor.audio.clip.AudioClipSaveInfo
+import model.api.editor.audio.AudioClipSaveInfo
 import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.io.AudioClipMetadataIO
 import model.api.editor.audio.process.SoundProcessor
@@ -89,11 +90,8 @@ class AudioClipEditingServiceImpl(
         return audioClipOrMetadataFormat in supportedMetadataIO
     }
 
-    override suspend fun openAudioClipFromFile(
-        audioClipSrcRawFile: File, saveDstPreprocessedFile: File,
-        saveDstTransformedFile: File, saveDstMetadataFile: File
-    ): AudioClip {
-        val audioClipFormat = audioClipSrcRawFile.extension.lowercase()
+    override suspend fun openAudioClipFromFile(audioClipFile: File): AudioClip {
+        val audioClipFormat = audioClipFile.extension.lowercase()
 
         require(isAudioClipFile(audioClipFormat)) {
             if (isAudioClipMetadataFile(audioClipFormat)) {
@@ -103,23 +101,9 @@ class AudioClipEditingServiceImpl(
             }
         }
 
-        require(isAudioClipFile(saveDstPreprocessedFile)) {
-            "saveDstPreprocessedFile must be of format ${supportedAudioIO.keys}, but is ${saveDstPreprocessedFile.extension} file instead"
+        return supportedAudioIO[audioClipFormat]!!.readClip(audioClipFile).also {
+            audioClipSavingMutexes[it] = Mutex()
         }
-
-        require(isAudioClipFile(saveDstTransformedFile)) {
-            "saveDstTransformedFile must be of format ${supportedAudioIO.keys}, but is ${saveDstTransformedFile.extension} file instead"
-        }
-
-        require(isAudioClipMetadataFile(saveDstMetadataFile)) {
-            "saveDstMetadataFile must be of format ${supportedMetadataIO.keys}, but is ${saveDstMetadataFile.extension} file instead"
-        }
-
-        val saveInfo = AudioClipSaveInfo(
-            saveDstPreprocessedFile.absolutePath, saveDstTransformedFile.absolutePath, saveDstMetadataFile.absolutePath
-        )
-
-        return supportedAudioIO[audioClipFormat]!!.readClip(audioClipSrcRawFile, saveInfo)
     }
 
     override suspend fun openAudioClipFromMetadataFile(audioClipOrMetadataFile: File): AudioClip {
@@ -134,7 +118,9 @@ class AudioClipEditingServiceImpl(
             }
         }
 
-        return supportedMetadataIO[metadataFormat]!!.readClip(audioClipOrMetadataFile)
+        return supportedMetadataIO[metadataFormat]!!.readClip(audioClipOrMetadataFile).also {
+            audioClipSavingMutexes[it] = Mutex()
+        }
     }
 
     override fun createPlayer(audioClip: AudioClip): AudioClipPlayer {
@@ -142,47 +128,50 @@ class AudioClipEditingServiceImpl(
     }
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun saveAudioClip(audioClip: AudioClip) {
-        audioClipSavingMutexes.getOrPut(audioClip) { Mutex() }.withLock {
-            audioClip.saveInfo.dstPreprocessedClipFilePath.let { savePreprocessedClipFilePath ->
-                val saveSrcFile = File(savePreprocessedClipFilePath)
-                val saveSrcFileFormat = saveSrcFile.extension.lowercase()
-                saveSrcFile.parentFile.mkdirs()
-                val saveTime = measureTime {
-                    supportedAudioIO[saveSrcFileFormat]!!.writePreprocessed(audioClip, saveSrcFile)
-                }
-                println("Saved preprocessed clip in $saveTime at $savePreprocessedClipFilePath")
+    override suspend fun saveAudioClip(audioClip: AudioClip, saveInfo: AudioClipSaveInfo) {
+        audioClipSavingMutexes[audioClip]!!.withLock {
+            val preprocessedClipSaveFile = saveInfo.dstPreprocessedClipFile
+            val preprocessedClipSaveFileFormat = preprocessedClipSaveFile.extension.lowercase()
+            require(isAudioClipFile(preprocessedClipSaveFileFormat)) {
+                "saveDstPreprocessedFile must be of format ${supportedAudioIO.keys}, but is $preprocessedClipSaveFileFormat file instead"
             }
-            audioClip.saveInfo.dstTransformedClipFilePath.let { saveTransformedClipFilePath ->
-                val saveDstFile = File(saveTransformedClipFilePath)
-                val saveDstFileFormat = saveDstFile.extension.lowercase()
-                saveDstFile.parentFile.mkdirs()
-                val saveTime = measureTime {
-                    supportedAudioIO[saveDstFileFormat]!!.writeTransformed(audioClip, saveDstFile)
-                }
-                println("Saved transformed clip in $saveTime at $saveTransformedClipFilePath")
+            preprocessedClipSaveFile.parentFile.mkdirs()
+            val preprocessedClipSaveTime = measureTime {
+                supportedAudioIO[preprocessedClipSaveFileFormat]!!.writePreprocessed(audioClip, preprocessedClipSaveFile)
             }
-            audioClip.saveInfo.dstClipMetadataFilePath.let { saveClipMetadataFilePath ->
-                val saveMetadataFile = File(saveClipMetadataFilePath)
-                val saveMetadataFileFormat = saveMetadataFile.extension.lowercase()
-                saveMetadataFile.parentFile.mkdirs()
-                val saveTime = measureTime {
-                    supportedMetadataIO[saveMetadataFileFormat]!!.writeMetadata(audioClip, saveMetadataFile)
-                }
-                println("Saved clip metadata in $saveTime at $saveClipMetadataFilePath")
-            }
+            println("Saved preprocessed clip in $preprocessedClipSaveTime at ${preprocessedClipSaveFile.absolutePath}")
 
+            val transformedClipSaveFile = saveInfo.dstTransformedClipFile
+            val transformedClipSaveFileFormat = transformedClipSaveFile.extension.lowercase()
+            require(isAudioClipFile(transformedClipSaveFileFormat)) {
+                "saveDstTransformedFile must be of format ${supportedAudioIO.keys}, but is $transformedClipSaveFileFormat file instead"
+            }
+            transformedClipSaveFile.parentFile.mkdirs()
+            val transformedClipSaveTime = measureTime {
+                supportedAudioIO[transformedClipSaveFileFormat]!!.writeTransformed(audioClip, transformedClipSaveFile)
+            }
+            println("Saved transformed clip in $transformedClipSaveTime at ${transformedClipSaveFile.absolutePath}")
+
+            val clipMetadataSaveFile = saveInfo.dstClipMetadataFile
+            val clipMetadataSaveFileFormat = clipMetadataSaveFile.extension.lowercase()
+            require(isAudioClipMetadataFile(clipMetadataSaveFileFormat)) {
+                "saveDstMetadataFile must be of format ${supportedMetadataIO.keys}, but is $clipMetadataSaveFileFormat file instead"
+            }
+            clipMetadataSaveFile.parentFile.mkdirs()
+            val clipMetadataSaveTime = measureTime {
+                supportedMetadataIO[clipMetadataSaveFileFormat]!!.writeMetadata(audioClip, clipMetadataSaveFile, preprocessedClipSaveFile)
+            }
+            println("Saved clip metadata in $clipMetadataSaveTime at ${clipMetadataSaveFile.absolutePath}")
             audioClip.notifySaved()
         }
-        audioClipSavingMutexes.remove(audioClip)
     }
 
     override suspend fun closeAudioClip(audioClip: AudioClip, player: AudioClipPlayer) {
-        audioClipSavingMutexes.getOrPut(audioClip) { Mutex() }.withLock {
+        audioClipSavingMutexes[audioClip]!!.withLock {
             audioClip.close()
             player.close()
+            audioClipSavingMutexes.remove(audioClip)
         }
-        audioClipSavingMutexes.remove(audioClip)
     }
 
     override suspend fun resolveFragments(audioClip: AudioClip) {

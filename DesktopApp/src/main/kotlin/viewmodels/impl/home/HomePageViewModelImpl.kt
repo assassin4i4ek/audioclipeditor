@@ -6,25 +6,33 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import model.api.accounting.AudioClipAccountingService
 import model.api.mailing.AudioClipMailingService
 import specs.api.immutable.ProcessingSpecs
+import specs.api.immutable.SavingSpecs
 import viewmodels.api.home.HomePageViewModel
 import viewmodels.api.home.ProcessingClipViewModel
 import java.io.File
 
 class HomePageViewModelImpl(
     private val audioClipMailingService: AudioClipMailingService,
+    private val audioClipAccountingService: AudioClipAccountingService,
     private val parentViewModel: Parent,
     private val coroutineScope: CoroutineScope,
-    private val specs: ProcessingSpecs
+    private val processingSpecs: ProcessingSpecs,
+    private val savingSpecs: SavingSpecs
 ): HomePageViewModel, ProcessingClipViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
         val canOpenClips: Boolean
         fun openClips()
+        fun isClipOpened(clipId: String): Boolean
         fun submitClip(clipFile: File)
         fun selectClip(clipId: String)
+        suspend fun saveClip(clipId: String)
+        fun requestCloseApplication()
     }
 
     /* Child ViewModels */
@@ -60,7 +68,7 @@ class HomePageViewModelImpl(
 
     /* Methods */
     init {
-        if (specs.fetchClipsOnAppStart) {
+        if (processingSpecs.fetchClipsOnAppStart) {
             fetchClips()
         }
     }
@@ -77,8 +85,8 @@ class HomePageViewModelImpl(
     }
 
     private fun fetchClips() {
+        _isFetching = true
         coroutineScope.launch {
-            _isFetching = true
             audioClipMailingService.fetchAudioClipFromMailBox().collect { clipFile ->
                 parentViewModel.submitClip(clipFile)
             }
@@ -87,13 +95,43 @@ class HomePageViewModelImpl(
     }
 
     private fun processClips() {
+        _isProcessing = true
         coroutineScope.launch {
-            _isProcessing = true
             // save
+            _processingClips.map { (clipId, clipViewModel) ->
+                if (parentViewModel.isClipOpened(clipId) && clipViewModel.isMutated && !clipViewModel.isSaving) {
+                    launch {
+                        println("Saving clip $clipId")
+                        parentViewModel.saveClip(clipId)
+                    }
+                }
+                else if (clipViewModel.isSaving) {
+                    launch {
+                        clipViewModel.waitOnSaved()
+                    }
+                }
+                else null
+            }.filterNotNull().joinAll()
+
             // send
+            val transformedClipFiles = _processingClips.map { (clipId, clipViewModel) ->
+                savingSpecs.defaultTransformedClipSavingDir.resolve(clipViewModel.name).apply {
+                    check(exists()) {
+                        "Expected transformed file $clipId does NOT exists in expected path ${savingSpecs.defaultTransformedClipSavingDir.absolutePath}"
+                    }
+                }
+            }
+            audioClipMailingService.sendAudioClipToReceiver(transformedClipFiles)
             // account
+            audioClipAccountingService.logProcessed(transformedClipFiles)
             // remove
-            delay(5000)
+            audioClipMailingService.cleanup(transformedClipFiles)
+            _processingClips = LinkedHashMap()
+
+            if (processingSpecs.closeAppOnProcessingFinish) {
+                parentViewModel.requestCloseApplication()
+            }
+
             _isProcessing = false
         }
     }
@@ -109,44 +147,12 @@ class HomePageViewModelImpl(
     override fun removeClipFromProcessing(clipId: String) {
         _processingClips = LinkedHashMap(_processingClips).apply { remove(clipId)!! }
     }
-}
 
-/*
-class HomePageViewModelImpl(
-    private val audioClipMailingService: AudioClipMailingService,
-    private val parentViewModel: ParentViewModel,
-    private val coroutineScope: CoroutineScope
-): HomePageViewModel {
-    /* Parent ViewModels */
-    interface ParentViewModel {
-        fun submitClip(audioClipFile: File)
+    override fun notifyMutated(clipId: String, mutated: Boolean) {
+        _processingClips[clipId]!!.notifyMutated(mutated)
     }
 
-    /* Child ViewModels */
-
-    /* Simple properties */
-
-    /* Stateful properties */
-    private var _canFetchAudioClips: Boolean by mutableStateOf(true)
-    override val canFetchAudioClips: Boolean get() = _canFetchAudioClips
-
-    private var _openedClips: Map<String, HomePageClipViewModel> by mutableStateOf(emptyMap())
-    override val openedClips: Map<String, HomePageClipViewModel> get() = _openedClips
-
-    /* Callbacks */
-    override fun onFetchAudioClipsClick() {
-        coroutineScope.launch {
-            audioClipMailingService.fetchAudioClipFromMailBox().collect { clipFile ->
-                parentViewModel.submitClip(clipFile)
-            }
-        }
-    }
-
-    /* Methods */
-    override fun submitClip(clipId: String, clipFile: File) {
-        if (!openedClips.containsKey(clipId)) {
-            _openedClips = LinkedHashMap(openedClips) + (clipId to HomePageClipViewModelImpl(clipFile))
-        }
+    override fun notifySaving(clipId: String, saving: Boolean) {
+        _processingClips[clipId]!!.notifySaving(saving)
     }
 }
- */

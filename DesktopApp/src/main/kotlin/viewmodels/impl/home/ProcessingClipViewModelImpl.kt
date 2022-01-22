@@ -63,7 +63,6 @@ class ProcessingClipViewModelImpl(
             }
         }
         else {
-
             if (isSaving) {
                 check(saveMutex.isLocked) {
                     "Save mutex expected to be locked when until saving finishes"

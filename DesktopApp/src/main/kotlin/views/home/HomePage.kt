@@ -9,6 +9,8 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import viewmodels.api.home.HomePageViewModel
@@ -35,9 +37,6 @@ fun HomePage(
                             .border(Dp.Hairline, Color.LightGray)
                             .weight(1f)
                     ) {
-//                        item {
-//                            Divider()
-//                        }
                         items(homePageViewModel.processingClips) { clipViewModel ->
                             ProcessingClipView(clipViewModel)
                             Divider(color = Color.LightGray)
@@ -73,7 +72,41 @@ fun HomePage(
             }
         }
         Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                TextField(
+                    value = homePageViewModel.userEmail,
+                    onValueChange = homePageViewModel::onUserEmailChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("My email")
+                    }
+                )
+                TextField(
+                    value = homePageViewModel.userPassword,
+                    onValueChange = homePageViewModel::onUserPasswordChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    label = {
+                        Text("My password")
+                    }
+                )
+                TextField(
+                    value = homePageViewModel.receiveFromEmail,
+                    onValueChange = homePageViewModel::onReceiveFromEmailChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Receive clips from email")
+                    }
+                )
+                TextField(
+                    value = homePageViewModel.sendToEmail,
+                    onValueChange = homePageViewModel::onSendToEmailChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Send processed clips to email")
+                    }
+                )
+
                 Button(
                     enabled = homePageViewModel.canProcessClips,
                     onClick = homePageViewModel::onProcessClipsClick

@@ -9,24 +9,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.singleWindowApplication
 import model.impl.accounting.AudioClipAccountingServiceImpl
-import model.impl.mailing.AudioClipMailingServiceImpl
-import specs.impl.PreferenceAudioClipEditingServiceSpecs
-import specs.impl.PreferenceEditorSpecs
-import specs.impl.PreferenceProcessingSpecs
-import specs.impl.PreferenceSavingSpecs
+import model.impl.txrx.AudioClipTxRxServiceImpl
+import specs.impl.*
 import utils.ComposeResourceResolverImpl
 import viewmodels.api.AppViewModel
 import viewmodels.impl.AppViewModelImpl
 import viewmodels.impl.utils.AdvancedPcmPathBuilderImpl
 import views.dialogs.AudioClipFileChooser
 import views.dialogs.CloseConfirmDialog
+import views.dialogs.ProcessingErrorDialog
 import views.editor.EditorView
 import views.tab.OpenedClipsTabRow
 import views.home.HomePage
 import views.utils.WithoutTouchSlop
-import java.awt.AWTEvent
 
 fun App() {
     application {
@@ -38,12 +34,7 @@ fun App() {
                 val preferenceEditorSpecs = PreferenceEditorSpecs()
                 val preferenceSavingSpecs = PreferenceSavingSpecs()
                 val preferenceProcessingSpecs = PreferenceProcessingSpecs()
-
-                // TODO remove reset() call
-                preferenceAudioServiceSpecs.reset()
-                preferenceEditorSpecs.reset()
-                preferenceSavingSpecs.reset()
-                preferenceProcessingSpecs.reset()
+                val preferenceTxRxSpecs = PreferenceAudioClipTxRxServiceSpecs()
 
                 val resourceResolver = ComposeResourceResolverImpl()
 
@@ -51,7 +42,7 @@ fun App() {
                     audioClipEditingService = AudioClipEditingServiceImpl(
                         resourceResolver, preferenceAudioServiceSpecs, coroutineScope
                     ),
-                    audioClipMailingService = AudioClipMailingServiceImpl(),
+                    audioClipTxRxService = AudioClipTxRxServiceImpl(preferenceTxRxSpecs),
                     audioClipAccountingService = AudioClipAccountingServiceImpl(resourceResolver),
                     pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
                     coroutineScope = coroutineScope,
@@ -59,6 +50,7 @@ fun App() {
                     editorSpecs = preferenceEditorSpecs,
                     savingSpecs = preferenceSavingSpecs,
                     processingSpecs = preferenceProcessingSpecs,
+                    txRxSpecs = preferenceTxRxSpecs,
                     exitApplication = ::exitApplication
                 )
             }
@@ -85,6 +77,7 @@ fun App() {
                      */
                     AudioClipFileChooser(appViewModel.clipFileChooserViewModel, window)
                     CloseConfirmDialog(appViewModel.closeConfirmDialogViewModel)
+                    ProcessingErrorDialog(appViewModel.processingErrorDialogViewModel)
 
                     Column {
                         OpenedClipsTabRow(appViewModel.openedClipsTabRowViewModel)

@@ -1,5 +1,6 @@
 package viewmodels.api.home
 
+import androidx.compose.ui.text.input.TextFieldValue
 import viewmodels.api.BaseViewModel
 import java.io.File
 
@@ -21,10 +22,19 @@ interface HomePageViewModel: BaseViewModel {
 
     val processingClips: List<ProcessingClipViewModel>
 
+    val userEmail: String
+    val userPassword: String
+    val receiveFromEmail: String
+    val sendToEmail: String
+
     /* Callbacks */
     fun onOpenClipsClick()
     fun onFetchClipsClick()
     fun onProcessClipsClick()
+    fun onUserEmailChange(newEmail: String)
+    fun onUserPasswordChange(newPassword: String)
+    fun onReceiveFromEmailChange(newReceiveFromEmail: String)
+    fun onSendToEmailChange(newSendToEmail: String)
 
     /* Methods */
     fun submitClip(clipId: String, clipFile: File)

@@ -4,25 +4,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import model.api.accounting.AudioClipAccountingService
-import model.api.mailing.AudioClipMailingService
+import model.api.txrx.AudioClipTxRxService
 import specs.api.immutable.ProcessingSpecs
 import specs.api.immutable.SavingSpecs
+import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
 import viewmodels.api.home.HomePageViewModel
 import viewmodels.api.home.ProcessingClipViewModel
 import java.io.File
 
 class HomePageViewModelImpl(
-    private val audioClipMailingService: AudioClipMailingService,
+    private val audioClipTxRxService: AudioClipTxRxService,
     private val audioClipAccountingService: AudioClipAccountingService,
     private val parentViewModel: Parent,
     private val coroutineScope: CoroutineScope,
     private val processingSpecs: ProcessingSpecs,
-    private val savingSpecs: SavingSpecs
+    private val savingSpecs: SavingSpecs,
+    private val txRxSpecs: MutableAudioClipTxRxServiceSpecs,
 ): HomePageViewModel, ProcessingClipViewModelImpl.Parent {
     /* Parent ViewModels */
     interface Parent {
@@ -33,6 +35,7 @@ class HomePageViewModelImpl(
         fun selectClip(clipId: String)
         suspend fun saveClip(clipId: String)
         fun requestCloseApplication()
+        fun notifyError(message: String)
     }
 
     /* Child ViewModels */
@@ -53,6 +56,18 @@ class HomePageViewModelImpl(
     private var _processingClips: Map<String, ProcessingClipViewModel> by mutableStateOf(LinkedHashMap())
     override val processingClips: List<ProcessingClipViewModel> get() = _processingClips.values.toList()
 
+    private var _userEmail: String by mutableStateOf(txRxSpecs.userEmail)
+    override val userEmail: String get() = _userEmail
+
+    private var _userPassword: String by mutableStateOf(txRxSpecs.userPassword)
+    override val userPassword: String get() = _userPassword
+
+    private var _receiveFromEmail: String by mutableStateOf(txRxSpecs.receivedFromEmail)
+    override val receiveFromEmail: String get() = _receiveFromEmail
+
+    private var _sendToEmail: String by mutableStateOf(txRxSpecs.sendToEmail)
+    override val sendToEmail: String get() = _sendToEmail
+
     /* Callbacks */
     override fun onOpenClipsClick() {
         parentViewModel.openClips()
@@ -64,6 +79,22 @@ class HomePageViewModelImpl(
 
     override fun onProcessClipsClick() {
         processClips()
+    }
+
+    override fun onUserEmailChange(newEmail: String) {
+        _userEmail = newEmail
+    }
+
+    override fun onUserPasswordChange(newPassword: String) {
+        _userPassword = newPassword
+    }
+
+    override fun onReceiveFromEmailChange(newReceiveFromEmail: String) {
+        _receiveFromEmail = newReceiveFromEmail
+    }
+
+    override fun onSendToEmailChange(newSendToEmail: String) {
+        _sendToEmail = newSendToEmail
     }
 
     /* Methods */
@@ -86,9 +117,15 @@ class HomePageViewModelImpl(
 
     private fun fetchClips() {
         _isFetching = true
-        coroutineScope.launch {
-            audioClipMailingService.fetchAudioClipFromMailBox().collect { clipFile ->
-                parentViewModel.submitClip(clipFile)
+        updateCredentials()
+        coroutineScope.launch(Dispatchers.Default) {
+            kotlin.runCatching {
+                audioClipTxRxService.receiveAudioClipFiles().collect { clipFile ->
+                    parentViewModel.submitClip(clipFile)
+                }
+            }.onFailure {
+                println(it)
+                parentViewModel.notifyError("Error during message fetching audio clips:\n${it.message ?: it}")
             }
             _isFetching = false
         }
@@ -96,7 +133,8 @@ class HomePageViewModelImpl(
 
     private fun processClips() {
         _isProcessing = true
-        coroutineScope.launch {
+        updateCredentials()
+        coroutineScope.launch(Dispatchers.Default) {
             // save
             _processingClips.map { (clipId, clipViewModel) ->
                 if (parentViewModel.isClipOpened(clipId) && clipViewModel.isMutated && !clipViewModel.isSaving) {
@@ -121,11 +159,11 @@ class HomePageViewModelImpl(
                     }
                 }
             }
-            audioClipMailingService.sendAudioClipToReceiver(transformedClipFiles)
+            audioClipTxRxService.transmitAudioClipFiles(transformedClipFiles)
             // account
             audioClipAccountingService.logProcessed(transformedClipFiles)
             // remove
-            audioClipMailingService.cleanup(transformedClipFiles)
+            audioClipTxRxService.cleanup(transformedClipFiles)
             _processingClips = LinkedHashMap()
 
             if (processingSpecs.closeAppOnProcessingFinish) {
@@ -133,6 +171,21 @@ class HomePageViewModelImpl(
             }
 
             _isProcessing = false
+        }
+    }
+
+    private fun updateCredentials() {
+        if (userEmail != txRxSpecs.userEmail) {
+            txRxSpecs.userEmail = userEmail
+        }
+        if (userPassword != txRxSpecs.userPassword) {
+            txRxSpecs.userPassword = userPassword
+        }
+        if (receiveFromEmail != txRxSpecs.receivedFromEmail) {
+            txRxSpecs.receivedFromEmail = receiveFromEmail
+        }
+        if (sendToEmail != txRxSpecs.sendToEmail) {
+            txRxSpecs.sendToEmail = sendToEmail
         }
     }
 

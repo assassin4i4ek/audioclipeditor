@@ -20,8 +20,4 @@ abstract class BaseStatefulPreferenceSpecsImpl: BasePreferenceSpecsImpl() {
     fun savableProperty(defaultValue: Dp, property: KProperty<*>):
             PreferenceSavableProperty<BasePreferenceSpecs, Dp, Float> =
         savableProperty(defaultValue, property, { it.value }, { it.dp })
-
-    fun savableProperty(defaultValue: File, property: KProperty<*>):
-            PreferenceSavableProperty<BasePreferenceSpecs, File, String> =
-        savableProperty(defaultValue, property, { it.absolutePath }, { File(it) })
 }

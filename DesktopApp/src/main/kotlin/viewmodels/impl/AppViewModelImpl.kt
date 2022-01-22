@@ -2,22 +2,26 @@ package viewmodels.impl
 
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import model.api.accounting.AudioClipAccountingService
 import model.api.editor.audio.AudioClipEditingService
-import model.api.mailing.AudioClipMailingService
+import model.api.txrx.AudioClipTxRxService
 import specs.api.immutable.ProcessingSpecs
 import specs.api.immutable.SavingSpecs
+import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
 import specs.api.mutable.MutableEditorSpecs
 import viewmodels.api.AppViewModel
 import viewmodels.api.dialogs.AudioClipFileChooserViewModel
 import viewmodels.api.dialogs.CloseConfirmDialogViewModel
+import viewmodels.api.dialogs.ProcessingErrorDialogViewModel
 import viewmodels.api.editor.EditorViewModel
 import viewmodels.api.tab.OpenedClipsTabRowViewModel
 import viewmodels.api.home.HomePageViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.dialogs.AudioClipFileChooserViewModelImpl
 import viewmodels.impl.dialogs.CloseConfirmDialogViewModelImpl
+import viewmodels.impl.dialogs.ProcessingErrorDialogViewModelImpl
 import viewmodels.impl.editor.EditorViewModelImpl
 import viewmodels.impl.tab.OpenedClipsTabRowViewModelImpl
 import viewmodels.impl.home.HomePageViewModelImpl
@@ -25,7 +29,7 @@ import java.io.File
 
 class AppViewModelImpl(
     private val audioClipEditingService: AudioClipEditingService,
-    audioClipMailingService: AudioClipMailingService,
+    audioClipTxRxService: AudioClipTxRxService,
     audioClipAccountingService: AudioClipAccountingService,
     pcmPathBuilder: AdvancedPcmPathBuilder,
     private val coroutineScope: CoroutineScope,
@@ -33,6 +37,7 @@ class AppViewModelImpl(
     editorSpecs: MutableEditorSpecs,
     savingSpecs: SavingSpecs,
     processingSpecs: ProcessingSpecs,
+    txRxSpecs: MutableAudioClipTxRxServiceSpecs,
     private val exitApplication: () -> Unit
 ): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.Parent, EditorViewModelImpl.Parent,
     CloseConfirmDialogViewModelImpl.Parent, AudioClipFileChooserViewModelImpl.Parent {
@@ -43,8 +48,8 @@ class AppViewModelImpl(
         this
     )
     override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
-        audioClipMailingService, audioClipAccountingService,
-        this, coroutineScope, processingSpecs, savingSpecs
+        audioClipTxRxService, audioClipAccountingService,
+        this, coroutineScope, processingSpecs, savingSpecs, txRxSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
         audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs, savingSpecs
@@ -55,6 +60,7 @@ class AppViewModelImpl(
     override val closeConfirmDialogViewModel: CloseConfirmDialogViewModel = CloseConfirmDialogViewModelImpl(
         this
     )
+    override val processingErrorDialogViewModel: ProcessingErrorDialogViewModel = ProcessingErrorDialogViewModelImpl()
 
     /* Simple properties */
 
@@ -91,7 +97,7 @@ class AppViewModelImpl(
         if (editorViewModel.isMutated(clipId)) {
             closeConfirmDialogViewModel.confirmClose(clipId)
         } else {
-            coroutineScope.launch {
+            coroutineScope.launch(Dispatchers.Default) {
                 editorViewModel.removeClip(clipId)
                 openedClipsTabRowViewModel.removeClip(clipId)
             }
@@ -104,14 +110,14 @@ class AppViewModelImpl(
     }
 
     override fun confirmCloseEditorClip(clipId: String) {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.Default) {
             editorViewModel.removeClip(clipId)
             openedClipsTabRowViewModel.removeClip(clipId)
         }
     }
 
     override fun confirmSaveAndCloseEditorClip(clipId: String) {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.Default) {
             editorViewModel.saveClip(clipId)
             editorViewModel.removeClip(clipId)
             openedClipsTabRowViewModel.removeClip(clipId)
@@ -131,5 +137,9 @@ class AppViewModelImpl(
         if (editorViewModel.canCloseEditor()) {
             exitApplication()
         }
+    }
+
+    override fun notifyError(message: String) {
+        processingErrorDialogViewModel.notifyError(message)
     }
 }

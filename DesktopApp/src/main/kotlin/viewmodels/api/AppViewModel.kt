@@ -2,10 +2,10 @@ package viewmodels.api
 
 import viewmodels.api.dialogs.AudioClipFileChooserViewModel
 import viewmodels.api.dialogs.CloseConfirmDialogViewModel
+import viewmodels.api.dialogs.ProcessingErrorDialogViewModel
 import viewmodels.api.editor.EditorViewModel
 import viewmodels.api.tab.OpenedClipsTabRowViewModel
 import viewmodels.api.home.HomePageViewModel
-import java.io.File
 
 interface AppViewModel: BaseViewModel {
     /* Parent ViewModels */
@@ -16,6 +16,7 @@ interface AppViewModel: BaseViewModel {
     val homePageViewModel: HomePageViewModel
     val clipFileChooserViewModel: AudioClipFileChooserViewModel
     val closeConfirmDialogViewModel: CloseConfirmDialogViewModel
+    val processingErrorDialogViewModel: ProcessingErrorDialogViewModel
 
     /* Simple properties */
 

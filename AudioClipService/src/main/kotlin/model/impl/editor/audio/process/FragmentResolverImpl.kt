@@ -30,7 +30,7 @@ class FragmentResolverImpl(
     private val deferredModelWithConfig:
             Deferred<Pair<SavedModelBundle, FragmentResolverProto.FragmentResolverModelConfig>> =
         coroutineScope.async {
-            loadModelWithConfig(resourceResolver.getResourceAbsolutePath("models/model1"))
+            loadModelWithConfig(resourceResolver.getResourceAbsolutePath("models/model"))
         }
 
     private val model: SavedModelBundle get() = runBlocking { deferredModelWithConfig.await().first }

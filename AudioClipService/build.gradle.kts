@@ -40,10 +40,10 @@ tasks.getByName<Test>("test") {
 
 tasks.register<Copy>("fetchModels") {
     group = "build"
-    from(project(":FragmentResolverModel").buildDir.resolve("saved_models"))
+    from(project(":FragmentResolverModel").buildDir.resolve("saved_models").resolve("final_model"))
     into(
         sourceSets.main.get().resources.srcDirs.find { it.name == "resources"}!!
-            .resolve("models").absolutePath
+            .resolve("models").resolve("model").absolutePath
     )
 }
 

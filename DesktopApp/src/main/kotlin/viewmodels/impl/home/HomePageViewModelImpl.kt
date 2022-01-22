@@ -3,14 +3,11 @@ package viewmodels.impl.home
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import model.api.accounting.AudioClipAccountingService
 import model.api.txrx.AudioClipTxRxService
-import specs.api.immutable.ProcessingSpecs
+import specs.api.immutable.ApplicationSpecs
 import specs.api.immutable.SavingSpecs
 import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
 import viewmodels.api.home.HomePageViewModel
@@ -22,7 +19,7 @@ class HomePageViewModelImpl(
     private val audioClipAccountingService: AudioClipAccountingService,
     private val parentViewModel: Parent,
     private val coroutineScope: CoroutineScope,
-    private val processingSpecs: ProcessingSpecs,
+    private val applicationSpecs: ApplicationSpecs,
     private val savingSpecs: SavingSpecs,
     private val txRxSpecs: MutableAudioClipTxRxServiceSpecs,
 ): HomePageViewModel, ProcessingClipViewModelImpl.Parent {
@@ -99,7 +96,7 @@ class HomePageViewModelImpl(
 
     /* Methods */
     init {
-        if (processingSpecs.fetchClipsOnAppStart) {
+        if (applicationSpecs.fetchClipsOnAppStart) {
             fetchClips()
         }
     }
@@ -162,15 +159,19 @@ class HomePageViewModelImpl(
             audioClipTxRxService.transmitAudioClipFiles(transformedClipFiles)
             // account
             audioClipAccountingService.logProcessed(transformedClipFiles)
-            // remove
-            audioClipTxRxService.cleanup(transformedClipFiles)
-            _processingClips = LinkedHashMap()
-
-            if (processingSpecs.closeAppOnProcessingFinish) {
-                parentViewModel.requestCloseApplication()
+            // cleanup
+            _processingClips.forEach { (_, clipViewModel) ->
+                withContext(Dispatchers.IO) {
+                    clipViewModel.clipFile.delete()
+                }
             }
 
+            _processingClips = LinkedHashMap()
             _isProcessing = false
+
+            if (applicationSpecs.closeAppOnProcessingFinish) {
+                parentViewModel.requestCloseApplication()
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package viewmodels.api.home
 
 import viewmodels.api.BaseViewModel
+import java.io.File
 
 interface ProcessingClipViewModel: BaseViewModel {
     /* Parent ViewModels */
@@ -8,6 +9,7 @@ interface ProcessingClipViewModel: BaseViewModel {
     /* Child ViewModels */
 
     /* Simple properties */
+    val clipFile: File
 
     /* Stateful properties */
     val name: String

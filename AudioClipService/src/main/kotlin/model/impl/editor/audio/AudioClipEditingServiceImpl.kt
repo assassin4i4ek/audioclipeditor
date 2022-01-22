@@ -1,7 +1,6 @@
 package model.impl.editor.audio
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import model.api.editor.audio.*
@@ -11,11 +10,13 @@ import model.api.editor.audio.io.AudioClipFileIO
 import model.api.editor.audio.io.AudioClipMetadataIO
 import model.api.editor.audio.process.SoundProcessor
 import model.api.editor.audio.process.FragmentResolver
+import model.api.editor.audio.process.PreprocessRoutine
 import model.api.editor.audio.storage.SoundPatternStorage
 import model.api.utils.ResourceResolver
 import model.impl.editor.audio.io.AudioClipJsonMetadataIOImpl
 import model.impl.editor.audio.io.AudioClipMp3FileIOImpl
 import model.impl.editor.audio.process.FragmentResolverImpl
+import model.impl.editor.audio.process.PreprocessRoutineImpl
 import model.impl.editor.audio.process.SoundProcessorImpl
 import model.impl.editor.audio.storage.Mp3SoundPatternResourceStorage
 import specs.api.immutable.AudioClipEditingServiceSpecs
@@ -31,7 +32,7 @@ class AudioClipEditingServiceImpl(
     private val processor: SoundProcessor = SoundProcessorImpl(specs)
     private val soundPatternStorage: SoundPatternStorage = Mp3SoundPatternResourceStorage(processor, resourceResolver)
     private val fragmentResolver: FragmentResolver = FragmentResolverImpl(resourceResolver, processor, specs, coroutineScope)
-//    private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
+    private val preprocessRoutine: PreprocessRoutine = PreprocessRoutineImpl()
 
     private val supportedAudioIO: Map<String, AudioClipFileIO> = mapOf(
         "mp3" to AudioClipMp3FileIOImpl(soundPatternStorage, processor, specs)
@@ -43,12 +44,11 @@ class AudioClipEditingServiceImpl(
     private val audioClipSavingMutexes: MutableMap<AudioClip, Mutex> = mutableMapOf()
 
     init {
-        /*
         val serializedPreprocessRoutine = specs.serializedPreprocessRoutine
         serializedPreprocessRoutine.routinesList.forEach { routineType ->
             preprocessRoutine.then(
                 when (routineType) {
-                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> this::normalizeClip
+                    AudioClipServiceProto.SerializedPreprocessRoutine.Type.NORMALIZE -> this::normalize
                     AudioClipServiceProto.SerializedPreprocessRoutine.Type.RESOLVE_FRAGMENTS -> this::resolveFragments
                     else -> {
                         throw IllegalArgumentException("Unknown preprocess routine type: $routineType")
@@ -56,7 +56,6 @@ class AudioClipEditingServiceImpl(
                 }
             )
         }
-         */
     }
 
     override fun getAudioClipId(audioClipOrMetadataFile: File): String {
@@ -102,6 +101,7 @@ class AudioClipEditingServiceImpl(
         }
 
         return supportedAudioIO[audioClipFormat]!!.readClip(audioClipFile).also {
+            preprocessRoutine.applyOn(it)
             audioClipSavingMutexes[it] = Mutex()
         }
     }

@@ -7,8 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import model.impl.accounting.AudioClipAccountingServiceImpl
 import model.impl.txrx.AudioClipTxRxServiceImpl
 import specs.impl.*
@@ -26,35 +29,43 @@ import views.utils.WithoutTouchSlop
 
 fun App() {
     application {
-        Window(onCloseRequest = ::exitApplication, title = "Audio Clip Editor") {
-            val coroutineScope = rememberCoroutineScope()
-            val density = LocalDensity.current
-            val appViewModel: AppViewModel = remember {
-                val preferenceAudioServiceSpecs = PreferenceAudioClipEditingServiceSpecs()
-                val preferenceEditorSpecs = PreferenceEditorSpecs()
-                val preferenceSavingSpecs = PreferenceSavingSpecs()
-                val preferenceProcessingSpecs = PreferenceProcessingSpecs()
-                val preferenceTxRxSpecs = PreferenceAudioClipTxRxServiceSpecs()
+        val coroutineScope = rememberCoroutineScope()
+        val density = LocalDensity.current
+        val (appViewModel: AppViewModel, windowSize) = remember {
+            val preferenceAudioServiceSpecs = PreferenceAudioClipEditingServiceSpecs()
+            val preferenceEditorSpecs = PreferenceEditorSpecs()
+            val preferenceSavingSpecs = PreferenceSavingSpecs()
+            val preferenceApplicationSpecs = PreferenceApplicationSpecs()
+            val preferenceTxRxSpecs = PreferenceAudioClipTxRxServiceSpecs()
 
-                val resourceResolver = ComposeResourceResolverImpl()
+            val resourceResolver = ComposeResourceResolverImpl()
 
-                AppViewModelImpl(
-                    audioClipEditingService = AudioClipEditingServiceImpl(
-                        resourceResolver, preferenceAudioServiceSpecs, coroutineScope
-                    ),
-                    audioClipTxRxService = AudioClipTxRxServiceImpl(preferenceTxRxSpecs),
-                    audioClipAccountingService = AudioClipAccountingServiceImpl(resourceResolver),
-                    pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
-                    coroutineScope = coroutineScope,
-                    density = density,
-                    editorSpecs = preferenceEditorSpecs,
-                    savingSpecs = preferenceSavingSpecs,
-                    processingSpecs = preferenceProcessingSpecs,
-                    txRxSpecs = preferenceTxRxSpecs,
-                    exitApplication = ::exitApplication
-                )
-            }
+            val appViewModel = AppViewModelImpl(
+                audioClipEditingService = AudioClipEditingServiceImpl(
+                    resourceResolver, preferenceAudioServiceSpecs, coroutineScope
+                ),
+                audioClipTxRxService = AudioClipTxRxServiceImpl(preferenceTxRxSpecs),
+                audioClipAccountingService = AudioClipAccountingServiceImpl(resourceResolver),
+                pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
+                coroutineScope = coroutineScope,
+                density = density,
+                editorSpecs = preferenceEditorSpecs,
+                savingSpecs = preferenceSavingSpecs,
+                applicationSpecs = preferenceApplicationSpecs,
+                txRxSpecs = preferenceTxRxSpecs,
+                exitApplication = ::exitApplication
+            )
+            val initWindowSize = DpSize(
+                preferenceApplicationSpecs.initialWindowWidthDp, preferenceApplicationSpecs.initialWindowHeightDp
+            )
+            appViewModel to initWindowSize
+        }
 
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "Audio Clip Editor",
+            state = rememberWindowState(size = windowSize)
+        ) {
             WithoutTouchSlop {
                 MaterialTheme(
                     colors = MaterialTheme.colors.copy(

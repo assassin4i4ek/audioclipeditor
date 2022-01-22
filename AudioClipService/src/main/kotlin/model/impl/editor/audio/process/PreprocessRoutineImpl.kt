@@ -11,7 +11,7 @@ class PreprocessRoutineImpl: PreprocessRoutine {
         return this
     }
 
-    override suspend fun apply(clip: AudioClip) {
+    override suspend fun applyOn(clip: AudioClip) {
         routineSequence.forEach {
             it(clip)
         }

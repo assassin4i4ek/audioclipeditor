@@ -9,7 +9,7 @@ import specs.api.immutable.AudioClipTxRxServiceSpecs
 import java.io.File
 
 class AudioClipTxRxServiceImpl(
-    private val specs: AudioClipTxRxServiceSpecs
+    specs: AudioClipTxRxServiceSpecs
 ): AudioClipTxRxService {
     private val emailTxRx: AudioClipEmailTxRx = AudioClipEmailTxRxImpl(specs)
 
@@ -19,17 +19,5 @@ class AudioClipTxRxServiceImpl(
 
     override suspend fun transmitAudioClipFiles(clipFiles: List<File>) {
         emailTxRx.transmitFiles(clipFiles)
-    }
-
-    override suspend fun cleanup(clipFiles: List<File>) {
-        clipFiles.map { clipFile ->
-            withContext(Dispatchers.IO) {
-                launch {
-                    delay(100)
-//                  TODO clipFile.deleteOnExit()
-                    println("Deleted ${clipFile.absolutePath}")
-                }
-            }
-        }.joinAll()
     }
 }

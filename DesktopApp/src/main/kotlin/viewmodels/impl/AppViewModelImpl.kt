@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import model.api.accounting.AudioClipAccountingService
 import model.api.editor.audio.AudioClipEditingService
 import model.api.txrx.AudioClipTxRxService
-import specs.api.immutable.ProcessingSpecs
+import specs.api.immutable.ApplicationSpecs
 import specs.api.immutable.SavingSpecs
 import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
 import specs.api.mutable.MutableEditorSpecs
@@ -36,7 +36,7 @@ class AppViewModelImpl(
     density: Density,
     editorSpecs: MutableEditorSpecs,
     savingSpecs: SavingSpecs,
-    processingSpecs: ProcessingSpecs,
+    applicationSpecs: ApplicationSpecs,
     txRxSpecs: MutableAudioClipTxRxServiceSpecs,
     private val exitApplication: () -> Unit
 ): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.Parent, EditorViewModelImpl.Parent,
@@ -49,7 +49,7 @@ class AppViewModelImpl(
     )
     override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
         audioClipTxRxService, audioClipAccountingService,
-        this, coroutineScope, processingSpecs, savingSpecs, txRxSpecs
+        this, coroutineScope, applicationSpecs, savingSpecs, txRxSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
         audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs, savingSpecs

@@ -152,10 +152,14 @@ class FragmentResolverImpl(
                     clip.fragments.firstOrNull()?.transformer = clip.createTransformerForType(FragmentTransformer.Type.BELL)
                 }
             }
+            else if (fragment.leftBoundingFragment!!.leftBoundingFragment == null) {
+                // second fragment
+                fragment.leftImmutableAreaStartUs = fragment.leftBoundingFragment!!.mutableAreaEndUs + 1
+            }
             else {
                 fragment.leftImmutableAreaStartUs = (
                         fragment.leftBoundingFragment!!.mutableAreaEndUs + fragment.mutableAreaStartUs
-                        ) / 2
+                        ) / 2 + 1
             }
 
             if (fragment.rightBoundingFragment == null) {
@@ -168,10 +172,14 @@ class FragmentResolverImpl(
                         specs.lastFragmentSilenceDurationUs
                 }
             }
+            else if (fragment.rightBoundingFragment!!.rightBoundingFragment == null) {
+                // pre-last fragment
+                fragment.rightImmutableAreaEndUs = fragment.rightBoundingFragment!!.mutableAreaStartUs - 1
+            }
             else {
                 fragment.rightImmutableAreaEndUs = (
                         fragment.rightBoundingFragment!!.mutableAreaStartUs + fragment.mutableAreaEndUs
-                        ) / 2
+                        ) / 2 - 1
             }
         }
     }

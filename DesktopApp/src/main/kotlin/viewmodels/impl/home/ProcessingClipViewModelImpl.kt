@@ -10,7 +10,7 @@ import java.io.File
 
 class ProcessingClipViewModelImpl(
     private val clipId: String,
-    private val clipFile: File,
+    override val clipFile: File,
     private val parentViewModel: Parent
 ): ProcessingClipViewModel {
     /* Parent ViewModels */

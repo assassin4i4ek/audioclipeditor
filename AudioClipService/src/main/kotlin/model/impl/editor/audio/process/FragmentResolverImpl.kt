@@ -18,6 +18,7 @@ import org.tensorflow.types.TString
 import specs.api.immutable.AudioEditingServiceSpecs
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.roundToInt
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -94,8 +95,9 @@ class FragmentResolverImpl(
         firstChannelPcm: FloatArray
     ): FragmentResolverProto.FragmentResolverModelRequest {
         return fragmentResolverModelRequest {
+            val endPaddingSamplesCount = (config.sampleRate * specs.fragmentResolverEndPaddingUs / 1e6).roundToInt()
             val floatArrayToByteArray = ByteBuffer
-                .allocate(firstChannelPcm.size * Float.SIZE_BYTES)
+                .allocate((firstChannelPcm.size + endPaddingSamplesCount) * Float.SIZE_BYTES)
                 .order(ByteOrder.LITTLE_ENDIAN)
             firstChannelPcm.forEach(floatArrayToByteArray::putFloat)
             floatArrayToByteArray.position(0)

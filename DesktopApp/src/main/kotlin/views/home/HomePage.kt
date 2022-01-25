@@ -108,19 +108,28 @@ fun HomePage(
                     }
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    enabled = homePageViewModel.canProcessClips,
-                    onClick = homePageViewModel::onProcessClipsClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Process")
-                    if (homePageViewModel.isProcessingClips) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = MaterialTheme.colors.onBackground,
-                            strokeWidth = 2.dp
-                        )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        enabled = homePageViewModel.canProcessClips,
+                        onClick = homePageViewModel::onProcessClipsClick,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Process")
+                        if (homePageViewModel.isProcessingClips) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colors.onBackground,
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = homePageViewModel::onSettingsButtonClick,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Settings")
                     }
                 }
             }

@@ -11,6 +11,8 @@ interface AudioEditingServiceSpecs {
     val defaultFragmentTransformerType: FragmentTransformer.Type
     val defaultSilenceTransformerSilenceDurationUs: Long
 
+    val fragmentResolverEndPaddingUs: Long
+
     val useBellTransformerForFirstFragment: Boolean
 
     val lastFragmentSilenceDurationUs: Long

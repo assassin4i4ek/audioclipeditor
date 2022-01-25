@@ -17,6 +17,7 @@ interface AudioClipSettingsViewModel: BaseViewModel {
 
     val defaultSilenceTransformerSilenceDurationMs: String
     val lastFragmentSilenceDurationMs: String
+    val fragmentResolverEndPaddingMs: String
 
     val normalizationRmsDb: String
     val normalizationCompressorThresholdDb: String
@@ -35,6 +36,7 @@ interface AudioClipSettingsViewModel: BaseViewModel {
     fun onDefaultSilenceTransformerSilenceDurationMs(newDefaultSilenceTransformerSilenceDurationMs: String)
     fun onUseBellTransformerForFirstFragment(newUseBellTransformerForFirstFragment: Boolean)
     fun onLastFragmentSilenceDurationMs(newLastFragmentSilenceDurationMs: String)
+    fun onFragmentResolverEndPaddingMs(newFragmentResolverEndPaddingMs: String)
     fun onNormalizationRmsDb(newNormalizationRmsDb: String)
     fun onNormalizationCompressorThresholdDb(newNormalizationCompressorThresholdDb: String)
     fun onNormalizationCompressorAttackTimeMs(newNormalizationCompressorAttackTimeMs: String)

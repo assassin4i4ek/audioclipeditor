@@ -31,6 +31,7 @@ interface HomePageViewModel: BaseViewModel {
     fun onOpenClipsClick()
     fun onFetchClipsClick()
     fun onProcessClipsClick()
+    fun onSettingsButtonClick()
     fun onUserEmailChange(newEmail: String)
     fun onUserPasswordChange(newPassword: String)
     fun onReceiveFromEmailChange(newReceiveFromEmail: String)

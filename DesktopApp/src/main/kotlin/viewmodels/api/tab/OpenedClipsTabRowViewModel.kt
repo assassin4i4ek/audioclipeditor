@@ -26,4 +26,6 @@ interface OpenedClipsTabRowViewModel: BaseViewModel {
     fun removeClip(clipId: String)
     fun notifyMutated(clipId: String, mutated: Boolean)
     fun notifySaving(clipId: String, saving: Boolean)
+    fun navigateToHomePage()
+    fun navigateToSettingsPage()
 }

@@ -32,6 +32,10 @@ class PreferenceAudioEditingServiceSpecs: BasePreferenceSpecsImpl(), MutableAudi
         150e3.toLong(), ::defaultSilenceTransformerSilenceDurationUs
     )
 
+    override var fragmentResolverEndPaddingUs: Long by savableProperty(
+        500000L, ::fragmentResolverEndPaddingUs
+    )
+
     override var useBellTransformerForFirstFragment: Boolean by savableProperty(
         true, ::useBellTransformerForFirstFragment
     )

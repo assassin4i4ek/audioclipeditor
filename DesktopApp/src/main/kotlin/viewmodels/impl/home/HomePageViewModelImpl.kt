@@ -33,6 +33,7 @@ class HomePageViewModelImpl(
         suspend fun saveClip(clipId: String)
         fun requestCloseApplication()
         fun notifyError(message: String)
+        fun navigateToSettingsPage()
     }
 
     /* Child ViewModels */
@@ -76,6 +77,10 @@ class HomePageViewModelImpl(
 
     override fun onProcessClipsClick() {
         processClips()
+    }
+
+    override fun onSettingsButtonClick() {
+        parentViewModel.navigateToSettingsPage()
     }
 
     override fun onUserEmailChange(newEmail: String) {

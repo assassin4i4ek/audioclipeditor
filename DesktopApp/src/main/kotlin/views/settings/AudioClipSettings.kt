@@ -12,7 +12,7 @@ import views.utils.SwitchWithTitle
 
 @Composable
 fun AudioClipSettings(audioClipSettingsViewModel: AudioClipSettingsViewModel) {
-    Card(modifier = Modifier.width(700.dp)) {
+    Card(modifier = Modifier.width(780.dp)) {
         Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
             ProvideTextStyle(MaterialTheme.typography.body2) {
                 Text("Audio clip settings")
@@ -82,6 +82,19 @@ fun AudioClipSettings(audioClipSettingsViewModel: AudioClipSettingsViewModel) {
                                 },
                                 label = {
                                     Text("Last fragment silence (ms)")
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            TextField(
+                                audioClipSettingsViewModel.fragmentResolverEndPaddingMs,
+                                audioClipSettingsViewModel::onFragmentResolverEndPaddingMs,
+                                Modifier.weight(1f).onFocusChanged {
+                                    if (!it.hasFocus) {
+                                        audioClipSettingsViewModel.onRefreshTextFieldValues()
+                                    }
+                                },
+                                label = {
+                                    Text("Fragment resolve end padding (ms)")
                                 }
                             )
                         }

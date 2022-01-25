@@ -146,4 +146,8 @@ class AppViewModelImpl(
     override fun notifyError(message: String) {
         processingErrorDialogViewModel.notifyError(message)
     }
+
+    override fun navigateToSettingsPage() {
+        openedClipsTabRowViewModel.navigateToSettingsPage()
+    }
 }

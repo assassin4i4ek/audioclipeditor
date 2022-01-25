@@ -27,13 +27,13 @@ fun OpenedClipsTabRow(
     ) {
         Row {
             Row(modifier = Modifier.height(IntrinsicSize.Min).wrapContentWidth(unbounded = true)) {
-                Tab(
+                LeadingIconTab(
                     selected = openedClipsTabRowViewModel.onHomePage,
                     onClick = openedClipsTabRowViewModel::onHomeButtonClick,
-                    modifier = if (openedClipsTabRowViewModel.onHomePage)
-                        Modifier.background(MaterialTheme.colors.primarySurface)
-                    else Modifier,
                     text = {
+                        Text("Home")
+                    },
+                    icon = {
                         Icon(useResource("icons/home_black_24dp.svg") {
                             loadSvgPainter(it, LocalDensity.current)
                         }, "Home")
@@ -52,6 +52,7 @@ fun OpenedClipsTabRow(
                     OpenedClipTabView(clipTabViewModel)
                 }
             }
+            /*
             Row(modifier = Modifier.height(IntrinsicSize.Min).wrapContentWidth(unbounded = true)) {
                 Divider(
                     modifier = Modifier
@@ -72,37 +73,7 @@ fun OpenedClipsTabRow(
                         }, "Settings")
                     }
                 )
-            }
+            }*/
         }
-        /*
-        LazyRow {
-            stickyHeader {
-                Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-                    Tab(
-                        selected = openedClipsTabRowViewModel.onHomePage,
-                        onClick = openedClipsTabRowViewModel::onHomeButtonClick,
-                        modifier = if (openedClipsTabRowViewModel.onHomePage)
-                            Modifier.background(MaterialTheme.colors.primarySurface)
-                        else Modifier,
-                        text = {
-                            Icon(useResource("icons/home_black_24dp.svg") {
-                                loadSvgPainter(it, LocalDensity.current)
-                            }, "Home")
-                        }
-                    )
-                    Divider(modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .background(MaterialTheme.colors.onPrimary)
-                        .fillMaxHeight()
-                        .width(1.dp)
-                    )
-                }
-            }
-            items(openedClipsTabRowViewModel.openedClips) { clipTabViewModel ->
-                OpenedClipTabView(clipTabViewModel)
-            }
-        }
-
-         */
     }
 }

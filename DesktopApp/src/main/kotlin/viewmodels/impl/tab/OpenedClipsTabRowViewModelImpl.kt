@@ -33,13 +33,11 @@ class OpenedClipsTabRowViewModelImpl(
 
     /* Callbacks */
     override fun onHomeButtonClick() {
-        _selectedClipId = null
-        _onSettingsPage = false
+        navigateToHomePage()
     }
 
     override fun onSettingsButtonClick() {
-        _selectedClipId = null
-        _onSettingsPage = true
+        navigateToSettingsPage()
     }
 
     /* Methods */
@@ -86,5 +84,15 @@ class OpenedClipsTabRowViewModelImpl(
 
     override fun notifySaving(clipId: String, saving: Boolean) {
         _openedClips[clipId]!!.notifySaving(saving)
+    }
+
+    override fun navigateToHomePage() {
+        _selectedClipId = null
+        _onSettingsPage = false
+    }
+
+    override fun navigateToSettingsPage() {
+        _selectedClipId = null
+        _onSettingsPage = true
     }
 }

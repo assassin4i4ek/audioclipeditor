@@ -34,7 +34,7 @@ class AudioClipSettingsViewModelImpl(
     private var _lastFragmentSilenceDurationMs: String by mutableStateOf((editingServiceSpecs.lastFragmentSilenceDurationUs / 1000).toString())
     override val lastFragmentSilenceDurationMs: String get() = _lastFragmentSilenceDurationMs
 
-    private var _fragmentResolverEndPaddingMs: String by mutableStateOf((editingServiceSpecs.fragmentResolverEndPaddingUs / 1000).toString())
+    private var _fragmentResolverEndPaddingMs: String by mutableStateOf((editingServiceSpecs.decoderEndPaddingUs / 1000).toString())
     override val fragmentResolverEndPaddingMs: String get() = _fragmentResolverEndPaddingMs
 
     private var _normalizationRmsDb: String by mutableStateOf(editingServiceSpecs.normalizationRmsDb.toString())
@@ -155,7 +155,7 @@ class AudioClipSettingsViewModelImpl(
             _lastFragmentSilenceDurationMs = (editingServiceSpecs.lastFragmentSilenceDurationUs / 1000).toString()
         }
         if (fragmentResolverEndPaddingMs.isEmpty()) {
-            _fragmentResolverEndPaddingMs = (editingServiceSpecs.fragmentResolverEndPaddingUs / 1000).toString()
+            _fragmentResolverEndPaddingMs = (editingServiceSpecs.decoderEndPaddingUs / 1000).toString()
         }
         if (normalizationRmsDb.isEmpty()) {
             _normalizationRmsDb = editingServiceSpecs.normalizationRmsDb.toString()
@@ -181,7 +181,7 @@ class AudioClipSettingsViewModelImpl(
         editingServiceSpecs.defaultSilenceTransformerSilenceDurationUs = defaultSilenceTransformerSilenceDurationMs.toLong() * 1000
         editingServiceSpecs.useBellTransformerForFirstFragment = useBellTransformerForFirstFragment
         editingServiceSpecs.lastFragmentSilenceDurationUs = lastFragmentSilenceDurationMs.toLong() * 1000
-        editingServiceSpecs.fragmentResolverEndPaddingUs = fragmentResolverEndPaddingMs.toLong() * 1000
+        editingServiceSpecs.decoderEndPaddingUs = fragmentResolverEndPaddingMs.toLong() * 1000
         editingServiceSpecs.normalizationRmsDb = normalizationRmsDb.toFloat()
         editingServiceSpecs.normalizationCompressorThresholdDb = normalizationCompressorThresholdDb.toFloat()
         editingServiceSpecs.normalizationCompressorAttackTimeMs = normalizationCompressorReleaseTimeMs.toFloat()
@@ -198,7 +198,7 @@ class AudioClipSettingsViewModelImpl(
         _defaultSilenceTransformerSilenceDurationMs = (editingServiceSpecs.defaultSilenceTransformerSilenceDurationUs / 1000).toString()
         _useBellTransformerForFirstFragment = editingServiceSpecs.useBellTransformerForFirstFragment
         _lastFragmentSilenceDurationMs = (editingServiceSpecs.lastFragmentSilenceDurationUs / 1000).toString()
-        _fragmentResolverEndPaddingMs = (editingServiceSpecs.fragmentResolverEndPaddingUs / 1000).toString()
+        _fragmentResolverEndPaddingMs = (editingServiceSpecs.decoderEndPaddingUs / 1000).toString()
         _normalizationRmsDb = editingServiceSpecs.normalizationRmsDb.toString()
         _normalizationCompressorThresholdDb = editingServiceSpecs.normalizationCompressorThresholdDb.toString()
         _normalizationCompressorAttackTimeMs = editingServiceSpecs.normalizationCompressorAttackTimeMs.toString()

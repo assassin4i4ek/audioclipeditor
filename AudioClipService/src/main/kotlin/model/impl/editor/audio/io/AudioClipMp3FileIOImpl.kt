@@ -17,7 +17,7 @@ open class AudioClipMp3FileIOImpl(
     private val processor: SoundProcessor,
     protected val specs: AudioEditingServiceSpecs
 ): AudioClipFileIO {
-    private val mp3Codec: SoundCodec = LameMp3Codec()
+    private val mp3Codec: SoundCodec = LameMp3Codec(specs.decoderEndPaddingUs)
 
     @OptIn(ExperimentalTime::class)
     override suspend fun readClip(audioClipFile: File): AudioClip {

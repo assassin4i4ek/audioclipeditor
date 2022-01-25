@@ -11,8 +11,11 @@ import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import javax.sound.sampled.AudioFormat
+import kotlin.math.roundToInt
 
-class LameMp3Codec: SoundCodec {
+class LameMp3Codec(
+    private val endPaddingUs: Long
+) : SoundCodec {
     override suspend fun decode(soundPath: String): SoundCodec.Sound {
         return withContext(Dispatchers.IO) {
             val decoder = LameDecoder(soundPath)
@@ -30,6 +33,12 @@ class LameMp3Codec: SoundCodec {
                     val outSampleOffset = bufferSize - outSampleCount
                     pcmByteStream.write(buffer.array(), outSampleOffset, outSampleCount)
                     currentPosition += bufferSize
+                }
+                // append padding
+                val endPaddingPosition = (decoder.sampleRate * endPaddingUs / 1e6).roundToInt() * decoder.channels * 2 /* Short.SIZE_BYTES */
+
+                for (paddingBytePosition in 0 until endPaddingPosition) {
+                    pcmByteStream.write(0)
                 }
             }.getOrThrow()
 

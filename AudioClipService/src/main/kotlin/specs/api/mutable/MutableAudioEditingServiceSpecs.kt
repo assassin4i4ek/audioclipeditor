@@ -12,7 +12,7 @@ interface MutableAudioEditingServiceSpecs: AudioEditingServiceSpecs, MutableSpec
     override var defaultFragmentTransformerType: FragmentTransformer.Type
     override var defaultSilenceTransformerSilenceDurationUs: Long
 
-    override var fragmentResolverEndPaddingUs: Long
+    override var decoderEndPaddingUs: Long
 
     override var useBellTransformerForFirstFragment: Boolean
 

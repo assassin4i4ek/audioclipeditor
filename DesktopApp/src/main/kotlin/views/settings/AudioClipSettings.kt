@@ -12,7 +12,7 @@ import views.utils.SwitchWithTitle
 
 @Composable
 fun AudioClipSettings(audioClipSettingsViewModel: AudioClipSettingsViewModel) {
-    Card(modifier = Modifier.width(780.dp)) {
+    Card(modifier = Modifier.width(700.dp)) {
         Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
             ProvideTextStyle(MaterialTheme.typography.body2) {
                 Text("Audio clip settings")
@@ -94,7 +94,7 @@ fun AudioClipSettings(audioClipSettingsViewModel: AudioClipSettingsViewModel) {
                                     }
                                 },
                                 label = {
-                                    Text("Fragment resolve end padding (ms)")
+                                    Text("Clip end padding (ms)")
                                 }
                             )
                         }

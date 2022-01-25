@@ -8,9 +8,9 @@ import model.impl.editor.audio.io.LameMp3Codec
 
 class Mp3SoundPatternResourceStorage(
     private val processor: SoundProcessor,
-    resourceResolver: ResourceResolver? = null
+    resourceResolver: ResourceResolver? = null,
 ): BaseSoundPatternStorageImpl(resourceResolver) {
-    private val mp3Codec: SoundCodec = LameMp3Codec()
+    private val mp3Codec: SoundCodec = LameMp3Codec(0)
 
     override fun retrieveSoundPattern(soundPatternPath: String, targetSampleRate: Int, targetNumChannels: Int): ByteArray {
         return runBlocking {

@@ -6,6 +6,7 @@ import viewmodels.api.dialogs.ProcessingErrorDialogViewModel
 import viewmodels.api.editor.EditorViewModel
 import viewmodels.api.tab.OpenedClipsTabRowViewModel
 import viewmodels.api.home.HomePageViewModel
+import viewmodels.api.settings.SettingsPageViewModel
 
 interface AppViewModel: BaseViewModel {
     /* Parent ViewModels */
@@ -14,6 +15,7 @@ interface AppViewModel: BaseViewModel {
     val openedClipsTabRowViewModel: OpenedClipsTabRowViewModel
     val editorViewModel: EditorViewModel
     val homePageViewModel: HomePageViewModel
+    val settingsPageViewModel: SettingsPageViewModel
     val clipFileChooserViewModel: AudioClipFileChooserViewModel
     val closeConfirmDialogViewModel: CloseConfirmDialogViewModel
     val processingErrorDialogViewModel: ProcessingErrorDialogViewModel
@@ -22,6 +24,7 @@ interface AppViewModel: BaseViewModel {
 
     /* Stateful properties */
     val onHomePage: Boolean
+    val onSettingsPage: Boolean
 
     /* Callbacks */
 

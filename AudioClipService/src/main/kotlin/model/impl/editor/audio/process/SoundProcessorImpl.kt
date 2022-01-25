@@ -4,7 +4,7 @@ import com.laszlosystems.libresample4j.Resampler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.api.editor.audio.process.SoundProcessor
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -13,7 +13,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 class SoundProcessorImpl(
-    private val specs: AudioClipEditingServiceSpecs
+    private val specs: AudioEditingServiceSpecs
 ): SoundProcessor {
     override suspend fun resampleChannelsPcm(channelsPcm: List<FloatArray>, srcSampleRate: Int, dstSampleRate: Int): List<FloatArray> {
         return withContext(Dispatchers.Default) {

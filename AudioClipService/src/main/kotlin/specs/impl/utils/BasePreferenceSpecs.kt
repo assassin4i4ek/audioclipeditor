@@ -8,6 +8,8 @@ import kotlin.reflect.KProperty
 interface BasePreferenceSpecs: MutableSpecs {
     val preferences: Preferences
 
+    val properties: MutableList<PreferenceSavableProperty<*, *, *>>
+
     fun <U, V> createPreferenceSavableProperty(
         defaultValue: U, property: KProperty<*>, toSupportedType: (U) -> V, toActualType: (V) -> U
     ): PreferenceSavableProperty<BasePreferenceSpecs, U, V>
@@ -15,7 +17,9 @@ interface BasePreferenceSpecs: MutableSpecs {
     fun <U, V> savableProperty(
         defaultValue: U, property: KProperty<*>, toSupportedType: (U) -> V, toActualType: (V) -> U
     ): PreferenceSavableProperty<BasePreferenceSpecs, U, V> {
-        return createPreferenceSavableProperty(defaultValue, property, toSupportedType, toActualType)
+        return createPreferenceSavableProperty(defaultValue, property, toSupportedType, toActualType).also {
+            properties.add(it)
+        }
     }
 
     fun savableProperty(defaultValue: Float, property: KProperty<*>):
@@ -44,5 +48,6 @@ interface BasePreferenceSpecs: MutableSpecs {
 
     override fun reset() {
         preferences.clear()
+        properties.forEach(PreferenceSavableProperty<*, *, *>::reset)
     }
 }

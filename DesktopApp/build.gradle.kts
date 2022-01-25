@@ -35,6 +35,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            modules("java.sql")
             packageName = "AudioClipsEditorApp"
             packageVersion = "1.0.0"
             appResourcesRootDir.set(sourceSets.main.get().output.resourcesDir)

@@ -1,13 +1,15 @@
-package specs.impl
+package specs.impl.application
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import specs.api.mutable.MutableApplicationSpecs
 import specs.impl.utils.BaseStatefulPreferenceSpecsImpl
+import specs.impl.utils.PreferenceSavableProperty
 import java.util.prefs.Preferences
 
 class PreferenceApplicationSpecs: BaseStatefulPreferenceSpecsImpl(), MutableApplicationSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
+    override val properties: MutableList<PreferenceSavableProperty<*, *, *>> = mutableListOf()
 
     override var fetchClipsOnAppStart: Boolean by savableProperty(
         true, ::fetchClipsOnAppStart

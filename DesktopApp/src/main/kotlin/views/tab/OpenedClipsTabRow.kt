@@ -47,10 +47,31 @@ fun OpenedClipsTabRow(
                         .width(1.dp)
                 )
             }
-            LazyRow {
+            LazyRow(modifier = Modifier.weight(1f)) {
                 items(openedClipsTabRowViewModel.openedClips) { clipTabViewModel ->
                     OpenedClipTabView(clipTabViewModel)
                 }
+            }
+            Row(modifier = Modifier.height(IntrinsicSize.Min).wrapContentWidth(unbounded = true)) {
+                Divider(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 2.dp)
+                        .background(MaterialTheme.colors.onPrimary)
+                        .fillMaxHeight()
+                        .width(1.dp)
+                )
+                Tab(
+                    selected = openedClipsTabRowViewModel.onSettingsPage,
+                    onClick = openedClipsTabRowViewModel::onSettingsButtonClick,
+                    modifier = if (openedClipsTabRowViewModel.onSettingsPage)
+                        Modifier.background(MaterialTheme.colors.primarySurface)
+                    else Modifier,
+                    text = {
+                        Icon(useResource("icons/settings_black_24dp.svg") {
+                            loadSvgPainter(it, LocalDensity.current)
+                        }, "Settings")
+                    }
+                )
             }
         }
         /*

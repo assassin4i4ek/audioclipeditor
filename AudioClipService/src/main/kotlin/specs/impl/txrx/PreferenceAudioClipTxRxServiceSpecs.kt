@@ -1,12 +1,14 @@
-package specs.impl
+package specs.impl.txrx
 
 import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
 import specs.impl.utils.BasePreferenceSpecsImpl
+import specs.impl.utils.PreferenceSavableProperty
 import java.io.File
 import java.util.prefs.Preferences
 
 class PreferenceAudioClipTxRxServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioClipTxRxServiceSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
+    override val properties: MutableList<PreferenceSavableProperty<*, *, *>> = mutableListOf()
 
     override var defaultClipDownloadingDir: File by savableProperty(
         File(System.getProperty("user.dir")).resolve("Clips").resolve("Downloaded Clips"),

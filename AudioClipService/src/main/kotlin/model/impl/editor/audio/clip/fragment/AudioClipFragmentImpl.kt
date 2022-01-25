@@ -2,7 +2,7 @@ package model.impl.editor.audio.clip.fragment
 
 import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -12,7 +12,7 @@ class AudioClipFragmentImpl(
     mutableAreaEndUs: Long,
     rightImmutableAreaEndUs: Long,
     audioClipDurationUs: Long,
-    private val specs: AudioClipEditingServiceSpecs,
+    private val specs: AudioEditingServiceSpecs,
     transformer: FragmentTransformer,
     private val onMutate: (AudioClipFragmentImpl) -> Unit
 ): MutableAudioClipFragment {

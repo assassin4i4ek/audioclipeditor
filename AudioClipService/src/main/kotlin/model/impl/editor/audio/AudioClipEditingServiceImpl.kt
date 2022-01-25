@@ -19,14 +19,14 @@ import model.impl.editor.audio.process.FragmentResolverImpl
 import model.impl.editor.audio.process.PreprocessRoutineImpl
 import model.impl.editor.audio.process.SoundProcessorImpl
 import model.impl.editor.audio.storage.Mp3SoundPatternResourceStorage
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 import java.io.File
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 class AudioClipEditingServiceImpl(
     resourceResolver: ResourceResolver,
-    private val specs: AudioClipEditingServiceSpecs,
+    private val specs: AudioEditingServiceSpecs,
     coroutineScope: CoroutineScope,
 ): AudioClipEditingService {
     private val processor: SoundProcessor = SoundProcessorImpl(specs)

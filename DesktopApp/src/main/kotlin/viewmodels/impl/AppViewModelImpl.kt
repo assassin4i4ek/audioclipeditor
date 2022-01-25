@@ -7,10 +7,7 @@ import kotlinx.coroutines.launch
 import model.api.accounting.AudioClipAccountingService
 import model.api.editor.audio.AudioClipEditingService
 import model.api.txrx.AudioClipTxRxService
-import specs.api.immutable.ApplicationSpecs
-import specs.api.immutable.SavingSpecs
-import specs.api.mutable.MutableAudioClipTxRxServiceSpecs
-import specs.api.mutable.MutableEditorSpecs
+import specs.api.mutable.*
 import viewmodels.api.AppViewModel
 import viewmodels.api.dialogs.AudioClipFileChooserViewModel
 import viewmodels.api.dialogs.CloseConfirmDialogViewModel
@@ -18,6 +15,7 @@ import viewmodels.api.dialogs.ProcessingErrorDialogViewModel
 import viewmodels.api.editor.EditorViewModel
 import viewmodels.api.tab.OpenedClipsTabRowViewModel
 import viewmodels.api.home.HomePageViewModel
+import viewmodels.api.settings.SettingsPageViewModel
 import viewmodels.api.utils.AdvancedPcmPathBuilder
 import viewmodels.impl.dialogs.AudioClipFileChooserViewModelImpl
 import viewmodels.impl.dialogs.CloseConfirmDialogViewModelImpl
@@ -25,6 +23,7 @@ import viewmodels.impl.dialogs.ProcessingErrorDialogViewModelImpl
 import viewmodels.impl.editor.EditorViewModelImpl
 import viewmodels.impl.tab.OpenedClipsTabRowViewModelImpl
 import viewmodels.impl.home.HomePageViewModelImpl
+import viewmodels.impl.settings.SettingsPageViewModelImpl
 import java.io.File
 
 class AppViewModelImpl(
@@ -35,8 +34,9 @@ class AppViewModelImpl(
     private val coroutineScope: CoroutineScope,
     density: Density,
     editorSpecs: MutableEditorSpecs,
-    savingSpecs: SavingSpecs,
-    applicationSpecs: ApplicationSpecs,
+    savingSpecs: MutableSavingSpecs,
+    applicationSpecs: MutableApplicationSpecs,
+    clipEditingServiceSpecs: MutableAudioEditingServiceSpecs,
     txRxSpecs: MutableAudioClipTxRxServiceSpecs,
     private val exitApplication: () -> Unit
 ): AppViewModel, OpenedClipsTabRowViewModelImpl.Parent, HomePageViewModelImpl.Parent, EditorViewModelImpl.Parent,
@@ -50,6 +50,9 @@ class AppViewModelImpl(
     override val homePageViewModel: HomePageViewModel = HomePageViewModelImpl(
         audioClipTxRxService, audioClipAccountingService,
         this, coroutineScope, applicationSpecs, savingSpecs, txRxSpecs
+    )
+    override val settingsPageViewModel: SettingsPageViewModel = SettingsPageViewModelImpl(
+        applicationSpecs, savingSpecs, editorSpecs, clipEditingServiceSpecs, txRxSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
         audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs, savingSpecs
@@ -66,6 +69,7 @@ class AppViewModelImpl(
 
     /* Stateful properties */
     override val onHomePage: Boolean get() = openedClipsTabRowViewModel.onHomePage
+    override val onSettingsPage: Boolean get() = openedClipsTabRowViewModel.onSettingsPage
 
     override val selectedClipId: String? get() = openedClipsTabRowViewModel.selectedClipId
 
@@ -85,8 +89,8 @@ class AppViewModelImpl(
     override fun submitClip(clipFile: File) {
         val clipId = audioClipEditingService.getAudioClipId(clipFile)
         homePageViewModel.submitClip(clipId, clipFile)
-        openedClipsTabRowViewModel.submitClip(clipId, clipFile)
         editorViewModel.submitClip(clipId, clipFile)
+        openedClipsTabRowViewModel.submitClip(clipId, clipFile)
     }
 
     override fun selectClip(clipId: String) {

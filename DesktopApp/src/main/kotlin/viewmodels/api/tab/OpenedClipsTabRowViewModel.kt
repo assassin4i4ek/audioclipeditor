@@ -14,9 +14,11 @@ interface OpenedClipsTabRowViewModel: BaseViewModel {
     val openedClips: List<OpenedClipTabViewModel>
     val selectedClipId: String?
     val onHomePage: Boolean
+    val onSettingsPage: Boolean
 
     /* Callbacks */
     fun onHomeButtonClick()
+    fun onSettingsButtonClick()
 
     /* Methods */
     fun submitClip(clipId: String, clipFile: File)

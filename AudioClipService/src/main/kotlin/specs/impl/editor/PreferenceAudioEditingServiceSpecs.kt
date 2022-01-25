@@ -1,13 +1,15 @@
-package specs.impl
+package specs.impl.editor
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import serializedPreprocessRoutine
-import specs.api.mutable.MutableAudioClipEditingServiceSpecs
+import specs.api.mutable.MutableAudioEditingServiceSpecs
 import specs.impl.utils.BasePreferenceSpecsImpl
+import specs.impl.utils.PreferenceSavableProperty
 import java.util.prefs.Preferences
 
-class PreferenceAudioClipEditingServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioClipEditingServiceSpecs {
+class PreferenceAudioEditingServiceSpecs: BasePreferenceSpecsImpl(), MutableAudioEditingServiceSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
+    override val properties: MutableList<PreferenceSavableProperty<*, *, *>> = mutableListOf()
 
     override var dataLineMaxBufferDesolation: Float by savableProperty(
         0.8f, ::dataLineMaxBufferDesolation
@@ -27,7 +29,7 @@ class PreferenceAudioClipEditingServiceSpecs: BasePreferenceSpecsImpl(), Mutable
     )
 
     override var defaultSilenceTransformerSilenceDurationUs: Long by savableProperty(
-        250e3.toLong(), ::defaultSilenceTransformerSilenceDurationUs
+        150e3.toLong(), ::defaultSilenceTransformerSilenceDurationUs
     )
 
     override var useBellTransformerForFirstFragment: Boolean by savableProperty(

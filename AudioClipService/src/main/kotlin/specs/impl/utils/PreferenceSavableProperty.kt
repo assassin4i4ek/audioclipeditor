@@ -8,12 +8,13 @@ import kotlin.reflect.KProperty
 interface PreferenceSavableProperty<T, U, V>: ReadWriteProperty<T, U> {
     val preferences: Preferences
 
+    val defaultValue: U
     var localValue: U
 
     fun toSupportedType(value: U): V
     fun toActualType(value: V): U
 
-    fun initValue(defaultValue: U, thisRef: T, property: KProperty<*>): U {
+    fun initValue(thisRef: T, property: KProperty<*>): U {
         val key = "${thisRef!!::class.simpleName}/${property.name}"
 
         val value = when (val defaultValueAsSupported = toSupportedType(defaultValue)) {
@@ -53,5 +54,9 @@ interface PreferenceSavableProperty<T, U, V>: ReadWriteProperty<T, U> {
         }
 
         localValue = value
+    }
+
+    fun reset() {
+        localValue = defaultValue
     }
 }

@@ -26,11 +26,20 @@ class OpenedClipsTabRowViewModelImpl(
     private var _selectedClipId: String? by mutableStateOf(null)
     override val selectedClipId: String? get() = _selectedClipId
 
-    override val onHomePage: Boolean get() = selectedClipId == null
+    override val onHomePage: Boolean get() = selectedClipId == null && !onSettingsPage
+
+    private var _onSettingsPage: Boolean by mutableStateOf(false)
+    override val onSettingsPage: Boolean get() = _onSettingsPage
 
     /* Callbacks */
     override fun onHomeButtonClick() {
         _selectedClipId = null
+        _onSettingsPage = false
+    }
+
+    override fun onSettingsButtonClick() {
+        _selectedClipId = null
+        _onSettingsPage = true
     }
 
     /* Methods */

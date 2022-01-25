@@ -8,13 +8,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import model.impl.accounting.AudioClipAccountingServiceImpl
 import model.impl.txrx.AudioClipTxRxServiceImpl
-import specs.impl.*
+import specs.impl.application.PreferenceApplicationSpecs
+import specs.impl.editor.PreferenceAudioEditingServiceSpecs
+import specs.impl.editor.PreferenceEditorSpecs
+import specs.impl.saving.PreferenceSavingSpecs
+import specs.impl.txrx.PreferenceAudioClipTxRxServiceSpecs
 import utils.ComposeResourceResolverImpl
 import viewmodels.api.AppViewModel
 import viewmodels.impl.AppViewModelImpl
@@ -25,6 +28,7 @@ import views.dialogs.ProcessingErrorDialog
 import views.editor.EditorView
 import views.tab.OpenedClipsTabRow
 import views.home.HomePage
+import views.settings.SettingsPage
 import views.utils.WithoutTouchSlop
 
 fun App() {
@@ -32,7 +36,7 @@ fun App() {
         val coroutineScope = rememberCoroutineScope()
         val density = LocalDensity.current
         val (appViewModel: AppViewModel, windowSize) = remember {
-            val preferenceAudioServiceSpecs = PreferenceAudioClipEditingServiceSpecs()
+            val preferenceAudioServiceSpecs = PreferenceAudioEditingServiceSpecs()
             val preferenceEditorSpecs = PreferenceEditorSpecs()
             val preferenceSavingSpecs = PreferenceSavingSpecs()
             val preferenceApplicationSpecs = PreferenceApplicationSpecs()
@@ -52,6 +56,7 @@ fun App() {
                 editorSpecs = preferenceEditorSpecs,
                 savingSpecs = preferenceSavingSpecs,
                 applicationSpecs = preferenceApplicationSpecs,
+                clipEditingServiceSpecs = preferenceAudioServiceSpecs,
                 txRxSpecs = preferenceTxRxSpecs,
                 exitApplication = ::exitApplication
             )
@@ -94,7 +99,11 @@ fun App() {
                         OpenedClipsTabRow(appViewModel.openedClipsTabRowViewModel)
                         if (appViewModel.onHomePage) {
                             HomePage(appViewModel.homePageViewModel)
-                        } else {
+                        }
+                        else if (appViewModel.onSettingsPage) {
+                            SettingsPage(appViewModel.settingsPageViewModel)
+                        }
+                        else {
                             EditorView(appViewModel.editorViewModel)
                         }
                     }

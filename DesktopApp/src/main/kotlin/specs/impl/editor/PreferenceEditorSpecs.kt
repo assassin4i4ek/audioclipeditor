@@ -1,15 +1,16 @@
-package specs.impl
+package specs.impl.editor
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import specs.api.immutable.InputDevice
 import specs.api.mutable.MutableEditorSpecs
 import specs.impl.utils.BaseStatefulPreferenceSpecsImpl
-import java.io.File
+import specs.impl.utils.PreferenceSavableProperty
 import java.util.prefs.Preferences
 
 class PreferenceEditorSpecs: BaseStatefulPreferenceSpecsImpl(), MutableEditorSpecs {
     override val preferences: Preferences = Preferences.userNodeForPackage(this.javaClass)
+    override val properties: MutableList<PreferenceSavableProperty<*, *, *>> = mutableListOf()
 
     override var inputDevice: InputDevice by savableProperty(
         InputDevice.Touchpad, ::inputDevice, { it.name }, { InputDevice.valueOf(it) }

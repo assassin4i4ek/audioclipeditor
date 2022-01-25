@@ -6,7 +6,7 @@ import model.api.editor.audio.clip.fragment.MutableAudioClipFragment
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
 import model.impl.editor.audio.clip.fragment.transformer.*
 import model.impl.editor.audio.clip.fragment.AudioClipFragmentImpl
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 import java.io.OutputStream
 import java.util.*
 import javax.sound.sampled.AudioFormat
@@ -18,7 +18,7 @@ class AudioClipImpl(
     private var pcmBytes: ByteArray,
     channelsPcm: List<FloatArray>,
     private val soundPatternStorage: SoundPatternStorage,
-    private val specs: AudioClipEditingServiceSpecs
+    private val specs: AudioEditingServiceSpecs
 ) : AudioClip {
     override val sampleRate: Int = audioFormat.sampleRate.toInt()
     override var channelsPcm: List<FloatArray> = channelsPcm

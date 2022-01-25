@@ -15,7 +15,7 @@ import org.tensorflow.SavedModelBundle
 import org.tensorflow.ndarray.Shape
 import org.tensorflow.ndarray.buffer.DataBuffers
 import org.tensorflow.types.TString
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.time.ExperimentalTime
@@ -24,7 +24,7 @@ import kotlin.time.measureTimedValue
 class FragmentResolverImpl(
     resourceResolver: ResourceResolver,
     private val processor: SoundProcessor,
-    private val specs: AudioClipEditingServiceSpecs,
+    private val specs: AudioEditingServiceSpecs,
     coroutineScope: CoroutineScope,
 ): FragmentResolver {
     private val deferredModelWithConfig:

@@ -25,8 +25,8 @@ fun HomePage(
     ) {
         Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                ProvideTextStyle(MaterialTheme.typography.h6) {
-                    Text("Downloaded clips:")
+                ProvideTextStyle(MaterialTheme.typography.body2) {
+                    Text("Downloaded clips")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
                     val scrollState = rememberLazyListState()
@@ -34,12 +34,10 @@ fun HomePage(
                         state = scrollState,
                         modifier = Modifier
                             .padding(start = 8.dp)
-                            .border(Dp.Hairline, Color.LightGray)
                             .weight(1f)
                     ) {
                         items(homePageViewModel.processingClips) { clipViewModel ->
                             ProcessingClipView(clipViewModel)
-                            Divider(color = Color.LightGray)
                         }
                     }
                     VerticalScrollbar(rememberScrollbarAdapter(scrollState))
@@ -73,6 +71,9 @@ fun HomePage(
         }
         Card(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                ProvideTextStyle(MaterialTheme.typography.body2) {
+                    Text("Credentials")
+                }
                 TextField(
                     value = homePageViewModel.userEmail,
                     onValueChange = homePageViewModel::onUserEmailChange,
@@ -106,10 +107,11 @@ fun HomePage(
                         Text("Send processed clips to email")
                     }
                 )
-
+                Spacer(modifier = Modifier.weight(1f))
                 Button(
                     enabled = homePageViewModel.canProcessClips,
-                    onClick = homePageViewModel::onProcessClipsClick
+                    onClick = homePageViewModel::onProcessClipsClick,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Process")
                     if (homePageViewModel.isProcessingClips) {

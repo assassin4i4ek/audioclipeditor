@@ -1,9 +1,9 @@
 package specs.api.mutable
 
 import model.api.editor.audio.clip.fragment.transformer.FragmentTransformer
-import specs.api.immutable.AudioClipEditingServiceSpecs
+import specs.api.immutable.AudioEditingServiceSpecs
 
-interface MutableAudioClipEditingServiceSpecs: AudioClipEditingServiceSpecs, MutableSpecs {
+interface MutableAudioEditingServiceSpecs: AudioEditingServiceSpecs, MutableSpecs {
     override var dataLineMaxBufferDesolation: Float
 
     override var minImmutableAreaDurationUs: Long

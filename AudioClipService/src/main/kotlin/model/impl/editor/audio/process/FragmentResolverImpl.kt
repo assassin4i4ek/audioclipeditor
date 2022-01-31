@@ -173,10 +173,12 @@ class FragmentResolverImpl(
                         specs.lastFragmentSilenceDurationUs
                 }
             }
+            /*
             else if (fragment.rightBoundingFragment!!.rightBoundingFragment == null) {
                 // pre-last fragment
                 fragment.rightImmutableAreaEndUs = fragment.rightBoundingFragment!!.mutableAreaStartUs - 1
             }
+            */
             else {
                 fragment.rightImmutableAreaEndUs = (
                         fragment.rightBoundingFragment!!.mutableAreaStartUs + fragment.mutableAreaEndUs

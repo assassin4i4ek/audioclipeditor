@@ -22,11 +22,13 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         fun stopPlayFragment(fragment: AudioClipFragment)
         fun removeFragment(fragment: AudioClipFragment)
         fun updateFragmentTransformer(type: FragmentTransformer.Type, fragment: AudioClipFragment)
+        fun notifyTextInputActive(active: Boolean)
     }
 
     /* Child ViewModels */
 
     /* Simple properties */
+    private var isTextInputActive: Boolean = false
 
     /* Stateful properties */
     /* Fragment bounds properties */
@@ -181,9 +183,14 @@ abstract class BaseFragmentViewModelImpl<K: AudioClipFragment>(
         _silenceTransformerSilenceDurationMs = (silenceTransformer.silenceDurationUs / 1000).toString()
     }
 
+    override fun onTextInputActive(active: Boolean) {
+        isTextInputActive = active
+        parentViewModel.notifyTextInputActive(active)
+    }
+
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        return if (event.type == KeyEventType.KeyDown) {
+        return if (event.type == KeyEventType.KeyDown && !isTextInputActive) {
             when (event.key) {
                 Key.DirectionUp, Key.W -> {
                     onUpArrowClicked()

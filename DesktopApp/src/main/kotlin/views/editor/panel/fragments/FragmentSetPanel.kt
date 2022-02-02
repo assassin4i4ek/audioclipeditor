@@ -144,6 +144,7 @@ private fun SelectedSilenceTransformerPanel(fragmentViewModel: FragmentViewModel
                         .coerceAtLeast(64.dp)
                 )
                 .onFocusChanged {
+                    fragmentViewModel.onTextInputActive(it.isFocused)
                     if (!it.hasFocus) {
                         fragmentViewModel.onRefreshSilenceDurationMs()
                     }

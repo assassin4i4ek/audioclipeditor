@@ -54,6 +54,7 @@ interface FragmentViewModel<K: AudioClipFragment>: BaseViewModel {
     fun onRefreshSilenceDurationMs()
     fun onIncreaseSilenceDurationMs()
     fun onDecreaseSilenceDurationMs()
+    fun onTextInputActive(active: Boolean)
     @ExperimentalComposeUiApi
     fun onKeyEvent(event: KeyEvent): Boolean
 

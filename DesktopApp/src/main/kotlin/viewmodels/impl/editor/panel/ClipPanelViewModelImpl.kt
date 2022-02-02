@@ -83,6 +83,7 @@ class ClipPanelViewModelImpl(
     private lateinit var player: AudioClipPlayer
     private var playJob: Job? = null
     private var playingFragment: AudioClipFragment? = null
+    private var isTextInputActive: Boolean = false
 
     /* Stateful properties */
     override val canOpenClips: Boolean get() = parentViewModel.canOpenClips
@@ -257,7 +258,7 @@ class ClipPanelViewModelImpl(
 
     @ExperimentalComposeUiApi
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        val isEventHandled = if (event.type == KeyEventType.KeyDown) {
+        val isEventHandled = if (event.type == KeyEventType.KeyDown && !isTextInputActive) {
             when (event.key) {
                 Key.Spacebar -> {
                     if (canPauseClip || canStopClip) {
@@ -509,6 +510,10 @@ class ClipPanelViewModelImpl(
                     globalFragmentSetViewModel.fragmentViewModels[fragmentErrorStub]!!.setError(fragmentErrorStub)
                 }
             }
+    }
+
+    override fun notifyTextInputActive(active: Boolean) {
+        isTextInputActive = active
     }
 
     override fun updateFragmentTransformer(type: FragmentTransformer.Type, fragment: AudioClipFragment) {

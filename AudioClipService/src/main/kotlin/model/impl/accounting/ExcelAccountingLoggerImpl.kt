@@ -8,14 +8,18 @@ import model.api.utils.ResourceResolver
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import specs.api.immutable.AccountingServiceSpecs
 import java.io.File
 
 class ExcelAccountingLoggerImpl(
-    private val resourceResolver: ResourceResolver
+    private val specs: AccountingServiceSpecs
 ): AccountingLogger {
     override suspend fun log(entries: List<AccountingEntry>) {
         withContext(Dispatchers.Default) {
-            val spreadsheetFile = File(resourceResolver.getResourceAbsolutePath("accounting/Processed Clips.xlsx"))
+            val spreadsheetFile = specs.excelFile
+            if (!spreadsheetFile.exists()) {
+                spreadsheetFile.parentFile.mkdirs()
+            }
             val sheetName = "Processed Clips"
             val workbook = if (spreadsheetFile.exists()) {
                 withContext(Dispatchers.IO) {

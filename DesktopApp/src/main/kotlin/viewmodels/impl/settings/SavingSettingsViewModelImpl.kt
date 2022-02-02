@@ -3,16 +3,14 @@ package viewmodels.impl.settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
+import specs.api.mutable.MutableAccountingServiceSpecs
 import specs.api.mutable.MutableSavingSpecs
 import viewmodels.api.settings.SavingSettingsViewModel
 import java.io.File
-import java.lang.NullPointerException
-import java.nio.file.InvalidPathException
-import java.nio.file.Paths
 
 class SavingSettingsViewModelImpl(
-    private val savingSpecs: MutableSavingSpecs
+    private val savingSpecs: MutableSavingSpecs,
+    private val accountingSpecs: MutableAccountingServiceSpecs
 ) : SavingSettingsViewModel {
     /* Parent ViewModels */
 
@@ -36,6 +34,11 @@ class SavingSettingsViewModelImpl(
     )
     override val defaultClipMetadataSavingDir: String get() = _defaultClipMetadataSavingDir
 
+    private var _excelFilePath: String by mutableStateOf(
+        accountingSpecs.excelFile.absolutePath
+    )
+    override val excelFilePath: String get() = _excelFilePath
+
     private var _canSave: Boolean by mutableStateOf(false)
     override val canSave: Boolean get() = _canSave
 
@@ -55,6 +58,11 @@ class SavingSettingsViewModelImpl(
         _canSave = true
     }
 
+    override fun onExcelFilePathChange(newExcelFilePath: String) {
+        _excelFilePath = newExcelFilePath
+        _canSave = true
+    }
+
     override fun onRefreshTextFieldValues() {
         if (defaultPreprocessedClipSavingDir.isEmpty()) {
             _defaultPreprocessedClipSavingDir = savingSpecs.defaultPreprocessedClipSavingDir.absolutePath
@@ -65,12 +73,16 @@ class SavingSettingsViewModelImpl(
         if (defaultClipMetadataSavingDir.isEmpty()) {
             _defaultClipMetadataSavingDir = savingSpecs.defaultClipMetadataSavingDir.absolutePath
         }
+        if (_excelFilePath.isEmpty()) {
+            _excelFilePath = accountingSpecs.excelFile.absolutePath
+        }
     }
 
     override fun onSaveClick() {
         savingSpecs.defaultPreprocessedClipSavingDir = File(defaultPreprocessedClipSavingDir)
         savingSpecs.defaultTransformedClipSavingDir = File(defaultTransformedClipSavingDir)
         savingSpecs.defaultClipMetadataSavingDir = File(defaultClipMetadataSavingDir)
+        accountingSpecs.excelFile = File(excelFilePath)
         _canSave = false
     }
 
@@ -79,6 +91,7 @@ class SavingSettingsViewModelImpl(
         _defaultPreprocessedClipSavingDir = savingSpecs.defaultPreprocessedClipSavingDir.absolutePath
         _defaultTransformedClipSavingDir = savingSpecs.defaultTransformedClipSavingDir.absolutePath
         _defaultClipMetadataSavingDir = savingSpecs.defaultClipMetadataSavingDir.absolutePath
+        _excelFilePath = accountingSpecs.excelFile.absolutePath
         _canSave = false
     }
 

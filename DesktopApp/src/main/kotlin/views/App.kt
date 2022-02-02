@@ -13,6 +13,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import model.impl.accounting.AudioClipAccountingServiceImpl
 import model.impl.txrx.AudioClipTxRxServiceImpl
+import specs.impl.accounting.PreferenceAccountingServiceSpecs
 import specs.impl.application.PreferenceApplicationSpecs
 import specs.impl.editor.PreferenceAudioEditingServiceSpecs
 import specs.impl.editor.PreferenceEditorSpecs
@@ -41,6 +42,7 @@ fun App() {
             val preferenceSavingSpecs = PreferenceSavingSpecs()
             val preferenceApplicationSpecs = PreferenceApplicationSpecs()
             val preferenceTxRxSpecs = PreferenceAudioClipTxRxServiceSpecs()
+            val preferenceAccountingSpecs = PreferenceAccountingServiceSpecs()
 
             val resourceResolver = ComposeResourceResolverImpl()
 
@@ -49,12 +51,13 @@ fun App() {
                     resourceResolver, preferenceAudioServiceSpecs, coroutineScope
                 ),
                 audioClipTxRxService = AudioClipTxRxServiceImpl(preferenceTxRxSpecs),
-                audioClipAccountingService = AudioClipAccountingServiceImpl(resourceResolver),
+                audioClipAccountingService = AudioClipAccountingServiceImpl(preferenceAccountingSpecs),
                 pcmPathBuilder = AdvancedPcmPathBuilderImpl(),
                 coroutineScope = coroutineScope,
                 density = density,
                 editorSpecs = preferenceEditorSpecs,
                 savingSpecs = preferenceSavingSpecs,
+                accountingSpecs = preferenceAccountingSpecs,
                 applicationSpecs = preferenceApplicationSpecs,
                 clipEditingServiceSpecs = preferenceAudioServiceSpecs,
                 txRxSpecs = preferenceTxRxSpecs,

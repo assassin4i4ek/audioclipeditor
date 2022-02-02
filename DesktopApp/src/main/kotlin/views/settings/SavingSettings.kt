@@ -15,7 +15,7 @@ fun SavingSettings(savingSettingsViewModel: SavingSettingsViewModel) {
     Card(modifier = Modifier.width(420.dp)) {
         Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
             ProvideTextStyle(MaterialTheme.typography.body2) {
-                Text("Saving settings")
+                Text("Saving & accounting settings")
             }
             Spacer(modifier = Modifier.height(24.dp))
             LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -60,6 +60,21 @@ fun SavingSettings(savingSettingsViewModel: SavingSettingsViewModel) {
                         },
                         label = {
                             Text("Default saving dir for clips metadata")
+                        },
+                        singleLine = true
+                    )
+                }
+                item {
+                    TextField(
+                        savingSettingsViewModel.excelFilePath,
+                        savingSettingsViewModel::onExcelFilePathChange,
+                        Modifier.fillMaxWidth().onFocusChanged {
+                            if (!it.hasFocus) {
+                                savingSettingsViewModel.onRefreshTextFieldValues()
+                            }
+                        },
+                        label = {
+                            Text("Accounting excel file path")
                         },
                         singleLine = true
                     )

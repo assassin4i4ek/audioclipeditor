@@ -35,6 +35,7 @@ class AppViewModelImpl(
     density: Density,
     editorSpecs: MutableEditorSpecs,
     savingSpecs: MutableSavingSpecs,
+    accountingSpecs: MutableAccountingServiceSpecs,
     applicationSpecs: MutableApplicationSpecs,
     clipEditingServiceSpecs: MutableAudioEditingServiceSpecs,
     txRxSpecs: MutableAudioClipTxRxServiceSpecs,
@@ -52,7 +53,7 @@ class AppViewModelImpl(
         this, coroutineScope, applicationSpecs, savingSpecs, txRxSpecs
     )
     override val settingsPageViewModel: SettingsPageViewModel = SettingsPageViewModelImpl(
-        applicationSpecs, savingSpecs, editorSpecs, clipEditingServiceSpecs, txRxSpecs
+        applicationSpecs, savingSpecs, accountingSpecs, editorSpecs, clipEditingServiceSpecs, txRxSpecs
     )
     override val editorViewModel: EditorViewModel = EditorViewModelImpl(
         audioClipEditingService, pcmPathBuilder, this, coroutineScope, density, editorSpecs, savingSpecs

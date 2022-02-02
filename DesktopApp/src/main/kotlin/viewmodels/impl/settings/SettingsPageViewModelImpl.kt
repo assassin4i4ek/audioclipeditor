@@ -6,9 +6,10 @@ import viewmodels.api.settings.*
 class SettingsPageViewModelImpl(
     applicationSpecs: MutableApplicationSpecs,
     savingSpecs: MutableSavingSpecs,
+    accountingSpecs: MutableAccountingServiceSpecs,
     editorSpecs: MutableEditorSpecs,
     editingServiceSpecs: MutableAudioEditingServiceSpecs,
-    txRxServiceSpecs: MutableAudioClipTxRxServiceSpecs
+    txRxServiceSpecs: MutableAudioClipTxRxServiceSpecs,
 ): SettingsPageViewModel {
     /* Parent ViewModels */
 
@@ -17,7 +18,7 @@ class SettingsPageViewModelImpl(
         applicationSpecs
     )
     override val savingSettingsViewModel: SavingSettingsViewModel = SavingSettingsViewModelImpl(
-        savingSpecs
+        savingSpecs, accountingSpecs
     )
     override val editorSettingsViewModel: EditorSettingsViewModel = EditorSettingsViewModelImpl(
         editorSpecs

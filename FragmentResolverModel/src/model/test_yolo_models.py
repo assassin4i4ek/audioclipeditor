@@ -701,42 +701,51 @@ def YoloModel8(input_length, num_grid_cells, classes_shape):
     def reorg(stride):
         return K.layers.Lambda(lambda x: tf.image.extract_patches(x, [1, stride, stride, 1], [1, stride, stride, 1], [1, 1, 1, 1], 'SAME'))
 
+    def cast(dtype):
+        return K.layers.Lambda(lambda x: tf.cast(x, dtype))
+
     inp = K.layers.Input((input_length, 1))
+    x = inp
+    x = cast(tf.float32)(x)
     stft = kapre.STFT(n_fft=63, win_length=1024,
-                      hop_length=16, pad_end=True, pad_begin=True)(inp)
+                      hop_length=16, pad_end=True, pad_begin=True)(x)
     stft = kapre.Magnitude()(stft)
     stft = kapre.MagnitudeToDecibel()(stft)
+    stft = cast(tf.keras.backend.floatx())(stft)
     x = stft
-    x = conv2d(1, (1, 63), 1)(x)
+    x = conv2d(8, 3, 1)(x)
     x = maxpooling2d((2, 1), (2, 1))(x)
-    x = conv2d(2, 3, 1)(x)
+    x = conv2d(8, 3, 1)(x)
     x = maxpooling2d((2, 1), (2, 1))(x)
-    x = conv2d(2, 3, 1)(x)
+    x = conv2d(8, 3, 1)(x)
     x = maxpooling2d((2, 1), (2, 1))(x)
-    x = conv2d(4, 3, 1)(x)
+    x = conv2d(8, 3, 1)(x)
     x = maxpooling2d((2, 1), (2, 1))(x)
     x = conv2d(8, 3, 1)(x)
     x = maxpooling2d()(x)
-    x = conv2d(16, 3, 1)(x)
+    x = conv2d(8, 3, 1)(x)
     x = maxpooling2d()(x)
     r3 = reorg(8)(x)
-    x = conv2d(32, 3, 1)(x)
+    x = conv2d(16, 3, 1)(x)
     x = maxpooling2d()(x)
     r2 = reorg(4)(x)
-    x = conv2d(64, 3, 1)(x)
+    x = conv2d(32, 3, 1)(x)
     x = maxpooling2d()(x)
     r1 = reorg(2)(x)
-    x = conv2d(128, 3, 1)(x)
+    x = conv2d(64, 3, 1)(x)
     x = maxpooling2d()(x)
-    x = conv2d(256, 3, 1)(x)
+    x = conv2d(128, 3, 1)(x)
     x = K.layers.Add()([r1, x])
-    x = conv2d(512, 3, 1)(x)
+    x = conv2d(256, 3, 1)(x)
     x = K.layers.Add()([r2, x])
-    x = conv2d(1024, 3, 1)(x)
+    x = conv2d(512, 3, 1)(x)
     x = K.layers.Add()([r3, x])
 
     x = conv2d(filters=3 + classes_shape, kernel_size=3,
                strides=1, activation='sigmoid')(x)
-    x = K.layers.Lambda(lambda x: tf.squeeze(x, axis=2))(x)
+    x = K.layers.Lambda(lambda x: tf.squeeze(x, axis=-2))(x)
 
+    if num_grid_cells != x.shape[-2]:
+        raise ValueError(
+            f"num_grid_cells {num_grid_cells} doesn't match actual output shape {x.shape}")
     return K.models.Model(inputs=inp, outputs=x)
